@@ -10,6 +10,7 @@ partitions = 64
 code_sections = [".text", "D3D", "DSOUND", "XMV", "XPP"]
 # by hand: Xbox vertex shader microcode in .text (0x2078 headers, 16-byte NV2A instructions), not code
 data_ranges = [[0x001D16F0, 0x001D1784], [0x001D1C90, 0x001D1D14], [0x001F5C70, 0x001F8434]]
+trace = [0x000249E0, 0x0017BAD0, 0x00234BF0]  # bring-up: does startup open the archive
 library = "Unchained.dll"  # <exe>.dll, which the executable delay loads
 
 # extra entry points

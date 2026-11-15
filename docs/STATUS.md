@@ -61,18 +61,31 @@ Each boot named the function or data the last crash pointed at. Names come from 
 
 **Now (boot 17):** the game runs about 54 s presenting frames: a solid light-blue clear, then black for a while. Then the **XMV player** (`0x2D1381`, XTLID 0x0E0008) crashes in `CDirectSoundStream_Process` reading guest 0x12. Nothing but the clear colour is visible yet.
 
+## Boots 18+ (2026-11-15): off-screen tests, verbose log, the fade quad
+
+- **Test runs never reach a monitor.** The bring-up build strobes between the light-blue clear and black, so:
+  - `UNCHAINED_OFFSCREEN=1` (`src/common/game_info.cpp`) pins the game window far off-screen.
+  - `offscreen-guard.ps1` kills the game within 100 ms if its window (class `Unchained`) is ever on a monitor.
+  - `shot.ps1` captures the window with PrintWindow and can post F3 for a frame capture (`-F3At`, `-CaptureDir`).
+- **`UNCHAINED_VERBOSE_LOG=ON`** (CMake option, set in the local build) compiles the SDK's `log.cpp` without NDEBUG. Release builds then log Info/Debug lines (and `[xbe] trace`) to `logs/unchained_NNN.log`.
+- **What the verbose log shows:**
+  - Startup (`sub_249E0`) runs to the end and opens `Xbox.rkv` + `r01`–`r09` at 1.14 s.
+  - XAPI asks to relaunch at boot (the startup check the xiso tool patches), and the runtime refuses.
+  - Five DSound exports still run their own code (XTLID `B00A3`, `B0082`, `B0080`, `B002D`, `B000C`).
+  - The main loop (`sub_222D4` → `[vtable+0xC]`) presents frames. After about 52 s idle it opens `movies\attract.xmv` (the attract mode) and crashes in the XMV player.
+- **SDK fix 2 (local commit `9e13a11`, upstream PR candidate):** immediate mode with a pretransformed FVF (XYZRHW) was dropped ("not supported"). The slots are now packed in the FVF layout and drawn as `DrawVerticesUP` draws.
+- **Now:** each frame has one draw, the game's full-screen fade quad (FVF `0x144`), which now shows black over the light-blue clear. Nothing else draws, so the front end isn't putting anything on screen; the next step is the game's front-end state.
+
 Tooling:
-- `C:\Unchained-private\turn-build.ps1` rebuilds and boots.
-- `shot.ps1` takes timed screenshots.
+- `C:\Unchained-private\turn-build.ps1` rebuilds and boots off-screen.
 - `sample-threads.ps1` samples a running process's busy threads (dbghelp + DLL exports).
 - `tools/crash_stack.py` maps crash stacks to functions.
-- `src/game/hooks.cpp` holds Error-level diagnostic hooks: **release builds drop Info/Debug logs**, including `trace` and `XBE_PERF`.
-- The exe may rebuild `Unchained.dll` on first start after a build ("Game code: building"), which takes about 40 s.
+- The exe rebuilds `Unchained.dll` on first start after some builds ("Game code: building", about 20–40 s) and relaunches itself; the guard follows.
 
 ## Next
 
-1. XMV: why its DirectSound stream is null (the intro or attract movie). HLE it or skip it.
-2. Why only the clear colour shows: check that draws reach the renderer (F3 capture with `XBE_CAPTURE_DIR`).
+1. **Front end:** why only the fade quad draws. Trace the main loop's state (`sub_16C650`, which draws the fade) and what it waits on. Check the archive reads (`ArchiveRawFile`) and the `firstscreen` package load.
+2. **XMV attract movie:** the DirectSound stream it makes is null in `CDirectSoundStream_Process`. HLE XMV (the SDK has none; sp00nznet's toolkit or FFmpeg are references) or skip the attract mode.
 3. Try the union of PR #27's and hk21x's 5659 signatures for the other D3D/DSound functions.
 4. Name the rest in Ghidra (`analysis/whiplash.exe`), then run `xbe_symbols --sign` to make Whiplash-variant signatures for upstream.
 5. Add `data_ranges` for the XMV decoder tables once the attract movie path is HLE'd.

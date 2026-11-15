@@ -37,3 +37,10 @@ endif()
 
 # target name = GAME_EXE in build.bat, xbe = GAME_XBE
 add_xbe_image(Unchained default.xbe game.toml ${GAME_PARTITIONS} game)
+
+# Bring-up: release builds drop Info and Debug log lines (the SDK's log.cpp filters on NDEBUG). This compiles only that
+# file without NDEBUG, so a release build logs everything to logs/unchained_NNN.log, one file per run.
+option(UNCHAINED_VERBOSE_LOG "Info and Debug lines in release logs" OFF)
+if(UNCHAINED_VERBOSE_LOG)
+    set_source_files_properties(${SDK}/runtime/core/log.cpp PROPERTIES COMPILE_OPTIONS "-UNDEBUG")
+endif()
