@@ -8,6 +8,8 @@ xdk = 5659
 out = "generated/game"
 partitions = 64
 code_sections = [".text", "D3D", "DSOUND", "XMV", "XPP"]
+# by hand: Xbox vertex shader microcode in .text (0x2078 headers, 16-byte NV2A instructions), not code
+data_ranges = [[0x001D16F0, 0x001D1784], [0x001D1C90, 0x001D1D14], [0x001F5C70, 0x001F8434]]
 library = "Whiplash.dll"  # <exe>.dll, which the executable delay loads
 
 # extra entry points
@@ -161,7 +163,7 @@ D3DDevice_Swap                                       = 0
 D3DDevice_SwitchTexture                              = 0
 D3DResource_BlockUntilNotBusy                        = 0
 D3DResource_IsBusy                                   = 0
-Direct3D_CreateDevice                                = 0
+Direct3D_CreateDevice                                = 0x2B8180  # by hand: game render device init calls it at 0x1D0253; hk21x 5659 signatures agree
 DirectSoundCreate                                    = 0x2C8965
 DirectSoundCreateBuffer                              = 0
 DirectSoundCreateStream                              = 0x2C89AC
@@ -243,7 +245,7 @@ WSASend                                              = 0
 WSASendTo                                            = 0
 WSAStartup                                           = 0
 XAudioDownloadEffectsImage                           = 0
-XInitDevices                                         = 0
+XInitDevices                                         = 0x2F95A4  # by hand: game calls it at 0x1A6E2A with XPP_GamepadType
 XInputClose                                          = 0x2F96CE
 XInputGetState                                       = 0x2F96DA
 XInputOpen                                           = 0x2F9678

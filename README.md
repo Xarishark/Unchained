@@ -23,7 +23,7 @@ The data files are identical between the Redump and xiso images.
 1. Clone with submodules: `git clone --recursive`.
 2. Put the game's files in `assets/`: `default.xbe`, `Game.ini`, `Xbox.rkv`, `Xbox.r01`–`Xbox.r09`, `map/`, `movies/`, `objects/`, `newgame.dat`, `xbreverb.bin`.
 3. Install Visual Studio 2022 with **Desktop development with C++**, **C++ Clang tools for Windows** and **C++ CMake tools for Windows**.
-4. Run `build.bat`. It checks the XBE, writes `config/game.toml` with `xbe_symbols`, then recompiles and builds.
+4. Run `build.bat` (from `cmd`, type `.\build.bat` if your system doesn't search the current folder for commands). It checks the XBE, writes `config/game.toml` with `xbe_symbols`, then recompiles and builds. The first build takes 30 to 90 minutes.
 
 ## Status
 

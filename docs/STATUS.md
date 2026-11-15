@@ -38,6 +38,15 @@ The hk21x fork's 5659 signatures (from PGR2) do no better: 8 more functions, wit
   - 173 in the **XMV** section (WMV decoder tables). It only serves `attract.xmv` and will be replaced by an HLE player, so it can be marked as data.
   - 50 in `.text`, mostly around `0x1F5C70`–`0x1F8120`, plus 7 in DSOUND and 2 in D3D. These need checking in Ghidra and then `data_ranges`.
 
+## First builds and boots (2026-11-15)
+
+- The full build works with Visual Studio Community 2026 (v18) + Clang 23. The first build took about 17 minutes; a config-only rebuild takes about 10.
+- Run `.uild.bat`: this PC doesn't search the current folder for commands, so plain `build.bat` isn't found. The template's `.bat` files also have to be CRLF, so re-checkout them if they arrive LF-only.
+- **Boot 1:** an access violation reading `0xFED00000` (the OHCI USB controller) inside `XPP`, because `XInitDevices` was unmatched. **Fixed:** `XInitDevices = 0x2F95A4`, found from the call at `0x1A6E2A` with `XPP_GamepadType`.
+- The vertex shader microcode in `.text` is now marked as `data_ranges` (28 shaders).
+- **Boot 2:** gets past input init, then writes to `0xFD001804` (NV2A PCI command mirror) inside the game's own D3D: `Direct3D_CreateDevice` was unmatched. **Fix staged, not yet built:** `Direct3D_CreateDevice = 0x2B8180`. The game calls it from `sub_001D01A0` (render device init), and hk21x's signatures match the same address.
+- Expect more D3D/DSound traps until the ~140 unmatched functions are named. Using the union of PR #27's and hk21x's signatures would add 8, so try that first.
+
 ## Next
 
 1. Install Visual Studio 2022 (C++ workload, Clang tools, CMake tools) and do the first full build.
