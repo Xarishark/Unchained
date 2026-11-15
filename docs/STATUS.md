@@ -49,7 +49,7 @@ The hk21x fork's 5659 signatures (from PGR2) do no better: 8 more functions, wit
 
 ## Next
 
-1. Install Visual Studio 2022 (C++ workload, Clang tools, CMake tools) and do the first full build.
-2. In Ghidra, name the missing D3D/DSound/CRT functions, then run `xbe_symbols --sign`.
-3. Add `data_ranges` for the XMV tables and the `.text` cluster, then recheck the function count and overlaps.
-4. Boot and chase the first trap past entry `0x132F13`.
+1. Rebuild with `Direct3D_CreateDevice` named and boot again.
+2. Try the union of PR #27's and hk21x's 5659 signatures for the other D3D/DSound functions.
+3. Name the rest in Ghidra (`analysis/whiplash.exe`), then run `xbe_symbols --sign` to make Whiplash-variant signatures for upstream.
+4. Add `data_ranges` for the XMV decoder tables once the attract movie path is HLE'd.
