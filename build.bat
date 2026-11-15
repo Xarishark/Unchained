@@ -1,8 +1,8 @@
 @echo off
 setlocal
-set "GAME_TITLE=Whiplash"
+set "GAME_TITLE=Unchained"
 set "GAME_XBE=default.xbe"
-set "GAME_EXE=Whiplash"
+set "GAME_EXE=Unchained"
 title %GAME_TITLE% - Build
 cd /d "%~dp0"
 echo.

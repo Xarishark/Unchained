@@ -1,6 +1,6 @@
-# Whiplash - XBE Recomp
+# Unchained
 
-An unofficial native PC port of the original Xbox version of *Whiplash* (Crystal Dynamics / Eidos, 2003), made by static recompilation. **Work in progress: it doesn't boot yet.**
+**Unchained** is an unofficial native PC port of the original Xbox version of *Whiplash* (Crystal Dynamics / Eidos, 2003), made by static recompilation. **Work in progress: it doesn't boot yet.** The build produces `Unchained.exe`.
 
 This port is built with the [Xbox XBE Recomp](https://github.com/TGP482/XboxXBE-Recomp) tool.
 

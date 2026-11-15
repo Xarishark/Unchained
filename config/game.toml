@@ -10,7 +10,7 @@ partitions = 64
 code_sections = [".text", "D3D", "DSOUND", "XMV", "XPP"]
 # by hand: Xbox vertex shader microcode in .text (0x2078 headers, 16-byte NV2A instructions), not code
 data_ranges = [[0x001D16F0, 0x001D1784], [0x001D1C90, 0x001D1D14], [0x001F5C70, 0x001F8434]]
-library = "Whiplash.dll"  # <exe>.dll, which the executable delay loads
+library = "Unchained.dll"  # <exe>.dll, which the executable delay loads
 
 # extra entry points
 [functions]
@@ -267,15 +267,15 @@ XOnlineCleanup                                       = 0
 XOnlineStartup                                       = 0
 
 [data]
-D3D_DeferredTextureState    = 0
+D3D_DeferredTextureState    = 0x2C3500  # by hand: 0x2B4B0C stores [stage*32+type]
 D3D_Device                  = 0x2C39A0
-D3D_DirtyFlags              = 0
+D3D_DirtyFlags              = 0x2C34F8  # by hand: D3DDevice_SelectVertexShader 0x2B88F0 insn 11 ors 0x70 into it
 D3D_FvfShader               = 0
 D3D_IndexData               = 0
-D3D_pDevice                 = 0
-D3D_RenderState             = 0
+D3D_pDevice                 = 0x2C3998  # by hand: .XTLID 0x080003 lists it
+D3D_RenderState             = 0x2C3700  # by hand: D3DDevice_SetPixelShader 0x2B8430 insn 63 copies 0x39 dwords to it
 D3D_SimpleRenderStateEncode = 0x30B2E8
-D3D_Streams                 = 0
+D3D_Streams                 = 0x2C5E60  # by hand: 12 byte entries, stride +0, buffer +8: 0x2BB121 clears it, 0x2BECDF/0x2BECE8 read it
 DSound_StreamVtable         = 0x30B07C
 DSound_StreamVtable2        = 0x30B06C
 XPP_GamepadType             = 0x2F87CC

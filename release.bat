@@ -1,5 +1,5 @@
 @echo off
-set "GAME_EXE=Whiplash"
+set "GAME_EXE=Unchained"
 cd /d "%~dp0"
 set "OUT=out\build\release"
 rem the Visual C++ runtime beside the executable, so a fresh Windows install needs nothing more

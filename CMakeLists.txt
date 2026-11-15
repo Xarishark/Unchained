@@ -1,7 +1,7 @@
-# Whiplash (original Xbox, 2003), statically recompiled
+# Unchained: Whiplash (original Xbox, 2003), statically recompiled
 
 cmake_minimum_required(VERSION 3.25)
-project(whiplash LANGUAGES C CXX)
+project(unchained LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -36,4 +36,4 @@ if(NOT GAME_PARTITIONS)
 endif()
 
 # target name = GAME_EXE in build.bat, xbe = GAME_XBE
-add_xbe_image(Whiplash default.xbe game.toml ${GAME_PARTITIONS} game)
+add_xbe_image(Unchained default.xbe game.toml ${GAME_PARTITIONS} game)
