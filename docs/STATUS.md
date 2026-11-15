@@ -46,10 +46,11 @@ The hk21x fork's 5659 signatures (from PGR2) do no better: 8 more functions, wit
 - The vertex shader microcode in `.text` is now marked as `data_ranges` (28 shaders).
 - **Boot 2:** gets past input init, then writes to `0xFD001804` (NV2A PCI command mirror) inside the game's own D3D: `Direct3D_CreateDevice` was unmatched. **Fix staged, not yet built:** `Direct3D_CreateDevice = 0x2B8180`. The game calls it from `sub_001D01A0` (render device init), and hk21x's signatures match the same address.
 - Expect more D3D/DSound traps until the ~140 unmatched functions are named. Using the union of PR #27's and hk21x's signatures would add 8, so try that first.
+- **Boot 3** (with `Direct3D_CreateDevice` named): the runtime's D3D now takes over. It logs that `D3D_pDevice`, `D3D_DirtyFlags`, `D3D_DeferredTextureState`, `D3D_RenderState` and `D3D_Streams` are unknown for this image, then exits with `C0000409`. Those five D3D data symbols are next.
 
 ## Next
 
-1. Rebuild with `Direct3D_CreateDevice` named and boot again.
+1. Find the five D3D data symbols (the hk21x signatures read some of them from functions they match) and boot again.
 2. Try the union of PR #27's and hk21x's 5659 signatures for the other D3D/DSound functions.
 3. Name the rest in Ghidra (`analysis/whiplash.exe`), then run `xbe_symbols --sign` to make Whiplash-variant signatures for upstream.
 4. Add `data_ranges` for the XMV decoder tables once the attract movie path is HLE'd.
