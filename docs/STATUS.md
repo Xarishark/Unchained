@@ -74,7 +74,8 @@ Each boot named the function or data the last crash pointed at. Names come from 
   - Five DSound exports still run their own code (XTLID `B00A3`, `B0082`, `B0080`, `B002D`, `B000C`).
   - The main loop (`sub_222D4` → `[vtable+0xC]`) presents frames. After about 52 s idle it opens `movies\attract.xmv` (the attract mode) and crashes in the XMV player.
 - **SDK fix 2 (local commit `9e13a11`, upstream PR candidate):** immediate mode with a pretransformed FVF (XYZRHW) was dropped ("not supported"). The slots are now packed in the FVF layout and drawn as `DrawVerticesUP` draws.
-- **Now:** each frame has one draw, the game's full-screen fade quad (FVF `0x144`), which now shows black over the light-blue clear. Nothing else draws, so the front end isn't putting anything on screen; the next step is the game's front-end state.
+- **SDK fix 3 (local commit `ace2fa0`, upstream PR candidate): the strobe.** The runtime presented on every `D3DDevice_Swap`. Whiplash calls `Swap(2)` (BYPASSCOPY) and then `Swap(4)` (FINISH) every frame, so every other picture was a buffer nothing was drawn into. Its output alternated pale blue and black: a visible strobe. Now `FINISH` alone doesn't flip, as in the library. `strobe-check.ps1` captures 40 frames in a row: 8 colour changes before, 0 after.
+- **Now:** a steady screen in the game's own clear colour `EAF3F7` (pale blue). The one other draw per frame, `sub_1D0340`, is a GPU timing test (rdtsc around a pretransformed quad, the result stored in microseconds), not a fade. Nothing else draws yet; the next step is the game's front-end state.
 
 Tooling:
 - `C:\Unchained-private\turn-build.ps1` rebuilds and boots off-screen.
