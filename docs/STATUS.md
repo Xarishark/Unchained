@@ -48,9 +48,31 @@ The hk21x fork's 5659 signatures (from PGR2) do no better: 8 more functions, wit
 - Expect more D3D/DSound traps until the ~140 unmatched functions are named. Using the union of PR #27's and hk21x's signatures would add 8, so try that first.
 - **Boot 3** (with `Direct3D_CreateDevice` named): the runtime's D3D now takes over. It logs that `D3D_pDevice`, `D3D_DirtyFlags`, `D3D_DeferredTextureState`, `D3D_RenderState` and `D3D_Streams` are unknown for this image, then exits with `C0000409`. Those five D3D data symbols are next.
 
+## Boots 4 to 17 (2026-11-15, as Unchained)
+
+Each boot named the function or data the last crash pointed at. Names come from the 5659 layout's offsets, `.XTLID` export ids and call shapes; addresses and reasons are in `config/game.toml`:
+- **D3D data:** `pDevice`, `DirtyFlags`, `RenderState`, `DeferredTextureState`, `Streams`, `FvfShader`.
+- **D3D functions:** `SetTransform`, `BlockUntilVerticalBlank`, `SetScreenSpaceOffset`, `CDevice_KickOff`, `Swap`, `Clear`, `KickOffAndWaitForIdle`, `BlockOnTime`, `BlockOnResource`, `BeginPush`, `MakeSpace`, `MakeRequestedSpace`, `RunPushBuffer`.
+- **DSound functions:** `SetPlayRegion`, `StopEx`, `SynchPlayback`.
+
+**DSound `.XTLID` ids are alphabetical** (SetFrequency 0x6A, SetLoopRegion 0x6E, SetMixBins 0x71, SetMixBinVolumes 0x72, …). That allows filling gaps by counting.
+
+**SDK fix (local commit `d592d5a` on the sdk branch, upstream PR candidate):** the runtime allocated its 4 MB DrawVerticesUP ring from the title's 64 MB. Whiplash sizes its heap to the free memory, so the ring was null on the first UP draw and the copy crashed. The ring now comes from system memory (`0xB0000000`).
+
+**Now (boot 17):** the game runs about 54 s presenting frames: a solid light-blue clear, then black for a while. Then the **XMV player** (`0x2D1381`, XTLID 0x0E0008) crashes in `CDirectSoundStream_Process` reading guest 0x12. Nothing but the clear colour is visible yet.
+
+Tooling:
+- `C:\Unchained-private\turn-build.ps1` rebuilds and boots.
+- `shot.ps1` takes timed screenshots.
+- `sample-threads.ps1` samples a running process's busy threads (dbghelp + DLL exports).
+- `tools/crash_stack.py` maps crash stacks to functions.
+- `src/game/hooks.cpp` holds Error-level diagnostic hooks: **release builds drop Info/Debug logs**, including `trace` and `XBE_PERF`.
+- The exe may rebuild `Unchained.dll` on first start after a build ("Game code: building"), which takes about 40 s.
+
 ## Next
 
-1. Find the five D3D data symbols (the hk21x signatures read some of them from functions they match) and boot again.
-2. Try the union of PR #27's and hk21x's 5659 signatures for the other D3D/DSound functions.
-3. Name the rest in Ghidra (`analysis/whiplash.exe`), then run `xbe_symbols --sign` to make Whiplash-variant signatures for upstream.
-4. Add `data_ranges` for the XMV decoder tables once the attract movie path is HLE'd.
+1. XMV: why its DirectSound stream is null (the intro or attract movie). HLE it or skip it.
+2. Why only the clear colour shows: check that draws reach the renderer (F3 capture with `XBE_CAPTURE_DIR`).
+3. Try the union of PR #27's and hk21x's 5659 signatures for the other D3D/DSound functions.
+4. Name the rest in Ghidra (`analysis/whiplash.exe`), then run `xbe_symbols --sign` to make Whiplash-variant signatures for upstream.
+5. Add `data_ranges` for the XMV decoder tables once the attract movie path is HLE'd.
