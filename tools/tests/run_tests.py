@@ -125,6 +125,8 @@ def run_scenario(name, sc, base, exe, out):
     cap_dir.mkdir(exist_ok=True)
     frametimes = out / "frametimes.csv"
 
+    if sc.get("cold"):  # a first start on this PC: no compiled shaders kept from earlier runs
+        shutil.rmtree(exe_dir / "cache", ignore_errors=True)
     settings_file = exe_dir / "settings.toml"
     backup = settings_file.read_bytes() if settings_file.exists() else None
     table = dict(base)
@@ -396,9 +398,12 @@ def main():
         return 2
     out = a.out / f"tests-{datetime.datetime.now():%Y%m%d-%H%M%S}"
     records = []
+    seen = {}
     for n in names:
         print(f"[{n}] running", flush=True)
-        rec = run_scenario(n, scenarios[n], cfg.get("base_settings", {}), a.exe, out / n)
+        seen[n] = seen.get(n, 0) + 1
+        folder = n if seen[n] == 1 else f"{n}-{seen[n]}"  # a scenario run twice keeps both runs
+        rec = run_scenario(n, scenarios[n], cfg.get("base_settings", {}), a.exe, out / folder)
         if a.reference.exists():
             compare_reference(rec, scenarios[n], a.reference, a.out / "reference-cache")
         records.append(rec)

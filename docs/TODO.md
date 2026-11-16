@@ -38,7 +38,10 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
 
 ### Performance
 - [ ] **19. Steady frame rate** - measure with the frame-time suite at 60 and above.
-- [ ] **20. Shader and pipeline cache** across runs.
+- [x] **20. Shader and pipeline cache** across runs - SDK: compiled shaders kept in `cache\shaders.bin`; the
+  driver keeps its own pipeline cache. Evidence: recorded lobby run twice cold and twice warm
+  (`turns	ests-20261116-055150`): worst frame 204-208 ms cold, 76-77 ms warm; 0.1% low 8 to 17-18 fps, 1% low 33 to
+  41-43; hitches over 100 ms 2 to 0. The two left (53 and 77 ms) are the level entry (map open, shadow map made).
 - [ ] **21. Precompile every shader** before play (from a recorded list).
 - [~] **22. 30 to 360 fps at the right game speed** - SDK has an fps cap (60 by default); Whiplash's game logic speed
   above its own rate: the intro and the attract timer keep real time uncapped (scenarios `speed60` and `speed_uncapped`:

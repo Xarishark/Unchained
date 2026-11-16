@@ -7,6 +7,7 @@
 #   perf_from      frame times from this second on (after the loads)
 #   target_fps     the pace frames are judged against (60; 0 for the run's own median)
 #   env            more environment variables for the run
+#   cold           true: the shader cache is deleted first (a first start)
 
 [base_settings]
 display_mode = "windowed"
@@ -117,3 +118,18 @@ capture_at = [8, 14, 20]
 duration = 62
 target_fps = 0
 settings = { vsync_mode = "off", fps_cap = 0 }
+
+[scenario.lobby_cold]
+about = "the recorded lobby run from a cold start: no shader cache (compile hitches as a first run has them)"
+input_file = "runs/lobby.txt"
+capture_at = [63]
+duration = 66
+perf_from = 4
+cold = true
+
+[scenario.lobby_warm]
+about = "the recorded lobby run again with the shaders lobby_cold left in the cache"
+input_file = "runs/lobby.txt"
+capture_at = [63]
+duration = 66
+perf_from = 4
