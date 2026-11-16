@@ -14,13 +14,28 @@ This port is built with the [Xbox XBE Recomp](https://github.com/TGP482/XboxXBE-
 > [!NOTE]
 > This project does not include any game assets or game code. You must provide the files from your own legally acquired copy of the game to build or play.
 
+## Playing
+
+**You need:** your own copy of *Whiplash* for the original Xbox (USA): its disc image (`.iso`) or its extracted
+files. Windows 10 or later, a GPU with Direct3D 12, and about 5 GB of free disk space.
+
+1. Download the latest build and extract the zip to a folder you can write to, not Program Files.
+2. Start `Unchained Configuration.exe` (or `Unchained.exe`, which opens it the first time). On **GAME FILES**, choose
+   your disc image or folder. It checks your `default.xbe` is the supported release, copies the files beside
+   Unchained, and builds the game's code once on your PC, with its progress on the same page. Your own files aren't
+   changed.
+3. Press **PLAY**. Later, `Unchained.exe` starts the game directly; the Configuration app has the settings.
+
+Saves, settings, logs and caches stay in Unchained's folder (the data folder). `UNCHAINED_DATA_ROOT` moves it
+elsewhere. Something wrong? See the [FAQ](docs/FAQ.md).
+
 ## Supported game version
 
 Only **Whiplash (USA)** is supported, with the retail `default.xbe` from a Redump image:
 
 | | MD5 |
 |---|---|
-| Retail `default.xbe` (supported) | `ec7857a3065b582ed2b3ca479e40531e` |
+| Retail `default.xbe` (supported; SHA-1 `3ea30323cec5734ddd4d535b5a269786b6900dc4`, which the setup checks) | `ec7857a3065b582ed2b3ca479e40531e` |
 | xiso-tool patched copy (rejected) | `d0c5314a77f827c7b55b371c752a8d68`. One byte at file offset `0x123921` is `EB`; retail has `7D`. |
 
 The data files are identical between the Redump and xiso images.

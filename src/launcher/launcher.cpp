@@ -521,6 +521,46 @@ void PageSound() {
     ImGui::PopItemWidth();
 }
 
+std::string Narrow(const std::wstring& w) {
+    std::string s;
+    for (wchar_t c : w) s += c < 128 ? char(c) : '?';
+    return s;
+}
+
+// the game code build, as Savage Wind's setup does it: right after the copy, its progress here; later starts find the
+// code current. A setup that copied nothing (the files were already there) offers it with a button.
+void BuildPanel(bool copied) {
+    static bool started = false, tried = false;
+    if (copied && !started && !tried) {
+        tried = true;
+        started = app::StartGameCodeBuild();
+    }
+    app::BuildStatus b = app::GameCodeBuildStatus();
+    if (!started && !b.done) {
+        if (GameFilesPresent() && ImGui::Button("Build the game's code now", ImVec2(S(320), S(40)))) {
+            tried = true;
+            started = app::StartGameCodeBuild();
+        }
+        if (GameFilesPresent())
+            Note("It is built once on your PC from your files (10 to 30 minutes); otherwise the first start does it.");
+        return;
+    }
+    ImGui::Separator();
+    ImGui::PushFont(g_term);
+    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImGui::ColorConvertU32ToFloat4(kGreen));
+    if (b.running) ImGui::ProgressBar(b.fraction, ImVec2(S(530), S(22)));
+    ImGui::PopStyleColor();
+    ImU32 c = b.done && !b.ok ? kRed : kGreen;
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::ColorConvertU32ToFloat4(c));
+    ImGui::TextWrapped("> %s", Narrow(b.done && !b.ok ? b.failure : b.stage).c_str());
+    ImGui::PopStyleColor();
+    if (b.running && !b.time_left.empty())
+        ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(kGreenDim), "  %s", Narrow(b.time_left).c_str());
+    ImGui::PopFont();
+    if (b.running && ImGui::Button("Stop building", ImVec2(S(200), S(32)))) app::CancelGameCodeBuild();
+    if (b.done && b.ok) Note("Ready. Press PLAY.");
+}
+
 void PageFiles() {
     Setup& st = State();
     Stage stage;
@@ -567,6 +607,7 @@ void PageFiles() {
         ImGui::PopFont();
         if (busy && ImGui::Button("Stop", ImVec2(S(120), S(32)))) st.cancel = true;
     }
+    BuildPanel(stage == Stage::Done);
 }
 
 void PageAbout() {

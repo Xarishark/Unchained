@@ -12,11 +12,11 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
 ## Applies directly
 
 ### Core
-- [~] **2. Game files setup** - first run asks for the disc image (.iso) or extracted folder, checks the XBE SHA-1,
+- [x] **2. Game files setup** - first run asks for the disc image (.iso) or extracted folder, checks the XBE SHA-1,
   copies to the data folder, recompiles once with a progress screen. Done in the Configuration app's GAME FILES page
   (src/launcher/setup.cpp). Evidence: a first run beside no game files opens on it; a changed default.xbe is refused
-  with both SHA-1s; the real folder (1.5 GB) is checked and copied ("FILES IN PLACE"). To do: the code build's
-  progress window is the SDK's plain one, and a release folder needs the compiler files beside the exe.
+  with both SHA-1s; the real folder (1.5 GB) is checked and copied ("FILES IN PLACE"). The code build runs in
+  the same page (L5's evidence).
 - [~] **4. Whole game finishable** - training level plays; the rest untested. Track a playthrough per level.
 - [~] **5. Sound and voices correct** - sound bank plays; spoken dialogue (streamed `vo/VO_*`) never plays
   (docs/STATUS.md).
@@ -149,14 +149,16 @@ eport.md`.
   player's own disc art at runtime) - Genron Corporation's lab look: dark teal, the green terminal
   HUD frames, the "FREEDOM / CRAZY / MADNESS" word style for headings, Spanx and Redmond as accents. No game art in
   the repo: our own drawing, colours and fonts; art from the player's own disc only at runtime after setup.
-- [~] **L2. First-run flow** (done: pick, verify, copy, then PLAY; to do: a themed code build progress screen) - choose the disc image or folder, verify, extract to the data folder, recompile with a
+- [x] **L2. First-run flow** (pick, verify, copy, build the code with its progress in the app, then PLAY) - choose the disc image or folder, verify, extract to the data folder, recompile with a
   themed progress screen, then start straight into the game.
-- [~] **L5. Installs as Savage Wind's do** (user, 2026-11-16) - the release zip holds the program only (exe, a
+- [x] **L5. Installs as Savage Wind's do** (user, 2026-11-16) - the release zip holds the program only (exe, a
   `Unchained Configuration.exe` beside it, the bundled compiler and recompiler); the setup checks the player's files
   and copies them into the data folder; the game code is built once on their PC; saves, settings, logs and caches
   live in the data folder, the exe's by default, `UNCHAINED_DATA_ROOT` moves it (as `SAVAGEWIND_DATA_ROOT`). Done:
-  the Configuration exe (release.bat; PLAY starts Unchained.exe), the data root (log "Data: ..."). To do: the code
-  build inside the setup with its progress in the app, as Savage Wind's setup does.
+  the Configuration exe (release.bat; PLAY starts Unchained.exe), the data root (log "Data: ..."), the code build
+  inside the setup with its progress in the app (`app::StartGameCodeBuild`). Evidence: a release-like folder (exe
+  and compiler only): setup copied the files, built the code in 35 s ("The game's code is built"), and the next start
+  went straight into the game without a build.
 - [ ] **L3. Settings split** - quick ones in the game's Options, everything else in the Configuration app.
 - [x] **L4. Project conventions** - no game files in the repo or builds, a weighted status page with progress bars
   (`tools/todo_progress.py` into STATUS.md), a [FAQ](FAQ.md), a bug report template
