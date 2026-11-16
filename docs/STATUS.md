@@ -90,7 +90,27 @@ Each boot named the function or data the last crash pointed at. Names come from 
   - sp00nznet/xboxrecomp has a push-buffer executor, which is a design reference (MIT/LGPL parts; read, don't copy).
 - Test scripts now close the game with `WM_CLOSE` (`Stop-Unchained`), so the buffered Info log lines are flushed. Killing outright lost the tail of every log.
 
+### The intro renders (2026-11-15, SDK local `d95fdf2`)
+A push-buffer interpreter in `RunCommands` runs the raw NV2A commands Whiplash writes:
+- **Vertex programs:** program load/data/start (`0x1E9C`/`0x0B00`/`0x1EA0`) and execution mode (`0x1E94`).
+- **Vertex arrays:** array formats (`0x1760`) and offsets (`0x1720`).
+- **Textures:** stage offset/format/enable (`0x1B00`/`0x1B04`/`0x1B0C`), with a guest texture header per pushed texture.
+- **Pixel combiners:** packed back into a `D3DPIXELSHADERDEF`.
+- **Draws:** inline arrays (`0x1818`), array elements (`0x1800`/`0x1808`) and draw arrays (`0x1810`). Indexed vertices are gathered on the CPU into a packed layout.
+
+**Result (measured off-screen):**
+- About 2 s: a fade from black into the pale screen.
+- About 5 s on: a 3D snowy scene with the studio logo, then the **Whiplash title logo**, at about 60–70 draws a frame with 0 dropped.
+- `strobe-check.ps1` (whole-frame brightness over 40 captures): the largest frame-to-frame change is 5/255, with 0 strobe flips.
+
+**Known gaps:**
+- The text batch in the first seconds (820 quads, DXT font texture) doesn't show yet.
+- Linear textures (pushed size/pitch) aren't handled.
+- Texture stage states (address/filter, `0x1B08`/`0x1B14`) aren't applied.
+- Indexed draws are de-indexed on the CPU; measure the frame times before moving this to the GPU.
+
 Tooling:
+- `C:\Unchained-private\strobe-check.ps1`: brightness-based strobe detection; run it before showing the user anything.
 - `C:\Unchained-private\turn-build.ps1` rebuilds and boots off-screen.
 - `sample-threads.ps1` samples a running process's busy threads (dbghelp + DLL exports).
 - `tools/crash_stack.py` maps crash stacks to functions.
@@ -98,8 +118,10 @@ Tooling:
 
 ## Next
 
-1. **Front end:** why only the fade quad draws. Trace the main loop's state (`sub_16C650`, which draws the fade) and what it waits on. Check the archive reads (`ArchiveRawFile`) and the `firstscreen` package load.
-2. **XMV attract movie:** the DirectSound stream it makes is null in `CDirectSoundStream_Process`. HLE XMV (the SDK has none; sp00nznet's toolkit or FFmpeg are references) or skip the attract mode.
-3. Try the union of PR #27's and hk21x's 5659 signatures for the other D3D/DSound functions.
-4. Name the rest in Ghidra (`analysis/whiplash.exe`), then run `xbe_symbols --sign` to make Whiplash-variant signatures for upstream.
-5. Add `data_ranges` for the XMV decoder tables once the attract movie path is HLE'd.
+1. **Rendering gaps:** the opening text batch, texture stage states, linear textures. Compare against xemu screenshots of the intro and title.
+2. **Input to the title menu** (SDL3 pad → XInput HLE is already up), then the first level load.
+3. Frame-time suite (per-present CSV, 1%/0.1% lows, hitches) once it reaches gameplay, per CLAUDE.md.
+4. **XMV attract movie:** the DirectSound stream it makes is null in `CDirectSoundStream_Process`. HLE XMV (the SDK has none; sp00nznet's toolkit or FFmpeg are references) or skip the attract mode.
+5. Try the union of PR #27's and hk21x's 5659 signatures for the other D3D/DSound functions.
+6. Name the rest in Ghidra (`analysis/whiplash.exe`), then run `xbe_symbols --sign` to make Whiplash-variant signatures for upstream.
+7. Add `data_ranges` for the XMV decoder tables once the attract movie path is HLE'd.
