@@ -12,9 +12,11 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
 ## Applies directly
 
 ### Core
-- [ ] **2. Game files setup** - first run asks for the disc image (.iso) or extracted folder, checks the XBE SHA-1,
-  copies to the data folder, recompiles once with a progress screen. SDK: ISO mount and the first-launch code build
-  exist; the setup screen and copy step do not.
+- [~] **2. Game files setup** - first run asks for the disc image (.iso) or extracted folder, checks the XBE SHA-1,
+  copies to the data folder, recompiles once with a progress screen. Done in the Configuration app's GAME FILES page
+  (src/launcher/setup.cpp). Evidence: a first run beside no game files opens on it; a changed default.xbe is refused
+  with both SHA-1s; the real folder (1.5 GB) is checked and copied ("FILES IN PLACE"). To do: the code build's
+  progress window is the SDK's plain one, and a release folder needs the compiler files beside the exe.
 - [~] **4. Whole game finishable** - training level plays; the rest untested. Track a playthrough per level.
 - [~] **5. Sound and voices correct** - sound bank plays; spoken dialogue (streamed `vo/VO_*`) never plays
   (docs/STATUS.md).
@@ -77,7 +79,8 @@ eport.md`.
 
 ### Player features
 - [ ] **43. Settings in the game's own Options** - video, audio, controls pages.
-- [ ] **44. Direct start plus a Configuration app** (see Launcher below).
+- [x] **44. Direct start plus a Configuration app** - Unchained.exe starts the game when its files are there;
+  `Unchained.exe --configure` (or a first run) opens the Configuration app (src/launcher, `GameInfo::launcher`).
 - [ ] **45. One-click updates** from the Configuration app.
 - [x] **46. Save profiles** - SDK `save_profile`: a named profile keeps its own disk (`profiles/<name>`, saves and
   their backups). Evidence: scenario `profile` - log "hard disk under ...profiles/test profile", partitions made.
@@ -138,10 +141,13 @@ eport.md`.
 
 ## Launcher, files and theme (as SuperWonders did)
 
-- [ ] **L1. Configuration app themed to Whiplash** - Genron Corporation's lab look: dark teal, the green terminal
+- [~] **L1. Configuration app themed to Whiplash** (done: dark teal lab, green terminal frames with the game's tab
+  and cut corner, slanted FREEDOM / CRAZY / MADNESS words, Windows' Bahnschrift, Consolas and Impact; seven pages:
+  play, display, graphics, controls, sound and saves, game files, about; turns/config-pages.png. To do: the
+  player's own disc art at runtime) - Genron Corporation's lab look: dark teal, the green terminal
   HUD frames, the "FREEDOM / CRAZY / MADNESS" word style for headings, Spanx and Redmond as accents. No game art in
   the repo: our own drawing, colours and fonts; art from the player's own disc only at runtime after setup.
-- [ ] **L2. First-run flow** - choose the disc image or folder, verify, extract to the data folder, recompile with a
+- [~] **L2. First-run flow** (done: pick, verify, copy, then PLAY; to do: a themed code build progress screen) - choose the disc image or folder, verify, extract to the data folder, recompile with a
   themed progress screen, then start straight into the game.
 - [ ] **L3. Settings split** - quick ones in the game's Options, everything else in the Configuration app.
 - [x] **L4. Project conventions** - no game files in the repo or builds, a weighted status page with progress bars

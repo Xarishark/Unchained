@@ -123,6 +123,11 @@ void InitOptions() {
 
 }  // namespace
 
+// the Configuration app (src/launcher): the preset it sets and applies
+std::string& GraphicsPreset() { return g_preset; }
+void ApplyGraphicsPreset() { ApplyPreset(); }
+bool UnchainedLauncher();  // src/launcher/launcher.cpp
+
 void UnchainedPad(int port, input::Pad& p);  // input_keys.cpp: keyboard and scripted test input
 extern uint32_t g_fov_degrees, g_draw_distance;  // widescreen.cpp
 // controls.cpp: camera speed and inversion, vibration strength
@@ -169,5 +174,6 @@ const app::GameInfo app::kGame = {
     .target_scale = TargetScale,          // the shadow map at shadow_resolution
     .one_release = true,                  // TODO.md item 8: the one supported Xbox release, others refused
     .skip_texture = SkipTexture,          // character_shadows
+    .launcher = UnchainedLauncher,        // direct start, or the Configuration app (--configure, first run)
     .release_name = L"Unchained supports one Xbox release of Whiplash: the one whose default.xbe has the SHA-1 below.",
 };

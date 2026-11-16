@@ -9,6 +9,9 @@ image.
 
 **What languages?** The USA release is English only (text and voices).
 
+**How do I set it up or change settings?** Run `Unchained.exe --configure` (a first run without the game's files
+opens it by itself): GAME FILES takes your disc image or folder, the other pages hold the settings.
+
 **The first start takes a while.** The game's code is built for your PC once; later starts are quick.
 
 **The picture is blurry / small.** The game renders at the window's size; check `render_percent` is 100 or more in
