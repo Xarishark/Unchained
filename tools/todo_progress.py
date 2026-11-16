@@ -12,7 +12,7 @@ TODO = ROOT / "docs" / "TODO.md"
 STATUS = ROOT / "docs" / "STATUS.md"
 BEGIN, END = "<!-- PROGRESS -->", "<!-- /PROGRESS -->"
 WIDTH = 20  # characters in a bar
-SKIP = {"Not applicable"}
+SKIP = {"Not applicable", "Later"}
 
 sections = []
 current = None

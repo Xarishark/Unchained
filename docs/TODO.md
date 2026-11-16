@@ -72,9 +72,6 @@ eport.md`.
   follows the window (log: `render scale 3.975`), never under the console's, 200+ supersamples.
 - [x] **29. FSR 1** upscaling - `upscaler = 1` (default): AMD FSR 1 EASU when the view renders smaller than it
   shows (SDK `post/present.hlsl`, AMD MIT headers). Evidence: `tools/tests` scenario `fsr` (render_percent 50).
-- [~] **34. Colour grading** - exposure, contrast, saturation, temperature, tint (`grade_*`) and LUT files
-  (`colour_lut`: a .cube from luts/, picked in the Configuration app; scenario `lut`: a test split tone applied, log
-  "colour LUT ... 17^3"). Missing: the HUD keeping its colours (it is graded with the picture).
 - [x] **37. Anisotropic filtering** - SDK: `aniso`; Unchained defaults to 16x (log: `anisotropic_filtering = 16`).
 - [x] **38. Sharpening** - FSR 1 RCAS, `sharpen` 0-100 (0 off). Evidence: scenario `fsr` (sharpen 50).
 - [x] **39. Higher-resolution shadows** - `shadow_resolution` (default 2048, 0 follows the render scale) through
@@ -83,7 +80,6 @@ eport.md`.
   cameras with their own angle keep it. Not yet checked in play or in cutscenes.
 
 ### Player features
-- [ ] **43. Settings in the game's own Options** - video, audio, controls pages.
 - [x] **44. Direct start plus a Configuration app** - Unchained.exe starts the game when its files are there;
   `Unchained.exe --configure` (or a first run) opens the Configuration app (src/launcher, `GameInfo::launcher`).
 - [ ] **45. One-click updates** from the Configuration app.
@@ -98,8 +94,6 @@ eport.md`.
 - [ ] **50. Cheats overlay** - money, invincibility, unlocks. Not through the disc's Game.ini: its debug switches
   ("Player invincible", "Enable debug menus", "Disable Creature Shadows", "Hide All") are not in the retail xbe and
   are ignored (served rewritten, 2026-11-16: no change). Needs the game's own player and money fields.
-- [~] **51. Free camera and photo mode** - HUD hidden, a picture key. Done: F12 saves the window's picture as a PNG
-  in screenshots/ (scenario `screenshot`: a 2544x1401 PNG), `hud_visible` hides the HUD. To do: a free camera.
 - [x] **H. HUD at the screen edges** (user, 2026-11-16: "align to edge of screen like modern HUDs") - each HUD piece
   keeps its 4:3 shape and goes to its own edges, past the console's TV safe margin (`hud_edge`, 0 to 100, default
   100): left and right pieces to the sides, top and bottom pieces up and down, menus and centred text centred, full
@@ -133,11 +127,6 @@ eport.md`.
 - [~] **33. Draw distance** - `draw_distance` (percent, 100-1000) raises the cameras' far clip in the projection
   hook (src/game/widescreen.cpp). Indoors (lab, 400%) nothing changes and depth stays right; needs an outdoor level
   to show, and the game's own distance culling and level-of-detail distances are not found yet.
-- [~] **35. HDR10** - `hdr`: the finished SDR picture (frame and UI) to a 10 bit Rec. 2020 PQ swap chain, white at
-  `hdr_paper_white`, highlights stretched toward `hdr_peak` by `hdr_highlights`; the swap chain switches each second
-  as Windows' HDR or the setting changes; F3 and F12 save the SDR picture. Scenario `hdr` on an SDR display: falls back
-  with the log line "HDR asked, but Windows has this display in SDR", frame times as `hdr-off` (1% low 31.6 vs 31.3,
-  hitches 10/5/3/1 vs 10/4/3/1). Missing: a look on an HDR display.
 - [~] **36. Effect toggles** - Whiplash's own: hyper-mode trail, fog, shadows, glow, screen effects. Done:
   `character_shadows` (the shadow map's floor draws left out through `GameInfo::skip_texture`; log confirms). To do:
   the rest, once each effect's draws are known.
@@ -168,12 +157,29 @@ eport.md`.
   inside the setup with its progress in the app (`app::StartGameCodeBuild`). Evidence: a release-like folder (exe
   and compiler only): setup copied the files, built the code in 35 s ("The game's code is built"), and the next start
   went straight into the game without a build.
-- [ ] **L3. Settings split** - quick ones in the game's Options, everything else in the Configuration app.
 - [x] **L4. Project conventions** - no game files in the repo or builds, a weighted status page with progress bars
   (`tools/todo_progress.py` into STATUS.md), a [FAQ](FAQ.md), a bug report template
   (`.github/ISSUE_TEMPLATE/bug_report.md`), [SETTINGS.md](SETTINGS.md).
 
+## Later
+
+Started, then set aside by the user (2026-11-16: "Color lut and HDR can wait for now too", "Photo mode can wait"):
+kept as they are, not counted in the progress.
+
+- [~] **34. Colour grading** - exposure, contrast, saturation, temperature, tint (`grade_*`) and LUT files
+  (`colour_lut`: a .cube from luts/, picked in the Configuration app; scenario `lut`: a test split tone applied, log
+  "colour LUT ... 17^3"). Missing: the HUD keeping its colours (it is graded with the picture).
+- [~] **35. HDR10** - `hdr`: the finished SDR picture (frame and UI) to a 10 bit Rec. 2020 PQ swap chain, white at
+  `hdr_paper_white`, highlights stretched toward `hdr_peak` by `hdr_highlights`; the swap chain switches each second
+  as Windows' HDR or the setting changes; F3 and F12 save the SDR picture. Scenario `hdr` on an SDR display: falls back
+  with the log line "HDR asked, but Windows has this display in SDR", frame times as `hdr-off` (1% low 31.6 vs 31.3,
+  hitches 10/5/3/1 vs 10/4/3/1). Missing: a look on an HDR display.
+- [~] **51. Free camera and photo mode** - HUD hidden, a picture key. Done: F12 saves the window's picture as a PNG
+  in screenshots/ (scenario `screenshot`: a 2544x1401 PNG), `hud_visible` hides the HUD. To do: a free camera.
+
 ## Not applicable
 
-7 (voice-bank crash fix), 13 (gyro), 42 (ambient occlusion and volumetric fog as new effects, not planned),
+43 (settings in the game's own Options) and L3 (settings split with the game's Options): the overlay and the
+Configuration app hold the settings (user, 2026-11-16: "We don't have to do the in game settings menu, overlay and
+launcher options are fine"). 7 (voice-bank crash fix), 13 (gyro), 42 (ambient occlusion and volumetric fog as new effects, not planned),
 57 (achievements: no save-progress format known yet), 58 (amiibo).
