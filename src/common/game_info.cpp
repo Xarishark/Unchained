@@ -60,6 +60,15 @@ float TargetScale(uint32_t data, uint32_t gw, uint32_t gh, bool depth, float ren
     return sc;
 }
 
+// character_shadows false: the draws that lay the shadow map onto the floor are left out (the map itself is still
+// drawn, unseen)
+bool g_character_shadows = true;
+bool SkipTexture(uint32_t data) {
+    bool skip = !g_character_shadows && (data & 0x0FFFFFFF) == kShadowMap;
+    if (skip) LOG_FIRST(1, "unchained: character shadows off: the shadow map's floor draws are left out");
+    return skip;
+}
+
 // defaults that differ from the SDK's, for a settings file that does not name them yet
 constexpr uint32_t kDefaultAniso = 16;
 bool g_aniso_named = false;
@@ -142,7 +151,8 @@ const app::GameInfo app::kGame = {
                 {"invert_camera_y", &g_invert_camera_y, nullptr},
                 {"vibration", nullptr, &g_vibration},
                 {"mouse_camera", &g_mouse_camera, nullptr},
-                {"mouse_sensitivity", nullptr, &g_mouse_sensitivity},},  // game settings kept in the settings file
+                {"mouse_sensitivity", nullptr, &g_mouse_sensitivity},
+                {"character_shadows", &g_character_shadows, nullptr}},  // game settings kept in the settings file
     .load = LoadOptions,                         // reads more from the settings file's toml::table
     .save = SaveOptions,                  // writes more into it
     .init = InitOptions,                         // after the settings load, before the window and boot
@@ -158,5 +168,6 @@ const app::GameInfo app::kGame = {
     .expands = true,                      // src/game/widescreen.cpp widens its projection
     .target_scale = TargetScale,          // the shadow map at shadow_resolution
     .one_release = true,                  // TODO.md item 8: the one supported Xbox release, others refused
+    .skip_texture = SkipTexture,          // character_shadows
     .release_name = L"Unchained supports one Xbox release of Whiplash: the one whose default.xbe has the SHA-1 below.",
 };

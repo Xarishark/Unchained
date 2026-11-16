@@ -189,3 +189,23 @@ input = "30:start,33:a,36:a,39:a,42:a,45:a"
 capture_at = [58]
 settings = { colour_filter = 2, hud_visible = false }
 
+
+[scenario.noshadows]
+about = "character_shadows false: the shadow map's floor draws left out"
+input = "30:start,33:a,36:a,39:a,42:a,45:a"
+capture_at = [55]
+settings = { character_shadows = false }
+
+[scenario.profile]
+about = "save_profile: a named profile gets its own disk (profiles/<name>), starts with no saves"
+input = "30:start"
+capture_at = [40]
+duration = 44
+settings = { save_profile = "test profile" }
+
+[scenario.lobby_noshadows2]
+about = "the recorded lobby run with character_shadows false (shadows clear at 36 s in the lobby run)"
+input_file = "runs/lobby.txt"
+capture_at = [36]
+duration = 40
+settings = { character_shadows = false }

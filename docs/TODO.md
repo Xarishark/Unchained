@@ -79,7 +79,8 @@ eport.md`.
 - [ ] **43. Settings in the game's own Options** - video, audio, controls pages.
 - [ ] **44. Direct start plus a Configuration app** (see Launcher below).
 - [ ] **45. One-click updates** from the Configuration app.
-- [ ] **46. Save profiles.**
+- [x] **46. Save profiles** - SDK `save_profile`: a named profile keeps its own disk (`profiles/<name>`, saves and
+  their backups). Evidence: scenario `profile` - log "hard disk under ...profiles/test profile", partitions made.
 - [x] **47. Save backups** at each start, the last 5 kept - SDK `save_backups` (5): E:\UDATA to
   `save backups\<date time>` before boot. Evidence: log `saves: backed up to ...\save backups\2026-11-16 051540`;
   three runs, three folders.
@@ -123,7 +124,9 @@ eport.md`.
   hook (src/game/widescreen.cpp). Indoors (lab, 400%) nothing changes and depth stays right; needs an outdoor level
   to show, and the game's own distance culling and level-of-detail distances are not found yet.
 - [ ] **35. HDR10** - tone-map the game's output; needs correct brightness first (gamma ramp, `0x2B5740`).
-- [ ] **36. Effect toggles** - Whiplash's own: hyper-mode trail, fog, shadows, glow, screen effects.
+- [~] **36. Effect toggles** - Whiplash's own: hyper-mode trail, fog, shadows, glow, screen effects. Done:
+  `character_shadows` (the shadow map's floor draws left out through `GameInfo::skip_texture`; log confirms). To do:
+  the rest, once each effect's draws are known.
 - [ ] **41. Highest level of detail** at any distance.
 - [~] **49. Accessibility** - done: colour vision filters (`colour_filter` 1-3, daltonization in the present pass,
   `colour_filter_strength`) and HUD off (`hud_visible`, edge pieces only, menus stay). Evidence: scenario `deutan`

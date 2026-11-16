@@ -26,6 +26,7 @@ the game closed. A missing key takes its default. The Configuration app will set
 | `upscaler` | `1` | `0` bilinear, `1` AMD FSR 1 when rendering smaller than the window |
 | `sharpen` | `0` | FSR 1 RCAS sharpening, 0 to 100 |
 | `anisotropic_filtering` | `16` | Texture filtering at angles: 0 (as the game asks), 2, 4, 8, 16 |
+| `character_shadows` | `true` | `false` turns the characters' shadows off |
 | `shadow_resolution` | `2048` | Pixels across the characters' shadow map (the console's is 256); `0` follows the render scale |
 | `grade_exposure` | `0` | Hundredths of a stop, -300 to 300 |
 | `grade_contrast`, `grade_saturation` | `100` | Percent |
@@ -64,3 +65,4 @@ attack = ["F", "Mouse1"]
 | `audio_output` | `0` | `0` automatic, then stereo, surround, mono |
 | `save_folder` | `""` | Where the console's hard disk (your saves) lives; empty is `hdd` beside the exe |
 | `save_backups` | `5` | Copies of your saves made at each start in `save backups\`, the newest kept; `0` none |
+| `save_profile` | `""` | A named set of saves in `profiles\<name>`; empty is the main one |
