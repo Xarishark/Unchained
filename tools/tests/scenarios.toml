@@ -133,3 +133,10 @@ input_file = "runs/lobby.txt"
 capture_at = [63]
 duration = 66
 perf_from = 4
+
+[scenario.title43]
+about = "title menu at 4:3 (widescreen off): where the console puts each piece"
+input = "30:start"
+capture_at = [40]
+duration = 44
+settings = { widescreen = "off" }
