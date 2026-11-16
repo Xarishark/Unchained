@@ -10,6 +10,11 @@
 
 #include <toml++/toml.hpp>
 
+// overlay.cpp: the performance overlay (F10)
+bool OverlayMessage(uint32_t msg, uintptr_t wp);
+void OverlayUi(double fps);
+extern bool g_perf_overlay;
+
 // keyboard.cpp: rebindable keys in the settings file, the hidden cursor of the mouse camera
 void LoadKeys(const void* table);
 void SaveKeys(void* table);
@@ -33,6 +38,10 @@ void OffscreenWindow(void* hwnd) {
 
 bool OffscreenMessage(void* hwnd, uint32_t msg, uintptr_t wp, intptr_t lp, intptr_t* result) {
     if (KeyboardMessage(hwnd, msg, wp, lp, result)) return true;
+    if (OverlayMessage(msg, wp)) {
+        *result = 0;
+        return true;
+    }
     if (Offscreen() && msg == WM_WINDOWPOSCHANGING) {
         auto* pos = reinterpret_cast<WINDOWPOS*>(lp);
         pos->x = kAway;
@@ -157,14 +166,15 @@ const app::GameInfo app::kGame = {
                 {"vibration", nullptr, &g_vibration},
                 {"mouse_camera", &g_mouse_camera, nullptr},
                 {"mouse_sensitivity", nullptr, &g_mouse_sensitivity},
-                {"character_shadows", &g_character_shadows, nullptr}},  // game settings kept in the settings file
+                {"character_shadows", &g_character_shadows, nullptr},
+                {"perf_overlay", &g_perf_overlay, nullptr}},  // game settings kept in the settings file
     .load = LoadOptions,                         // reads more from the settings file's toml::table
     .save = SaveOptions,                  // writes more into it
     .init = InitOptions,                         // after the settings load, before the window and boot
     .loaded = nullptr,                    // image in memory, before its entry point runs
     .window = OffscreenWindow,                    // the game window is up
     .message = OffscreenMessage,                  // window messages first; true takes one
-    .ui = nullptr,                        // ImGui drawing each frame
+    .ui = OverlayUi,                        // ImGui drawing each frame
     .pad = ControlsPad,                  // keyboard and scripted input on port 0 (input_keys.cpp)
     .rumble = ControlsRumble,                    // changes a rumble before it is set
     .releases = {},                       // one release: the retail xbe

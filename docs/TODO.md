@@ -56,7 +56,9 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
   Evidence: `turns\tests-20261116-070924`: max renders at 7.95x with 4096 shadows, 60 fps, 1% low 52.8, 0.1% low
   48.4, no hitches; original gives the 4:3 console picture. The Advanced page comes with the Configuration app.
 - [ ] **25. Faster release build** - profile-guided optimisation and ThinLTO for the runtime.
-- [ ] **26. Performance overlay** - fps, frame time graph, GPU use.
+- [x] **26. Performance overlay** - fps, frame time graph, GPU use. F10 or `perf_overlay`: fps, frame time, a graph
+  of 240 frames, 1% and 0.1% lows and hitches over the last 1000 frames, the render size (src/common/overlay.cpp).
+  Evidence: scenario `overlay` (turns/tests-20261116-075548). GPU use is not shown yet.
 - [x] **27. Benchmark routes** - `tools/tests/run_tests.py`: scenarios with scripted or recorded input
   (`record.ps1`, `UNCHAINED_INPUT_RECORD`), captures, reference comparison and per-present frame times (1%/0.1% lows,
   hitches, stutter). Evidence: `turns\tests-20261116-045759

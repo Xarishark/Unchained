@@ -17,6 +17,7 @@ the game closed. A missing key takes its default. The Configuration app will set
 | `draw_distance` | `100` | The cameras' far clip in percent of the game's (100 to 1000) |
 | `vsync_mode` | `"on"` | `"off"`, `"on"`, `"adaptive"` (a tear instead of a held frame when late), `"fast"` (no wait, no tear) or `"vrr"` (for G-Sync / FreeSync, capped 3 under the refresh) |
 | `fps_cap` | `60` | Frame rate cap; `0` none, `1` the monitor's refresh rate |
+| `perf_overlay` | `false` | The performance overlay at start (F10 shows or hides it in game) |
 
 ## Picture
 

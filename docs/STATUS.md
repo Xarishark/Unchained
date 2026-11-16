@@ -7,12 +7,12 @@ PC port features from [TODO.md](TODO.md) (started items count half):
 |---|---|---|
 | Core | `████████████░░░░░░░░` | 62% (2.5 of 4) |
 | Platforms and input | `██████████░░░░░░░░░░` | 50% (3.5 of 7) |
-| Performance | `████████░░░░░░░░░░░░` | 38% (3 of 8) |
+| Performance | `██████████░░░░░░░░░░` | 50% (4 of 8) |
 | Graphics | `█████████████████░░░` | 86% (6 of 7) |
 | Player features | `████████░░░░░░░░░░░░` | 38% (4.5 of 12) |
 | Adapted to Whiplash | `████████░░░░░░░░░░░░` | 38% (4.5 of 12) |
 | Launcher, files and theme (as SuperWonders did) | `██████████░░░░░░░░░░` | 50% (2 of 4) |
-| **All** | `██████████░░░░░░░░░░` | **48%** (26 of 54) |
+| **All** | `██████████░░░░░░░░░░` | **50%** (27 of 54) |
 <!-- /PROGRESS -->
 
 The full plan is in `PLAN.md` in the analysis folder (outside this repo).

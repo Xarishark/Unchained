@@ -209,3 +209,9 @@ input_file = "runs/lobby.txt"
 capture_at = [36]
 duration = 40
 settings = { character_shadows = false }
+
+[scenario.overlay]
+about = "perf_overlay on: the performance overlay over the lab"
+input = "30:start,33:a,36:a,39:a,42:a,45:a"
+capture_at = [58]
+settings = { perf_overlay = true }
