@@ -1,9 +1,10 @@
 // Button prompts for the device in use (TODO.md item 15). The game's prompts are characters of its font: the
-// coloured A B X Y discs, White, Black and the triggers sit in one row of the font texture. Where the player uses a
-// PlayStation or Nintendo controller, or the keyboard, those cells are drawn again here (shapes and key caps made in
-// code, no art) through GameInfo::texture_image, and drawn anew whenever the device in use changes.
+// coloured A B X Y discs, White, Black and the triggers sit in one row of the font texture. Those cells are drawn
+// again here for the controller in use (a modern Xbox pad's lettered buttons and LB RB LT RT, PlayStation's symbols,
+// Nintendo's letters) or the keyboard's bound keys, shapes and key caps made in code (no art), through
+// GameInfo::texture_image, and drawn anew whenever the device in use changes.
 //
-// button_prompts: 0 the device in use, 1 Xbox, 2 PlayStation, 3 Nintendo, 4 keyboard.
+// button_prompts: 0 the device in use, 1 Xbox, 2 PlayStation, 3 Nintendo, 4 keyboard, 5 the console's own glyphs.
 #define NOMINMAX
 #include "app/app.h"
 #include "core/input.h"
@@ -25,7 +26,7 @@ std::string BoundKeyName(const char* action);  // keyboard.cpp: the action's fir
 
 namespace {
 
-enum Shown : int { kXbox, kPlayStation, kNintendo, kKeyboard };
+enum Shown : int { kXbox, kPlayStation, kNintendo, kKeyboard, kConsole };
 
 constexpr uint64_t kFontKey = 0x1a4d811ab994c436;  // the font texture (256x256 DXT5), as the texture dumps name it
 constexpr uint32_t kFontSide = 256;
@@ -47,6 +48,7 @@ int ShownNow() {
         case 2: return kPlayStation;
         case 3: return kNintendo;
         case 4: return kKeyboard;
+        case 5: return kConsole;
         default: return g_device.load();
     }
 }
@@ -196,6 +198,16 @@ void KeyCap(Canvas& cv, const std::string& key) {
     Text(cv, label, kKeyInk, hh * 1.1f, (hw - in) * 1.85f);
 }
 
+// a modern Xbox pad's buttons: the letter in its colour on a dark disc
+void XboxFace(Canvas& cv, Cell cell) {
+    Disc(cv);
+    static constexpr float kGreen[4] = {0.42f, 0.80f, 0.27f, 1}, kRed[4] = {0.93f, 0.28f, 0.24f, 1},
+                           kBlue[4] = {0.25f, 0.58f, 0.95f, 1}, kYellow[4] = {0.98f, 0.78f, 0.18f, 1};
+    const float* colour = cell == kA ? kGreen : cell == kB ? kRed : cell == kX ? kBlue : kYellow;
+    const wchar_t* letter = cell == kA ? L"A" : cell == kB ? L"B" : cell == kX ? L"X" : L"Y";
+    Text(cv, letter, colour, cv.h * 0.62f, cv.w * 0.8f);
+}
+
 // Nintendo's letters by position: south B, east A, west Y, north X
 void NintendoFace(Canvas& cv, Cell cell) {
     Disc(cv);
@@ -206,10 +218,16 @@ void NintendoFace(Canvas& cv, Cell cell) {
 void DrawCell(Canvas& cv, Cell cell, int shown) {
     bool face = cell <= kY;
     if (shown == kKeyboard) return KeyCap(cv, BoundKeyName(kAction[cell]));
-    if (face) return shown == kPlayStation ? PlayStationFace(cv, cell) : NintendoFace(cv, cell);
+    if (face) {
+        if (shown == kPlayStation) return PlayStationFace(cv, cell);
+        if (shown == kNintendo) return NintendoFace(cv, cell);
+        return XboxFace(cv, cell);
+    }
+    // White and Black are the shoulder buttons on today's pads (the SDK maps them so)
+    static const wchar_t* const kXs[] = {L"LB", L"RB", L"LT", L"RT"};
     static const wchar_t* const kPs[] = {L"L1", L"R1", L"L2", L"R2"};
     static const wchar_t* const kNs[] = {L"L", L"R", L"ZL", L"ZR"};
-    Plate(cv, (shown == kPlayStation ? kPs : kNs)[cell - kWhite]);
+    Plate(cv, (shown == kPlayStation ? kPs : shown == kNintendo ? kNs : kXs)[cell - kWhite]);
 }
 
 }  // namespace
@@ -217,10 +235,10 @@ void DrawCell(Canvas& cv, Cell cell, int shown) {
 // texture_edits: the font
 bool PromptsEdits(uint64_t key) { return key == kFontKey; }
 
-// texture_image: the font 4x, its button cells drawn for the device shown (the console's for Xbox)
+// texture_image: the font 4x, its button cells drawn for the device shown (left alone for the console's own)
 bool PromptsImage(uint64_t key, uint32_t& w, uint32_t& h, std::vector<uint8_t>& bgra) {
     int shown = g_applied.load();
-    if (key != kFontKey || shown <= kXbox || w != kFontSide || h != kFontSide) return false;
+    if (key != kFontKey || shown < 0 || shown == kConsole || w != kFontSide || h != kFontSide) return false;
     uint32_t W = w * kScale, H = h * kScale;
     std::vector<uint8_t> big(size_t(W) * H * 4);
     // bilinear, as the GPU samples the console's font, on premultiplied colour
@@ -303,7 +321,7 @@ void PromptsPad(const input::Pad& p) {
         if (now >= t) g_button_prompts = v;
     int shown = ShownNow();
     if (g_applied.exchange(shown) != shown) {
-        static const char* const kNames[] = {"Xbox", "PlayStation", "Nintendo", "keyboard"};
+        static const char* const kNames[] = {"Xbox", "PlayStation", "Nintendo", "keyboard", "the console's"};
         LOGI("unchained: %s button prompts", kNames[shown]);
         app::RefreshTextureImages();
     }

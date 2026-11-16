@@ -36,8 +36,9 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
 - [ ] **14. Handheld preset** - detect PC handhelds; 30/40/45/60 fps and the screen's own size.
 - [x] **15. Button prompts for the device in use** - Xbox, PlayStation or keyboard glyphs in the game's prompts,
   switching live. The prompts are characters in the game's font (texture `1a4d811ab994c436`); `src/common/prompts.cpp`
-  draws its button row again, 4x, through the SDK's new `GameInfo::texture_image`: PlayStation symbols, Nintendo
-  letters by position, or key caps with the keys bound in `[keys]`, made in code (no art). `button_prompts` 0 follows
+  draws its button row again, 4x, through the SDK's new `GameInfo::texture_image`: today's Xbox pad (coloured
+  letters on dark discs, LB RB LT RT; scenario `prompts_xbox`; `button_prompts` 5 keeps the console's own glyphs),
+  PlayStation symbols, Nintendo letters by position, or key caps with the keys bound in `[keys]`, made in code (no art). `button_prompts` 0 follows
   the device in use (the last controller touched, by SDL's gamepad type, or the keyboard and mouse; the keyboard at
   start with no controller). Scenarios `prompts_ps`, `prompts_nintendo`, `prompts_auto` (Space / Shift caps) in the
   "Play selected game?" dialog; `prompts_switch`: PlayStation then Nintendo in the same dialog of one run, the switch

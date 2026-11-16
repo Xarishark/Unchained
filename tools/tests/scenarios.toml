@@ -307,3 +307,10 @@ duration = 21
 capture_at = [19.15, 19.95]
 settings = { button_prompts = 2 }
 env = { UNCHAINED_PROMPTS_SWITCH = "19.25:3" }
+
+[scenario.prompts_xbox]
+about = "button_prompts 1: today's Xbox glyphs (lettered dark discs) in the Play selected game? dialog"
+input_file = "runs/lobby.txt"
+duration = 21
+capture_at = [19.8]
+settings = { button_prompts = 1 }
