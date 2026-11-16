@@ -765,11 +765,28 @@ bool Run(bool first_run) {
 
 }  // namespace launcher
 
-// GameInfo::launcher: the game at once when its files are there, else (or with --configure) the Configuration app
+// GameInfo::launcher: the game at once when its files are there, else (or with --configure) the Configuration app.
+// As Savage Wind ships it, the release also has "Unchained Configuration.exe" (this executable under that name): it
+// always opens the app, and PLAY starts Unchained.exe beside it.
 bool UnchainedLauncher() {
     if (std::getenv("XBE_AUTOSTART")) return true;  // unattended test runs
-    bool configure = std::wcsstr(GetCommandLineW(), L"--configure") != nullptr;
+    wchar_t self[MAX_PATH];
+    GetModuleFileNameW(nullptr, self, MAX_PATH);
+    bool config_exe = std::wcsstr(std::filesystem::path(self).filename().c_str(), L"Configuration") != nullptr;
+    bool configure = config_exe || std::wcsstr(GetCommandLineW(), L"--configure") != nullptr;
     bool present = launcher::GameFilesPresent();
     if (!configure && present) return true;
-    return launcher::Run(!present);
+    bool play = launcher::Run(!present);
+    if (!play || !config_exe) return play;
+    // the Configuration app's PLAY: the game is the other executable
+    std::filesystem::path game = std::filesystem::path(self).parent_path() / L"Unchained.exe";
+    STARTUPINFOW si{sizeof(si)};
+    PROCESS_INFORMATION pi{};
+    std::wstring cmd = L"\"" + game.wstring() + L"\"";
+    if (CreateProcessW(game.c_str(), cmd.data(), nullptr, nullptr, FALSE, 0, nullptr, game.parent_path().c_str(), &si,
+                       &pi)) {
+        CloseHandle(pi.hThread);
+        CloseHandle(pi.hProcess);
+    }
+    return false;
 }

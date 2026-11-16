@@ -23,6 +23,7 @@ Setup g_setup;
 // where the game looks: assets beside the exe or in a folder above it (a build's output); beside the exe for a new one
 fs::path AssetsDir() {
     std::error_code ec;
+    if (app::DataDir() != app::ExeDir()) return app::DataDir() / "assets";  // a moved data folder holds them
     fs::path dir = app::ExeDir();
     constexpr int kLevels = 6;
     for (int i = 0; i < kLevels; i++) {

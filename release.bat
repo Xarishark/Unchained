@@ -21,4 +21,6 @@ rem exe it starts
 del /q "%OUT%\compiler\*.dll" 2>nul
 for %%f in (msvcp140 vcruntime140) do copy /y "%VCRUNTIME%\%%f.dll" "%OUT%\compiler\" >nul
 rem the compiler folder without its work folder: no game code goes in the zip, the first start builds it
-7z a "%GAME_EXE%.zip" ".\%OUT%\%GAME_EXE%.exe" ".\%OUT%\release\assets" ".\%OUT%\compiler" .\README.md "%SDK%\THIRD_PARTY.txt" "%VCRUNTIME%\msvcp140.dll" "%VCRUNTIME%\vcruntime140.dll" "%VCRUNTIME%\vcruntime140_1.dll" -xr!work
+rem as Savage Wind ships it: a Configuration app beside the game (the same executable, opening its settings)
+copy /y "%OUT%\%GAME_EXE%.exe" "%OUT%\release\%GAME_EXE% Configuration.exe" >nul
+7z a "%GAME_EXE%.zip" ".\%OUT%\%GAME_EXE%.exe" ".\%OUT%\release\%GAME_EXE% Configuration.exe" ".\%OUT%\release\assets" ".\%OUT%\compiler" .\README.md "%SDK%\THIRD_PARTY.txt" "%VCRUNTIME%\msvcp140.dll" "%VCRUNTIME%\vcruntime140.dll" "%VCRUNTIME%\vcruntime140_1.dll" -xr!work

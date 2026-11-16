@@ -151,6 +151,12 @@ eport.md`.
   the repo: our own drawing, colours and fonts; art from the player's own disc only at runtime after setup.
 - [~] **L2. First-run flow** (done: pick, verify, copy, then PLAY; to do: a themed code build progress screen) - choose the disc image or folder, verify, extract to the data folder, recompile with a
   themed progress screen, then start straight into the game.
+- [~] **L5. Installs as Savage Wind's do** (user, 2026-11-16) - the release zip holds the program only (exe, a
+  `Unchained Configuration.exe` beside it, the bundled compiler and recompiler); the setup checks the player's files
+  and copies them into the data folder; the game code is built once on their PC; saves, settings, logs and caches
+  live in the data folder, the exe's by default, `UNCHAINED_DATA_ROOT` moves it (as `SAVAGEWIND_DATA_ROOT`). Done:
+  the Configuration exe (release.bat; PLAY starts Unchained.exe), the data root (log "Data: ..."). To do: the code
+  build inside the setup with its progress in the app, as Savage Wind's setup does.
 - [ ] **L3. Settings split** - quick ones in the game's Options, everything else in the Configuration app.
 - [x] **L4. Project conventions** - no game files in the repo or builds, a weighted status page with progress bars
   (`tools/todo_progress.py` into STATUS.md), a [FAQ](FAQ.md), a bug report template

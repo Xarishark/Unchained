@@ -69,7 +69,7 @@ std::vector<Scripted> Script() {
     std::string all = s;
     if (!all.empty() && all[0] == '@') {
         std::filesystem::path file = all.substr(1);
-        if (file.is_relative()) file = app::ExeDir() / file;
+        if (file.is_relative()) file = app::DataDir() / file;
         std::ifstream f(file);
         std::stringstream text;
         text << f.rdbuf();
@@ -101,7 +101,7 @@ public:
     Recorder() {
         const char* v = std::getenv("UNCHAINED_INPUT_RECORD");
         if (!v || !*v) return;
-        std::filesystem::path path = std::string(v) == "1" ? app::ExeDir() / "input_record.txt" : std::filesystem::path(v);
+        std::filesystem::path path = std::string(v) == "1" ? app::DataDir() / "input_record.txt" : std::filesystem::path(v);
         file_ = _wfopen(path.c_str(), L"w");
     }
     void Update(const input::Pad& p, double t) {

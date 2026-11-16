@@ -27,6 +27,9 @@ green in the game's data); the PS2 version you may have seen lights them differe
 
 **Can I use a keyboard and mouse?** Yes, rebindable in `settings.toml`'s `[keys]`; the mouse turns the camera.
 
+**Can I keep my game files and saves somewhere else?** Set `UNCHAINED_DATA_ROOT` to a folder: the game files,
+saves, settings, logs and caches go there; the program stays where it is.
+
 **Where are my saves?** In `hdd\E\UDATA\45530011` beside the exe (or `save_folder`). Each start backs them up to
 `save backups\`.
 
