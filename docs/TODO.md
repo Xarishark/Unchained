@@ -82,11 +82,13 @@ eport.md`.
   with a folder set.
 - [ ] **50. Cheats overlay** - money, invincibility, unlocks.
 - [ ] **51. Free camera and photo mode** - HUD hidden, a picture key.
-- [x] **H. HUD at the screen edges** (user, 2026-11-16) - widened, each HUD piece keeps its 4:3 shape and moves to
-  its own edge (left pieces left, right pieces right, menus and centred text centred, full width overlays full
-  width); text and bars inside a box follow it. SDK: per draw, from its vertices' range on the CPU (d3d12.cpp
-  ChooseDrawSide). Evidence: title menu whole; lab: inventory with its count, prompt text and the left health box
-  with "3/10" at the left edge (`turns\tests-20261116-063031`). The right health box is not yet seen in a capture.
+- [x] **H. HUD at the screen edges** (user, 2026-11-16: "align to edge of screen like modern HUDs") - each HUD piece
+  keeps its 4:3 shape and goes to its own edges, past the console's TV safe margin (`hud_edge`, 0 to 100, default
+  100): left and right pieces to the sides, top and bottom pieces up and down, menus and centred text centred, full
+  width overlays and bars as drawn; text and bars inside a box (this frame's or last frame's) follow it. Works at 4:3
+  too. SDK: per draw, from its vertices' range on the CPU (d3d12.cpp ChooseDrawSide). Evidence (lobby every 2 s,
+  `turns\tests-20261116-065649`): health boxes in the top corners with their numbers, inventory at the left edge,
+  chain counter in the bottom right corner, title menu whole. The money box is not yet seen in a capture.
 - [ ] **54. Translated menus** for Unchained's own screens.
 - [ ] **55. Discord Rich Presence**, off by default.
 - [ ] **56. Steam Deck and Add to Steam.**

@@ -140,3 +140,9 @@ input = "30:start"
 capture_at = [40]
 duration = 44
 settings = { widescreen = "off" }
+
+[scenario.lobby_hud]
+about = "the recorded lobby run captured every 2 s: the HUD pieces as they come and go (money box, health boxes)"
+input_file = "runs/lobby.txt"
+capture_at = [24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62]
+duration = 65
