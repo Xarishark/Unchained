@@ -130,7 +130,8 @@ eport.md`.
   (turns/tests-20261116-072431): red sign shifted toward pink, HUD gone. To do: invincibility, damage scaling, text
   speed (game hooks).
 - [ ] **52. Level and area select** in place of a teleport.
-- [~] **53. Mods** - SDK: texture replacement (`textures\replacement\`) and dumping; document it, add a mods folder.
+- [x] **53. Mods** - SDK: texture replacement (`textures\replacement\`) and dumping, documented in [MODS.md](MODS.md).
+  A served-file hook for other mods is in the SDK (`GameInfo::disc_file`).
 
 ## Launcher, files and theme (as SuperWonders did)
 
