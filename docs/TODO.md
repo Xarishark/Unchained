@@ -48,7 +48,7 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
   the same frames at 8, 14, 20 s at 60 and ~560 fps; attract movie at 56 s and 53 s). Gameplay physics and cutscenes
   at high rates still to check before the default cap goes above 60.
 - [~] **23. Graphics presets** - `graphics_preset` = custom, original, low, high, max (src/common/game_info.cpp).
-  Evidence: `turns	ests-20261116-070924`: max renders at 7.95x with 4096 shadows, 60 fps, 1% low 52.8, 0.1% low
+  Evidence: `turns\tests-20261116-070924`: max renders at 7.95x with 4096 shadows, 60 fps, 1% low 52.8, 0.1% low
   48.4, no hitches; original gives the 4:3 console picture. The Advanced page comes with the Configuration app.
 - [ ] **25. Faster release build** - profile-guided optimisation and ThinLTO for the runtime.
 - [ ] **26. Performance overlay** - fps, frame time graph, GPU use.
