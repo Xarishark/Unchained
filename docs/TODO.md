@@ -30,21 +30,25 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
 - [ ] **14. Handheld preset** - detect PC handhelds; 30/40/45/60 fps and the screen's own size.
 - [ ] **15. Button prompts for the device in use** - Xbox, PlayStation or keyboard glyphs in the game's prompts,
   switching live.
-- [~] **16. VRR and VSync modes** - SDK has VSync on/off; add Fast / Adaptive and VRR-friendly presentation.
+- [x] **16. VRR and VSync modes** - `vsync_mode` = off, on, adaptive (on while frames keep up, a tear instead of a
+  held frame), fast (no wait, no tear) or vrr (tearing allowed, capped 3 under the refresh). Evidence: scenarios
+  `vsync_*` on this PC's 280 Hz monitor, uncapped: on 280 fps, adaptive 295, off 572, fast 559, vrr 277; no hitches.
 - [x] **17. Window modes** - SDK: fullscreen, borderless, windowed, any resolution.
 
 ### Performance
 - [ ] **19. Steady frame rate** - measure with the frame-time suite at 60 and above.
 - [ ] **20. Shader and pipeline cache** across runs.
 - [ ] **21. Precompile every shader** before play (from a recorded list).
-- [~] **22. 30 to 360 fps at the right game speed** - SDK has an fps cap; Whiplash's game logic speed above its
-  own rate is untested (menus, cutscenes, physics).
+- [~] **22. 30 to 360 fps at the right game speed** - SDK has an fps cap (60 by default); Whiplash's game logic speed
+  above its own rate is untested (menus, cutscenes, physics). Uncapped, the title runs at 280-570 fps here: check
+  whether the game speeds up before allowing more than 60.
 - [ ] **23. Graphics presets** - Original, High, Max (and a low one) plus an Advanced page.
 - [ ] **25. Faster release build** - profile-guided optimisation and ThinLTO for the runtime.
 - [ ] **26. Performance overlay** - fps, frame time graph, GPU use.
 - [x] **27. Benchmark routes** - `tools/tests/run_tests.py`: scenarios with scripted or recorded input
   (`record.ps1`, `UNCHAINED_INPUT_RECORD`), captures, reference comparison and per-present frame times (1%/0.1% lows,
-  hitches, stutter). Evidence: `turns	ests-20261116-045759eport.md`.
+  hitches, stutter). Evidence: `turns	ests-20261116-045759
+eport.md`.
 
 ### Graphics
 - [x] **28. Resolution and render scale** - SDK: `render_percent`. Fixed 2026-11-16: the scale followed the

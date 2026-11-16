@@ -46,7 +46,6 @@ REF_DARK = 0.75         # our mean luma over the reference's under this: too dar
 REF_BRIGHT = 1.35       # over this: too bright
 REF_GREY = 0.6          # our mean saturation over the reference's under this: washed out
 SCALE_SLACK = 0.98      # render scale at least this share of what the window needs
-TARGET_MS = 1000.0 / 60
 HITCH_MS = (25, 33, 50, 100)
 STUTTER_MS = 4.0
 
@@ -213,7 +212,7 @@ def run_scenario(name, sc, base, exe, out):
         check_picture(img, t, rec)
     if len(folders) < len(at):
         rec["failures"].append(f"picture: {len(folders)} of {len(at)} captures")
-    rec["frames"] = frame_stats(frametimes, sc.get("perf_from", 0), at)
+    rec["frames"] = frame_stats(frametimes, sc.get("perf_from", 0), at, sc.get("target_fps", 60))
     return rec
 
 
@@ -299,7 +298,7 @@ def percentile(sorted_vals, p):
 CAPTURE_SKIP_S = 1.0  # a capture's read-backs stall the frames after it: those are the test's, not the game's
 
 
-def frame_stats(path, from_s, captures=()):
+def frame_stats(path, from_s, captures=(), target_fps=60):
     if not path.exists():
         return None
     rows = []
@@ -317,6 +316,7 @@ def frame_stats(path, from_s, captures=()):
         return None
     s = sorted(dts)
     n = len(dts)
+    target = 1000.0 / target_fps if target_fps else percentile(s, 50)
 
     def low(share):  # the fps of the slowest share of frames
         k = max(1, int(n * share))
@@ -328,7 +328,8 @@ def frame_stats(path, from_s, captures=()):
         "p50": percentile(s, 50), "p99": percentile(s, 99), "p999": percentile(s, 99.9), "max": s[-1],
         "hitches": {h: sum(1 for d in dts if d > h) for h in HITCH_MS},
         "stutter": sum(1 for a, b in zip(dts, dts[1:]) if abs(b - a) > STUTTER_MS),
-        "pacing": sum(1 for d in dts if abs(d - TARGET_MS) <= 2.0) / n,
+        # within 10% of the target interval (target_fps 0: the run's median, for uncapped or refresh-paced runs)
+        "pacing": sum(1 for d in dts if abs(d - target) <= target * 0.1) / n,
         "worst": [(round(dt, 1), i) for dt, i in worst],
     }
 

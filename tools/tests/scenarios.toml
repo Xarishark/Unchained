@@ -5,6 +5,8 @@
 #   settings       over base_settings, written to settings.toml for the run and restored after
 #   window         [width, height], else the whole work area of the primary monitor
 #   perf_from      frame times from this second on (after the loads)
+#   target_fps     the pace frames are judged against (60; 0 for the run's own median)
+#   env            more environment variables for the run
 
 [base_settings]
 display_mode = "windowed"
@@ -57,3 +59,48 @@ input_file = "runs/lobby.txt"
 capture_at = [36, 63]
 duration = 66
 env = { XBE_CAPTURE_ALL = "1" }
+
+[scenario.vsync_on]
+about = "frame times on the title screen with vsync_mode = on (fps_cap 0: uncapped but for the mode)"
+input = "30:start"
+capture_at = [45]
+duration = 50
+perf_from = 34
+target_fps = 0
+settings = { vsync_mode = "on", fps_cap = 0 }
+
+[scenario.vsync_off]
+about = "frame times on the title screen with vsync_mode = off (fps_cap 0: uncapped but for the mode)"
+input = "30:start"
+capture_at = [45]
+duration = 50
+perf_from = 34
+target_fps = 0
+settings = { vsync_mode = "off", fps_cap = 0 }
+
+[scenario.vsync_adaptive]
+about = "frame times on the title screen with vsync_mode = adaptive (fps_cap 0: uncapped but for the mode)"
+input = "30:start"
+capture_at = [45]
+duration = 50
+perf_from = 34
+target_fps = 0
+settings = { vsync_mode = "adaptive", fps_cap = 0 }
+
+[scenario.vsync_fast]
+about = "frame times on the title screen with vsync_mode = fast (fps_cap 0: uncapped but for the mode)"
+input = "30:start"
+capture_at = [45]
+duration = 50
+perf_from = 34
+target_fps = 0
+settings = { vsync_mode = "fast", fps_cap = 0 }
+
+[scenario.vsync_vrr]
+about = "frame times on the title screen with vsync_mode = vrr (fps_cap 0: uncapped but for the mode)"
+input = "30:start"
+capture_at = [45]
+duration = 50
+perf_from = 34
+target_fps = 0
+settings = { vsync_mode = "vrr", fps_cap = 0 }
