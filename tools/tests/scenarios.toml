@@ -146,3 +146,16 @@ about = "the recorded lobby run captured every 2 s: the HUD pieces as they come 
 input_file = "runs/lobby.txt"
 capture_at = [24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56, 58, 60, 62]
 duration = 65
+
+[scenario.prestart]
+about = "the screens before the main menu (press start, login), every 2-3 s around the start press"
+input = "30:start"
+capture_at = [20, 24, 27, 29, 31, 33, 36]
+duration = 39
+
+[scenario.prestart43]
+about = "the same at 4:3, as the console draws it"
+input = "30:start"
+capture_at = [20, 24, 27, 29, 31, 33, 36]
+duration = 39
+settings = { widescreen = "off", hud_edge = 0 }
