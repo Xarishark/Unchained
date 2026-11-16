@@ -13,6 +13,7 @@
 display_mode = "windowed"
 width = 640
 height = 480
+mouse_camera = false  # a focused test window would take the mouse from whoever uses the PC
 
 [scenario.title]
 about = "title menu, widened 3D behind the 4:3 menu"

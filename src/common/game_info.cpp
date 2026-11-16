@@ -9,6 +9,11 @@
 
 #include <toml++/toml.hpp>
 
+// keyboard.cpp: rebindable keys in the settings file, the hidden cursor of the mouse camera
+void LoadKeys(const void* table);
+void SaveKeys(void* table);
+bool KeyboardMessage(void* hwnd, uint32_t msg, uintptr_t wp, intptr_t lp, intptr_t* result);
+
 namespace {
 
 // UNCHAINED_OFFSCREEN set: the game window lives far off-screen, for automated boot tests (screenshots still work
@@ -25,7 +30,8 @@ void OffscreenWindow(void* hwnd) {
         SetWindowPos(static_cast<HWND>(hwnd), nullptr, kAway, kAway, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
-bool OffscreenMessage(void*, uint32_t msg, uintptr_t, intptr_t lp, intptr_t*) {
+bool OffscreenMessage(void* hwnd, uint32_t msg, uintptr_t wp, intptr_t lp, intptr_t* result) {
+    if (KeyboardMessage(hwnd, msg, wp, lp, result)) return true;
     if (Offscreen() && msg == WM_WINDOWPOSCHANGING) {
         auto* pos = reinterpret_cast<WINDOWPOS*>(lp);
         pos->x = kAway;
@@ -89,12 +95,16 @@ void ApplyPreset() {
 }
 
 void LoadOptions(const void* table) {
+    LoadKeys(table);
     const auto& t = *static_cast<const toml::table*>(table);
     g_aniso_named = t.contains("anisotropic_filtering");
     g_preset = t["graphics_preset"].value_or(g_preset);
 }
 
-void SaveOptions(void* table) { static_cast<toml::table*>(table)->insert_or_assign("graphics_preset", g_preset); }
+void SaveOptions(void* table) {
+    static_cast<toml::table*>(table)->insert_or_assign("graphics_preset", g_preset);
+    SaveKeys(table);
+}
 
 void InitOptions() {
     if (!g_aniso_named) app::Get().aniso = kDefaultAniso;
@@ -108,6 +118,8 @@ extern uint32_t g_fov_degrees;  // widescreen.cpp
 // controls.cpp: camera speed and inversion, vibration strength
 extern uint32_t g_camera_speed, g_vibration;
 extern bool g_invert_camera_x, g_invert_camera_y;
+extern bool g_mouse_camera;  // keyboard.cpp
+extern uint32_t g_mouse_sensitivity;
 void ControlsPad(int port, input::Pad& p);
 void ControlsRumble(int port, uint16_t& left, uint16_t& right);
 
@@ -126,7 +138,9 @@ const app::GameInfo app::kGame = {
                 {"camera_speed", nullptr, &g_camera_speed},
                 {"invert_camera_x", &g_invert_camera_x, nullptr},
                 {"invert_camera_y", &g_invert_camera_y, nullptr},
-                {"vibration", nullptr, &g_vibration}},  // game settings kept in the settings file  // game settings kept in the settings file
+                {"vibration", nullptr, &g_vibration},
+                {"mouse_camera", &g_mouse_camera, nullptr},
+                {"mouse_sensitivity", nullptr, &g_mouse_sensitivity}},  // game settings kept in the settings file  // game settings kept in the settings file
     .load = LoadOptions,                         // reads more from the settings file's toml::table
     .save = SaveOptions,                  // writes more into it
     .init = InitOptions,                         // after the settings load, before the window and boot

@@ -26,8 +26,9 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
   one used is read.
 - [~] **11. Camera speed and vibration strength** - `camera_speed` (percent), `invert_camera_x`/`_y`, `vibration`
   (percent) in `src/common/controls.cpp`. Built, not yet felt in play (the user found the camera "weird and off").
-- [~] **12. Keyboard and mouse** - fixed keys exist (`src/common/input_keys.cpp`); add rebinding and a real mouse
-  camera.
+- [~] **12. Keyboard and mouse** - every action rebindable in the settings file's `[keys]` table (keys and mouse
+  buttons; `src/common/keyboard.cpp`), the mouse turns the camera (`mouse_camera`, `mouse_sensitivity`), left and
+  right mouse are X and B. Built; scripted runs unaffected; the mouse camera not yet felt in play.
 - [ ] **14. Handheld preset** - detect PC handhelds; 30/40/45/60 fps and the screen's own size.
 - [ ] **15. Button prompts for the device in use** - Xbox, PlayStation or keyboard glyphs in the game's prompts,
   switching live.

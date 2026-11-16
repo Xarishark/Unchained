@@ -1,9 +1,9 @@
-// Keyboard controls and scripted test input, merged into controller port 0 (GameInfo::pad).
-//
-// Keyboard, while the game window has focus:
+// Keyboard and mouse (keyboard.cpp: rebindable, the mouse camera) and scripted test input, merged into controller
+// port 0 (GameInfo::pad). Default keys, while the game window has focus:
 //   arrows      d-pad (menus)          W A S D     left stick (move)
-//   I J K L     right stick (camera)   Enter       Start        Esc   Back
-//   Space       A                      Left Shift  B            F     X        R   Y
+//   mouse       camera                 I J K L     right stick (camera)
+//   Enter       Start                  Esc         Back
+//   Space       A                      Left Shift, right mouse   B     F, left mouse   X     R   Y
 //   Q / E       left / right trigger   C / V       black / white
 //
 // UNCHAINED_INPUT scripts presses for test runs, seconds after start: "30:start,32:a,33.5:down:400" (button, hold in ms,
@@ -154,27 +154,14 @@ void Stick(int16_t& x, int16_t& y, int left, int right, int up, int down) {
 
 }  // namespace
 
+void KeyboardPad(input::Pad& p);  // keyboard.cpp
+
 void UnchainedPad(int port, input::Pad& p) {
     if (port != 0) return;
     // port 0 always has a controller: the keyboard, as well as any real one
     p.connected = true;
     if (GameFocused()) {
-        if (Key(VK_UP)) p.buttons |= kUp;
-        if (Key(VK_DOWN)) p.buttons |= kDown;
-        if (Key(VK_LEFT)) p.buttons |= kLeft;
-        if (Key(VK_RIGHT)) p.buttons |= kRight;
-        if (Key(VK_RETURN)) p.buttons |= kStart;
-        if (Key(VK_ESCAPE)) p.buttons |= kBack;
-        if (Key(VK_SPACE)) p.analog[kA] = 0xFF;
-        if (Key(VK_LSHIFT)) p.analog[kB] = 0xFF;
-        if (Key('F')) p.analog[kX] = 0xFF;
-        if (Key('R')) p.analog[kY] = 0xFF;
-        if (Key('C')) p.analog[kBlack] = 0xFF;
-        if (Key('V')) p.analog[kWhite] = 0xFF;
-        if (Key('Q')) p.analog[kLt] = 0xFF;
-        if (Key('E')) p.analog[kRt] = 0xFF;
-        Stick(p.lx, p.ly, 'A', 'D', 'W', 'S');
-        Stick(p.rx, p.ry, 'J', 'L', 'I', 'K');
+        KeyboardPad(p);
     }
     static const auto start = std::chrono::steady_clock::now();
     static const std::vector<Scripted> script = Script();
