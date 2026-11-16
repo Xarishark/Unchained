@@ -10,7 +10,6 @@ partitions = 64
 code_sections = [".text", "D3D", "DSOUND", "XMV", "XPP"]
 # by hand: Xbox vertex shader microcode in .text (0x2078 headers, 16-byte NV2A instructions), not code
 data_ranges = [[0x001D16F0, 0x001D1784], [0x001D1C90, 0x001D1D14], [0x001F5C70, 0x001F8434]]
-trace = [0x001DFC60, 0x001DF9F0, 0x001DFA00, 0x001DFC30, 0x001DF860, 0x001DF9C0, 0x001E44E0, 0x001DFAA0, 0x001D9480, 0x001D94B0, 0x001D9550, 0x001E79E0, 0x001E79F0, 0x001DAB40]  # bring-up: DVD raw file, IO request, archive file, package loader methods
 library = "Unchained.dll"  # <exe>.dll, which the executable delay loads
 
 # extra entry points
