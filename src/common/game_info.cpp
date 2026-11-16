@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <string>
 #include <windows.h>
 
 #include <toml++/toml.hpp>
@@ -56,12 +57,48 @@ float TargetScale(uint32_t data, uint32_t gw, uint32_t gh, bool depth, float ren
 constexpr uint32_t kDefaultAniso = 16;
 bool g_aniso_named = false;
 
-void LoadOptions(const void* table) {
-    g_aniso_named = static_cast<const toml::table*>(table)->contains("anisotropic_filtering");
+// graphics_preset: "custom" leaves each setting as the file has it; the others set the graphics ones together
+// (the Configuration app writes the preset's name with them)
+struct Preset {
+    const char* name;
+    uint32_t render_percent, aniso, shadow, upscaler, sharpen, hud_edge;
+    app::Wide widescreen;  // Expand stays the player's choice (Console, Off, Expand) unless the preset is the console's
+    bool console_look;
+};
+constexpr Preset kPresets[] = {
+    {"original", 100, 0, 0, 0, 0, 0, app::Wide::Off, true},  // the console's picture, sharp at the output's size
+    {"low", 75, 4, 1024, 1, 30, 100, app::Wide::Expand, false},
+    {"high", 100, 16, 2048, 1, 0, 100, app::Wide::Expand, false},
+    {"max", 200, 16, 4096, 1, 0, 100, app::Wide::Expand, false},
+};
+std::string g_preset = "custom";
+
+void ApplyPreset() {
+    for (const Preset& p : kPresets) {
+        if (g_preset != p.name) continue;
+        app::Settings& s = app::Get();
+        s.render_percent = p.render_percent;
+        s.aniso = p.aniso;
+        s.upscaler = p.upscaler;
+        s.sharpen = p.sharpen;
+        s.hud_edge = p.hud_edge;
+        if (p.console_look) s.widescreen = p.widescreen;
+        g_shadow_resolution = p.shadow;
+        LOGI("unchained: graphics preset %s", p.name);
+    }
 }
+
+void LoadOptions(const void* table) {
+    const auto& t = *static_cast<const toml::table*>(table);
+    g_aniso_named = t.contains("anisotropic_filtering");
+    g_preset = t["graphics_preset"].value_or(g_preset);
+}
+
+void SaveOptions(void* table) { static_cast<toml::table*>(table)->insert_or_assign("graphics_preset", g_preset); }
 
 void InitOptions() {
     if (!g_aniso_named) app::Get().aniso = kDefaultAniso;
+    ApplyPreset();
 }
 
 }  // namespace
@@ -91,7 +128,7 @@ const app::GameInfo app::kGame = {
                 {"invert_camera_y", &g_invert_camera_y, nullptr},
                 {"vibration", nullptr, &g_vibration}},  // game settings kept in the settings file  // game settings kept in the settings file
     .load = LoadOptions,                         // reads more from the settings file's toml::table
-    .save = nullptr,                      // writes more into it
+    .save = SaveOptions,                  // writes more into it
     .init = InitOptions,                         // after the settings load, before the window and boot
     .loaded = nullptr,                    // image in memory, before its entry point runs
     .window = OffscreenWindow,                    // the game window is up
