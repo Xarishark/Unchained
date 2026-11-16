@@ -1,6 +1,13 @@
 # Unchained
 
-**Unchained** is an unofficial native PC port of the original Xbox version of *Whiplash* (Crystal Dynamics / Eidos, 2003), made by static recompilation. **Work in progress: it doesn't boot yet.** The build produces `Unchained.exe`.
+**Unchained** is an unofficial native PC port of the original Xbox version of *Whiplash* (Crystal Dynamics / Eidos, 2003), made by static recompilation. **Work in progress:** it boots and plays its first levels with sound, saves and controls; the rest of the game is
+being worked through. The build produces `Unchained.exe`.
+
+What it adds to the console game: rendering at your screen's resolution (or supersampled), widescreen and ultrawide
+with the HUD at the screen's edges, AMD FSR 1 and sharpening, higher-resolution shadows, 16x texture filtering, VSync
+and VRR modes, graphics presets, colour grading and colour vision filters, rebindable keyboard and mouse with a mouse
+camera, camera speed and vibration settings, save backups, texture packs, and an automated play-test suite.
+See [docs/SETTINGS.md](docs/SETTINGS.md), [docs/MODS.md](docs/MODS.md) and [docs/FAQ.md](docs/FAQ.md).
 
 This port is built with the [Xbox XBE Recomp](https://github.com/TGP482/XboxXBE-Recomp) tool.
 
@@ -33,4 +40,5 @@ See [docs/STATUS.md](docs/STATUS.md).
 
 - [Xbox XBE Recomp](https://github.com/TGP482/XboxXBE-Recomp), the recompiler and runtime this is built on.
 - [XenonRecomp](https://github.com/hedge-dev/XenonRecomp) for the overridable function layout and instruction hooks.
+- [AMD FidelityFX Super Resolution 1](https://github.com/GPUOpen-Effects/FidelityFX-FSR) (MIT), in the SDK's `third_party/fsr1`.
 - [Zydis](https://github.com/zyantific/zydis), [toml++](https://github.com/marzer/tomlplusplus), [Dear ImGui](https://github.com/ocornut/imgui) and [SDL](https://github.com/libsdl-org/SDL).

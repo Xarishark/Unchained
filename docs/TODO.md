@@ -140,8 +140,9 @@ eport.md`.
 - [ ] **L2. First-run flow** - choose the disc image or folder, verify, extract to the data folder, recompile with a
   themed progress screen, then start straight into the game.
 - [ ] **L3. Settings split** - quick ones in the game's Options, everything else in the Configuration app.
-- [ ] **L4. Project conventions** - no game files in the repo or builds, a weighted status page with progress bars,
-  a FAQ, a bug report template.
+- [x] **L4. Project conventions** - no game files in the repo or builds, a weighted status page with progress bars
+  (`tools/todo_progress.py` into STATUS.md), a [FAQ](FAQ.md), a bug report template
+  (`.github/ISSUE_TEMPLATE/bug_report.md`), [SETTINGS.md](SETTINGS.md).
 
 ## Not applicable
 
