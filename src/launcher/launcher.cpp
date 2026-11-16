@@ -457,6 +457,23 @@ void PageDisplay() {
     }
     Choice("Frame rate cap", &s.fps_cap, {{60, "60"}, {1, "Monitor's refresh rate"}, {0, "None"}});
     Note("Above 60 the game is checked in the intro and menus only so far.");
+    ImGui::Separator();
+    static app::HdrInfo hdr = app::HdrDisplay(nullptr);
+    Check("HDR", &s.hdr, true);
+    char note[160];
+    if (hdr.hdr)
+        snprintf(note, sizeof(note), "Your main display is in HDR mode (peak %.0f nits).", hdr.max_nits);
+    else
+        snprintf(note, sizeof(note), "Your main display is not in HDR mode: turn on Use HDR in Windows' display "
+                                     "settings. The game stays SDR until then.");
+    Note(note);
+    if (s.hdr) {
+        Slider("HDR paper white", &s.hdr_paper_white, 80, 500, "%d nits", true);
+        Note("How bright the game's white is. 200 suits most rooms, lower for a dark one.");
+        Slider("HDR peak", &s.hdr_peak, 0, 4000, s.hdr_peak ? "%d nits" : "the display's", true);
+        Slider("HDR highlights", &s.hdr_highlights, 0, 100, "%d%%", true);
+        Note("How far the brightest parts (sky, lights, explosions) reach toward the peak. 0 keeps the SDR look.");
+    }
     ImGui::PopItemWidth();
 }
 

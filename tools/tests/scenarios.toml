@@ -235,3 +235,14 @@ about = "colour_lut: a test .cube table (luts/test.cube, a split tone) on the la
 input = "30:start,33:a,36:a,39:a,42:a,45:a"
 capture_at = [55]
 settings = { colour_lut = "test.cube" }
+
+[scenario.hdr]
+about = "hdr: HDR10 output where Windows has the display in HDR (the log says which output it chose); F3's shown.bmp is the SDR picture before the PQ pass"
+input = "30:start,33:a,36:a,39:a,42:a,45:a"
+capture_at = [55]
+settings = { hdr = true }
+
+[scenario.hdr-off]
+about = "hdr's baseline: the same run in SDR, for its frame times"
+input = "30:start,33:a,36:a,39:a,42:a,45:a"
+capture_at = [55]

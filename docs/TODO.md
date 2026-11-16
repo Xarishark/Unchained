@@ -133,7 +133,11 @@ eport.md`.
 - [~] **33. Draw distance** - `draw_distance` (percent, 100-1000) raises the cameras' far clip in the projection
   hook (src/game/widescreen.cpp). Indoors (lab, 400%) nothing changes and depth stays right; needs an outdoor level
   to show, and the game's own distance culling and level-of-detail distances are not found yet.
-- [ ] **35. HDR10** - tone-map the game's output; needs correct brightness first (gamma ramp, `0x2B5740`).
+- [~] **35. HDR10** - `hdr`: the finished SDR picture (frame and UI) to a 10 bit Rec. 2020 PQ swap chain, white at
+  `hdr_paper_white`, highlights stretched toward `hdr_peak` by `hdr_highlights`; the swap chain switches each second
+  as Windows' HDR or the setting changes; F3 and F12 save the SDR picture. Scenario `hdr` on an SDR display: falls back
+  with the log line "HDR asked, but Windows has this display in SDR", frame times as `hdr-off` (1% low 31.6 vs 31.3,
+  hitches 10/5/3/1 vs 10/4/3/1). Missing: a look on an HDR display.
 - [~] **36. Effect toggles** - Whiplash's own: hyper-mode trail, fog, shadows, glow, screen effects. Done:
   `character_shadows` (the shadow map's floor draws left out through `GameInfo::skip_texture`; log confirms). To do:
   the rest, once each effect's draws are known.
