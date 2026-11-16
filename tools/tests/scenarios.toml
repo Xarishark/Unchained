@@ -182,3 +182,9 @@ input = "30:start,33:a,36:a,39:a,42:a,45:a,60:ly+:3000,66:rx+:800"
 capture_at = [55, 64, 72]
 perf_from = 55
 settings = { draw_distance = 400 }
+
+[scenario.deutan]
+about = "colour_filter 2 (deuteranopia correction) and hud_visible false on the lab"
+input = "30:start,33:a,36:a,39:a,42:a,45:a"
+capture_at = [58]
+settings = { colour_filter = 2, hud_visible = false }

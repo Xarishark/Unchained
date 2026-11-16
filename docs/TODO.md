@@ -121,7 +121,10 @@ eport.md`.
 - [ ] **35. HDR10** - tone-map the game's output; needs correct brightness first (gamma ramp, `0x2B5740`).
 - [ ] **36. Effect toggles** - Whiplash's own: hyper-mode trail, fog, shadows, glow, screen effects.
 - [ ] **41. Highest level of detail** at any distance.
-- [ ] **49. Accessibility** - colour vision filters, invincibility, damage scaling, text speed, HUD off.
+- [~] **49. Accessibility** - done: colour vision filters (`colour_filter` 1-3, daltonization in the present pass,
+  `colour_filter_strength`) and HUD off (`hud_visible`, edge pieces only, menus stay). Evidence: scenario `deutan`
+  (turns/tests-20261116-072431): red sign shifted toward pink, HUD gone. To do: invincibility, damage scaling, text
+  speed (game hooks).
 - [ ] **52. Level and area select** in place of a teleport.
 - [~] **53. Mods** - SDK: texture replacement (`textures\replacement\`) and dumping; document it, add a mods folder.
 
