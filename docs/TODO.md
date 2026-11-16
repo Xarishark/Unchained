@@ -97,7 +97,8 @@ eport.md`.
 - [ ] **50. Cheats overlay** - money, invincibility, unlocks. Not through the disc's Game.ini: its debug switches
   ("Player invincible", "Enable debug menus", "Disable Creature Shadows", "Hide All") are not in the retail xbe and
   are ignored (served rewritten, 2026-11-16: no change). Needs the game's own player and money fields.
-- [ ] **51. Free camera and photo mode** - HUD hidden, a picture key.
+- [~] **51. Free camera and photo mode** - HUD hidden, a picture key. Done: F12 saves the window's picture as a PNG
+  in screenshots/ (scenario `screenshot`: a 2544x1401 PNG), `hud_visible` hides the HUD. To do: a free camera.
 - [x] **H. HUD at the screen edges** (user, 2026-11-16: "align to edge of screen like modern HUDs") - each HUD piece
   keeps its 4:3 shape and goes to its own edges, past the console's TV safe margin (`hud_edge`, 0 to 100, default
   100): left and right pieces to the sides, top and bottom pieces up and down, menus and centred text centred, full

@@ -149,6 +149,7 @@ def run_scenario(name, sc, base, exe, out):
     rect = sc.get("window")
     rect = work_area() if not rect else (40, 40, rect[0], rect[1])
     placed = set()
+    posted = set()
     shown_at = None
     ended_early = False
     try:
@@ -170,6 +171,13 @@ def run_scenario(name, sc, base, exe, out):
                 break
             if shown_at and time.time() - shown_at >= run_for:
                 break
+            # post_keys: [seconds, virtual key] pressed in the game window (F12 = 123, F10 = 121)
+            for i, (at_s, vk) in enumerate(sc.get("post_keys", [])):
+                if shown_at and i not in posted and time.time() - shown_at >= at_s:
+                    for h, p in wins:
+                        user32.PostMessageW(h, 0x100, vk, 0)
+                        user32.PostMessageW(h, 0x101, vk, 0)
+                    posted.add(i)
             time.sleep(0.2)
         for h, p in game_windows():
             if p not in before:

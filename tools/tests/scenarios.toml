@@ -8,6 +8,7 @@
 #   target_fps     the pace frames are judged against (60; 0 for the run's own median)
 #   env            more environment variables for the run
 #   cold           true: the shader cache is deleted first (a first start)
+#   post_keys      [[seconds, virtual key]] pressed in the game window, e.g. [[55, 123]] for F12
 
 [base_settings]
 display_mode = "windowed"
@@ -222,3 +223,9 @@ input = "30:start"
 capture_at = [40]
 duration = 44
 settings = { save_folder = "C:/Unchained-private/turns/savefolder-test" }
+
+[scenario.screenshot]
+about = "F12 in the lab: a PNG of the window's picture in screenshots/"
+input = "30:start,33:a,36:a,39:a,42:a,45:a"
+duration = 60
+post_keys = [[55, 123]]
