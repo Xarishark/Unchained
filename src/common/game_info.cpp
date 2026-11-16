@@ -68,6 +68,11 @@ void InitOptions() {
 
 void UnchainedPad(int port, input::Pad& p);  // input_keys.cpp: keyboard and scripted test input
 extern uint32_t g_fov_degrees;  // widescreen.cpp
+// controls.cpp: camera speed and inversion, vibration strength
+extern uint32_t g_camera_speed, g_vibration;
+extern bool g_invert_camera_x, g_invert_camera_y;
+void ControlsPad(int port, input::Pad& p);
+void ControlsRumble(int port, uint16_t& left, uint16_t& right);
 
 // what the runtime asks of the game; strings must be set, hooks may stay null
 const app::GameInfo app::kGame = {
@@ -79,7 +84,12 @@ const app::GameInfo app::kGame = {
     .splash = L"splash",                  // optional splash.png or splash.bmp beside the exe
     .missing = L"Put the game in the assets folder: its disc image (.iso), or default.xbe with its folders beside it.",
     .images = {{"default.xbe", "Unchained"}},  // each recompiled xbe and its exe, for title launches
-    .options = {{"shadow_resolution", nullptr, &g_shadow_resolution}, {"fov", nullptr, &g_fov_degrees}},  // game settings kept in the settings file
+    .options = {{"shadow_resolution", nullptr, &g_shadow_resolution},
+                {"fov", nullptr, &g_fov_degrees},
+                {"camera_speed", nullptr, &g_camera_speed},
+                {"invert_camera_x", &g_invert_camera_x, nullptr},
+                {"invert_camera_y", &g_invert_camera_y, nullptr},
+                {"vibration", nullptr, &g_vibration}},  // game settings kept in the settings file  // game settings kept in the settings file
     .load = LoadOptions,                         // reads more from the settings file's toml::table
     .save = nullptr,                      // writes more into it
     .init = InitOptions,                         // after the settings load, before the window and boot
@@ -87,8 +97,8 @@ const app::GameInfo app::kGame = {
     .window = OffscreenWindow,                    // the game window is up
     .message = OffscreenMessage,                  // window messages first; true takes one
     .ui = nullptr,                        // ImGui drawing each frame
-    .pad = UnchainedPad,                  // keyboard and scripted input on port 0 (input_keys.cpp)
-    .rumble = nullptr,                    // changes a rumble before it is set
+    .pad = ControlsPad,                  // keyboard and scripted input on port 0 (input_keys.cpp)
+    .rumble = ControlsRumble,                    // changes a rumble before it is set
     .releases = {},                       // one release: the retail xbe
     .view_w = 640,                        // the game draws 640x448 of its 640x480 back buffer (viewport c-96/c-95)
     .view_h = 448,

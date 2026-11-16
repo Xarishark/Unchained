@@ -104,3 +104,16 @@ duration = 50
 perf_from = 34
 target_fps = 0
 settings = { vsync_mode = "vrr", fps_cap = 0 }
+
+[scenario.speed60]
+about = "game speed: the intro and title untouched at the default 60 fps cap (compare with speed_uncapped)"
+capture_at = [8, 14, 20]
+duration = 62
+target_fps = 60
+
+[scenario.speed_uncapped]
+about = "game speed: the same untouched start with no cap and no vsync; the same frames at the same times if the game keeps time"
+capture_at = [8, 14, 20]
+duration = 62
+target_fps = 0
+settings = { vsync_mode = "off", fps_cap = 0 }
