@@ -1,0 +1,59 @@
+# Play test scenarios for run_tests.py. Times are seconds after the game starts.
+#   input          UNCHAINED_INPUT: "30:start,33:a,40:ly+:2000" (button or stick, hold in ms)
+#   capture_at     when the renderer saves a frame (XBE_CAPTURE_AT); shown.bmp is the window's picture
+#   reference_at   the reference video's moment for each capture (PS2 version, so framing differs), or omitted
+#   settings       over base_settings, written to settings.toml for the run and restored after
+#   window         [width, height], else the whole work area of the primary monitor
+#   perf_from      frame times from this second on (after the loads)
+
+[base_settings]
+display_mode = "windowed"
+width = 640
+height = 480
+
+[scenario.title]
+about = "title menu, widened 3D behind the 4:3 menu"
+input = "30:start"
+capture_at = [40, 50]
+reference_at = [22, 22]
+perf_from = 35
+
+[scenario.lab]
+about = "quickstart into the first level, standing, then walking forward"
+input = "30:start,33:a,36:a,39:a,42:a,45:a,60:ly+:3000,66:rx+:800"
+capture_at = [55, 64, 72]
+perf_from = 55
+
+[scenario.lab43]
+about = "the same at 4:3 (widescreen off): HUD and 3D as the console drew them"
+input = "30:start,33:a,36:a,39:a,42:a,45:a"
+capture_at = [58]
+settings = { widescreen = "off" }
+
+[scenario.fsr]
+about = "render_percent 50 through FSR 1 and RCAS sharpening"
+input = "30:start,33:a,36:a,39:a,42:a,45:a"
+capture_at = [58]
+settings = { render_percent = 50, upscaler = 1, sharpen = 50 }
+
+[scenario.lobby]
+about = "the user's recorded run: quickstart into the lobby, walking and fighting (runs/lobby.txt)"
+input_file = "runs/lobby.txt"
+capture_at = [22, 28, 36, 45, 55, 63]
+reference_at = [1530, 1530, 1560, 1560, 1680, 1680]
+duration = 66
+perf_from = 22
+
+[scenario.lobby_noshadow]
+about = "the recorded lobby run without the projected shadow pass (texture 0x80D3E980): do characters brighten?"
+input_file = "runs/lobby.txt"
+capture_at = [28, 36, 63]
+duration = 66
+env = { XBE_SKIP_TEX = "80D3E980" }
+
+[scenario.lobby_consts]
+about = "the recorded lobby run with every draw's constants in the capture (character lighting)"
+input_file = "runs/lobby.txt"
+capture_at = [36, 63]
+duration = 66
+env = { XBE_CAPTURE_ALL = "1" }

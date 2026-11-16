@@ -42,19 +42,24 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
 - [ ] **23. Graphics presets** - Original, High, Max (and a low one) plus an Advanced page.
 - [ ] **25. Faster release build** - profile-guided optimisation and ThinLTO for the runtime.
 - [ ] **26. Performance overlay** - fps, frame time graph, GPU use.
-- [ ] **27. Benchmark routes** - scripted runs (`UNCHAINED_INPUT`) that write per-present frame times.
+- [x] **27. Benchmark routes** - `tools/tests/run_tests.py`: scenarios with scripted or recorded input
+  (`record.ps1`, `UNCHAINED_INPUT_RECORD`), captures, reference comparison and per-present frame times (1%/0.1% lows,
+  hitches, stutter). Evidence: `turns	ests-20261116-045759eport.md`.
 
 ### Graphics
 - [x] **28. Resolution and render scale** - SDK: `render_percent`. Fixed 2026-11-16: the scale followed the
   `width`/`height` setting, so a 640x480 setting in a 2544x1401 window rendered at 1.0 and was upscaled; it now
   follows the window (log: `render scale 3.975`), never under the console's, 200+ supersamples.
-- [ ] **29. FSR 1** upscaling.
-- [ ] **34. Colour grading** - exposure, contrast, saturation, temperature, tint, LUTs; HUD keeps its colours.
-- [x] **37. Anisotropic filtering** - SDK: `aniso`.
-- [ ] **38. Sharpening** (AMD CAS).
-- [ ] **39. Higher-resolution shadows** - the game's 256x256 shadow target (pushed surface at 0xD3E980) drawn at
-  1024 or 2048.
-- [ ] **40. Field of view** setting; cutscenes keep theirs.
+- [x] **29. FSR 1** upscaling - `upscaler = 1` (default): AMD FSR 1 EASU when the view renders smaller than it
+  shows (SDK `post/present.hlsl`, AMD MIT headers). Evidence: `tools/tests` scenario `fsr` (render_percent 50).
+- [~] **34. Colour grading** - exposure, contrast, saturation, temperature, tint (`grade_*`) at present. Missing:
+  LUT files, and the HUD keeping its colours (it is graded with the picture).
+- [x] **37. Anisotropic filtering** - SDK: `aniso`; Unchained defaults to 16x (log: `anisotropic_filtering = 16`).
+- [x] **38. Sharpening** - FSR 1 RCAS, `sharpen` 0-100 (0 off). Evidence: scenario `fsr` (sharpen 50).
+- [x] **39. Higher-resolution shadows** - `shadow_resolution` (default 2048, 0 follows the render scale) through
+  `GameInfo::target_scale`. Evidence: log `unchained: shadow map at 2048x2048`.
+- [~] **40. Field of view** - `fov` (vertical degrees, 60 the game's) replaces only the game's 60 degree projection, so
+  cameras with their own angle keep it. Not yet checked in play or in cutscenes.
 
 ### Player features
 - [ ] **43. Settings in the game's own Options** - video, audio, controls pages.
