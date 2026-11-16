@@ -75,7 +75,20 @@ Each boot named the function or data the last crash pointed at. Names come from 
   - The main loop (`sub_222D4` → `[vtable+0xC]`) presents frames. After about 52 s idle it opens `movies\attract.xmv` (the attract mode) and crashes in the XMV player.
 - **SDK fix 2 (local commit `9e13a11`, upstream PR candidate):** immediate mode with a pretransformed FVF (XYZRHW) was dropped ("not supported"). The slots are now packed in the FVF layout and drawn as `DrawVerticesUP` draws.
 - **SDK fix 3 (local commit `ace2fa0`, upstream PR candidate): the strobe.** The runtime presented on every `D3DDevice_Swap`. Whiplash calls `Swap(2)` (BYPASSCOPY) and then `Swap(4)` (FINISH) every frame, so every other picture was a buffer nothing was drawn into. Its output alternated pale blue and black: a visible strobe. Now `FINISH` alone doesn't flip, as in the library. `strobe-check.ps1` captures 40 frames in a row: 8 colour changes before, 0 after.
-- **Now:** a steady screen in the game's own clear colour `EAF3F7` (pale blue). The one other draw per frame, `sub_1D0340`, is a GPU timing test (rdtsc around a pretransformed quad, the result stored in microseconds), not a fade. Nothing else draws yet; the next step is the game's front-end state.
+- **Now:** a steady screen in the game's own clear colour `EAF3F7` (pale blue). The one other draw per frame, `sub_1D0340`, is a GPU timing test (rdtsc around a pretransformed quad, the result stored in microseconds), not a fade.
+
+### Why the front end draws nothing (2026-11-15)
+- **The game isn't stuck.** It's single-threaded, the main thread sleeps about 91% of each frame (pacing), and it streams 32 KB archive chunks through `ArchiveRawFile` from the sound code (`0x1C4xxx`), most likely title music. After about 52 s idle it starts the attract movie.
+- **Whiplash renders through raw push buffers.** Each frame `RunPushBuffer` runs a 644-byte buffer (`0x80850000`/`0x80859000`, made by `sub_2B7010` at render init). It **jumps** (`0x00862001`) into the game's 4 MB scene buffer at `0x80862000` (its `XMemAlloc(0x400000, 0xBC000000)`).
+- **SDK change 4 (local `103e2db`):** the walker now follows NV2A jumps, calls and returns. The scene buffer then shows the front end:
+  - quad lists (prim 8) with **inline vertex arrays** (4 quads of 96 bytes, one batch of 19,680 bytes; 24 bytes per vertex);
+  - vertex formats set by **`SET_VERTEX_DATA_ARRAY_FORMAT` methods `0x1760`–`0x179C`** inside the buffer.
+
+  The runtime runs neither, so it guesses the stride from a stale format and drops every draw ("EndPush primitive 8 dropped").
+- **The fix is a real NV2A push-buffer interpreter in the SDK:** vertex array formats and offsets, inline arrays, index and draw-array methods, probably vertex program upload/selection (`0x0B00`, `0x1E94`, …), and texture and state methods. No upstream code or fork has one:
+  - hk21x's fork replays draws a game *recorded through the D3D API* (`BeginPushBuffer`), which doesn't fit Whiplash's hand-written commands.
+  - sp00nznet/xboxrecomp has a push-buffer executor, which is a design reference (MIT/LGPL parts; read, don't copy).
+- Test scripts now close the game with `WM_CLOSE` (`Stop-Unchained`), so the buffered Info log lines are flushed. Killing outright lost the tail of every log.
 
 Tooling:
 - `C:\Unchained-private\turn-build.ps1` rebuilds and boots off-screen.
