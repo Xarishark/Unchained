@@ -116,10 +116,29 @@ Tooling:
 - `tools/crash_stack.py` maps crash stacks to functions.
 - The exe rebuilds `Unchained.dll` on first start after some builds ("Game code: building", about 20–40 s) and relaunches itself; the guard follows.
 
+### Gameplay (2026-11-16)
+
+Input (keyboard on port 0, `UNCHAINED_INPUT` scripts), saves (XAPI disc check passes, `sub_001336E9`), creatures
+(dword-aligned pushed attributes), shadows (pushed render targets and clears), the cutscene letterbox (surface clip
+scissor) and the strobe are fixed. Pushed draws take the pushed shader stage program (`0x1E70`); a pushed texture on a
+frame buffer reads the one being drawn; a linear texture on a target uses the target's size.
+
+Open:
+- **Hyper mode shows no effect.** Reference (video 12:48 "MADNESS", 16:42 "CRAZY"): the scene stays normal, the
+  characters get bluish ghost copies trailing them, the HUD does not smear. Per frame the game clears the back buffer's
+  alpha (`0x80`), draws the characters into alpha only (colour write `8`, texture `817EE400`), blends a 320x224 copy of
+  past frames over the screen (`lerp(screen, trail * v0 * 2, trail.a * v0.a * 2)`), then copies the screen into the
+  320x224 target (`0xD7EA00`). Before the frame-buffer read fix it read the other (shown) buffer and looked like a
+  smeared frame blend; now it reads the drawn one and nothing shows, so the trail's alpha is likely 0: check the
+  alpha-only character pass's output alpha and that the 320x224 copy keeps it. User's call: fine for now, noted.
+- **Redmond's voice lines** (most missing): `CDirectSoundStream_Pause` is now mapped (`0x2C6E96`); the game drops a
+  line when `Pause(stream, 2)` fails. Not tested yet.
+- **Camera "felt weird and off"** (user): not described yet.
+
 ## Next
 
-1. **Rendering gaps:** the opening text batch, texture stage states, linear textures. Compare against xemu screenshots of the intro and title.
-2. **Input to the title menu** (SDL3 pad → XInput HLE is already up), then the first level load.
+1. **Hyper mode trail** (above), then the frame-time suite (per-present CSV, 1%/0.1% lows, hitches).
+2. **Input to the title menu** (done: keyboard), then the first level load (done).
 3. Frame-time suite (per-present CSV, 1%/0.1% lows, hitches) once it reaches gameplay, per CLAUDE.md.
 4. **XMV attract movie:** the DirectSound stream it makes is null in `CDirectSoundStream_Process`. HLE XMV (the SDK has none; sp00nznet's toolkit or FFmpeg are references) or skip the attract mode.
 5. Try the union of PR #27's and hk21x's 5659 signatures for the other D3D/DSound functions.
