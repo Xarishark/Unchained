@@ -5,6 +5,68 @@
 
 #include "xdk/hle.h"
 #include "core/log.h"
+#include "kernel/kernel.h"
+
+#include <cstdio>
+#include <cstring>
+#include <map>
+#include <string>
+
+// The game's debug print (cdecl, printf style): retail builds send it nowhere. Its messages go to the log, each
+// format at most 50 times, as the game's own account of what it skips ("SND: Start on not allocated channel!").
+X86_FUNC(sub_001ED470) {
+    using kernel::R32;
+    auto guest_str = [](uint32_t va, size_t max) {
+        std::string s;
+        if (!va) return std::string("(null)");
+        for (size_t i = 0; i < max; i++) {
+            char c = static_cast<const char*>(kernel::HostPtr(va))[i];
+            if (!c) break;
+            s += c;
+        }
+        return s;
+    };
+    uint32_t fmt_va = R32(ctx.esp + 4);
+    std::string fmt = guest_str(fmt_va, 400);
+    static std::map<uint32_t, int> seen;
+    if (seen[fmt_va]++ < 50) {
+        std::string out;
+        uint32_t arg = ctx.esp + 8;
+        for (size_t i = 0; i < fmt.size(); i++) {
+            if (fmt[i] != '%') {
+                out += fmt[i];
+                continue;
+            }
+            size_t j = i + 1;
+            while (j < fmt.size() && std::strchr("-+ #0123456789.lh", fmt[j])) j++;
+            if (j >= fmt.size()) break;
+            std::string spec = fmt.substr(i, j - i + 1);
+            char conv = fmt[j], buf[512];
+            if (conv == '%') {
+                out += '%';
+            } else if (conv == 's') {
+                out += guest_str(R32(arg), 256);
+                arg += 4;
+            } else if (conv == 'f' || conv == 'g' || conv == 'e') {
+                double d;
+                std::memcpy(&d, kernel::HostPtr(arg), 8);
+                std::snprintf(buf, sizeof(buf), spec.c_str(), d);
+                out += buf;
+                arg += 8;
+            } else {
+                std::string s32 = spec;
+                std::snprintf(buf, sizeof(buf), s32.c_str(), R32(arg));
+                out += buf;
+                arg += 4;
+            }
+            i = j;
+        }
+        while (!out.empty() && (out.back() == '\n' || out.back() == '\r')) out.pop_back();
+        LOGI("game: %s", out.c_str());
+    }
+    ctx.eax = 0;
+    ctx.esp += 4;  // cdecl: the caller pops the arguments
+}
 
 // XAPI's process start checks that the disc is an authentic Xbox disc: it opens the DVD drive and reads the disc
 // security mode page (SCSI MODE SENSE 0x5A, page 0x3E) through IOCTL 0x4D014. The answer the runtime gives fails it,
