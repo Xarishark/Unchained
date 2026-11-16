@@ -34,6 +34,7 @@ the game closed. A missing key takes its default. The Configuration app will set
 | `grade_temperature`, `grade_tint` | `0` | -100 to 100 |
 | `colour_filter` | `0` | Colour vision: `1` protanopia, `2` deuteranopia, `3` tritanopia (colours shifted so they stay apart) |
 | `colour_filter_strength` | `100` | Percent |
+| `colour_lut` | `""` | A colour table (`.cube`, as editors export them) in `luts\` in the data folder, applied after the grade |
 | `custom_textures` | `true` | Texture packs (see [MODS.md](MODS.md)) |
 | `dump_textures`, `texture_dump_format` | `false`, `0` | Write each texture once to `textures\dumps\` (`0` PNG, `1` DDS) |
 

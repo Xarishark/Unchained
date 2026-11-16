@@ -229,3 +229,9 @@ about = "F12 in the lab: a PNG of the window's picture in screenshots/"
 input = "30:start,33:a,36:a,39:a,42:a,45:a"
 duration = 60
 post_keys = [[55, 123]]
+
+[scenario.lut]
+about = "colour_lut: a test .cube table (luts/test.cube, a split tone) on the lab"
+input = "30:start,33:a,36:a,39:a,42:a,45:a"
+capture_at = [55]
+settings = { colour_lut = "test.cube" }

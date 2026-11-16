@@ -477,6 +477,27 @@ void PageGraphics() {
     Slider("Saturation", &s.grade_saturation, 0, 200, "%d%%", true);
     SliderS("Temperature", &s.grade_temperature, -100, 100);
     SliderS("Tint", &s.grade_tint, -100, 100);
+    // colour LUTs: the .cube files in luts\ in the data folder
+    static std::vector<std::string> luts = [] {
+        std::vector<std::string> out = {"None"};
+        std::error_code ec;
+        for (auto& e : fs::directory_iterator(app::DataDir() / "luts", ec)) {
+            auto u8 = e.path().filename().u8string();
+            std::string name(u8.begin(), u8.end());
+            if (name.size() > 5 && _stricmp(name.c_str() + name.size() - 5, ".cube") == 0) out.push_back(name);
+        }
+        return out;
+    }();
+    int lut = 0;
+    for (size_t i = 1; i < luts.size(); i++)
+        if (luts[i] == s.colour_lut) lut = int(i);
+    std::vector<const char*> lut_names;
+    for (auto& n : luts) lut_names.push_back(n.c_str());
+    if (ImGui::Combo("Colour LUT", &lut, lut_names.data(), int(lut_names.size()))) {
+        s.colour_lut = lut ? luts[size_t(lut)] : std::string();
+        Touched(true);
+    }
+    Note("A colour table (.cube) from luts\\ beside Unchained, applied after the grade.");
     ImGui::Separator();
     Combo("Colour vision", &s.colour_filter, {"Off", "Protanopia", "Deuteranopia", "Tritanopia"});
     Slider("Colour vision strength", &s.colour_filter_strength, 0, 200, "%d%%");

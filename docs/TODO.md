@@ -72,8 +72,9 @@ eport.md`.
   follows the window (log: `render scale 3.975`), never under the console's, 200+ supersamples.
 - [x] **29. FSR 1** upscaling - `upscaler = 1` (default): AMD FSR 1 EASU when the view renders smaller than it
   shows (SDK `post/present.hlsl`, AMD MIT headers). Evidence: `tools/tests` scenario `fsr` (render_percent 50).
-- [~] **34. Colour grading** - exposure, contrast, saturation, temperature, tint (`grade_*`) at present. Missing:
-  LUT files, and the HUD keeping its colours (it is graded with the picture).
+- [~] **34. Colour grading** - exposure, contrast, saturation, temperature, tint (`grade_*`) and LUT files
+  (`colour_lut`: a .cube from luts/, picked in the Configuration app; scenario `lut`: a test split tone applied, log
+  "colour LUT ... 17^3"). Missing: the HUD keeping its colours (it is graded with the picture).
 - [x] **37. Anisotropic filtering** - SDK: `aniso`; Unchained defaults to 16x (log: `anisotropic_filtering = 16`).
 - [x] **38. Sharpening** - FSR 1 RCAS, `sharpen` 0-100 (0 off). Evidence: scenario `fsr` (sharpen 50).
 - [x] **39. Higher-resolution shadows** - `shadow_resolution` (default 2048, 0 follows the render scale) through
