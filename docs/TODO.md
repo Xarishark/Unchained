@@ -42,7 +42,9 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
 - [x] **17. Window modes** - SDK: fullscreen, borderless, windowed, any resolution.
 
 ### Performance
-- [ ] **19. Steady frame rate** - measure with the frame-time suite at 60 and above.
+- [~] **19. Steady frame rate** - measure with the frame-time suite at 60 and above. At 60 (lab, 2544x1401, render
+  scale 3.97): 60.0 fps, 1% low 54-56, 0.1% low 47-55, no frame over 25 ms after the level loads; the recorded lobby
+  run warm: hitches only at the level entry (53 and 77 ms). Above 60 in gameplay: not yet measured.
 - [x] **20. Shader and pipeline cache** across runs - SDK: compiled shaders kept in `cache\shaders.bin`; the
   driver keeps its own pipeline cache. Evidence: recorded lobby run twice cold and twice warm
   (`turns\tests-20261116-055150`): worst frame 204-208 ms cold, 76-77 ms warm; 0.1% low 8 to 17-18 fps, 1% low 33 to
@@ -52,9 +54,9 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
   above its own rate: the intro and the attract timer keep real time uncapped (scenarios `speed60` and `speed_uncapped`:
   the same frames at 8, 14, 20 s at 60 and ~560 fps; attract movie at 56 s and 53 s). Gameplay physics and cutscenes
   at high rates still to check before the default cap goes above 60.
-- [~] **23. Graphics presets** - `graphics_preset` = custom, original, low, high, max (src/common/game_info.cpp).
+- [x] **23. Graphics presets** - `graphics_preset` = custom, original, low, high, max (src/common/game_info.cpp).
   Evidence: `turns\tests-20261116-070924`: max renders at 7.95x with 4096 shadows, 60 fps, 1% low 52.8, 0.1% low
-  48.4, no hitches; original gives the 4:3 console picture. The Advanced page comes with the Configuration app.
+  48.4, no hitches; original gives the 4:3 console picture. The advanced settings are the Configuration app's GRAPHICS page.
 - [ ] **25. Faster release build** - profile-guided optimisation and ThinLTO for the runtime.
 - [x] **26. Performance overlay** - fps, frame time graph, GPU use. F10 or `perf_overlay`: fps, frame time, a graph
   of 240 frames, 1% and 0.1% lows and hitches over the last 1000 frames, the render size (src/common/overlay.cpp).
@@ -89,8 +91,9 @@ eport.md`.
 - [x] **47. Save backups** at each start, the last 5 kept - SDK `save_backups` (5): E:\UDATA to
   `save backups\<date time>` before boot. Evidence: log `saves: backed up to ...\save backups\2026-11-16 051540`;
   three runs, three folders.
-- [~] **48. Custom save folder** - SDK `save_folder` (the console's hard disk, saves included). Built, not yet run
-  with a folder set.
+- [x] **48. Custom save folder** - SDK `save_folder` (the console's hard disk, saves included). Evidence: scenario
+  `savefolder` - log "hard disk under C:/Unchained-private/turns/savefolder-test", and the game made its player data
+  there (E/UDATA/45530011/.../game00.dat to game07.dat, SaveMeta.xbx).
 - [ ] **50. Cheats overlay** - money, invincibility, unlocks. Not through the disc's Game.ini: its debug switches
   ("Player invincible", "Enable debug menus", "Disable Creature Shadows", "Hide All") are not in the retail xbe and
   are ignored (served rewritten, 2026-11-16: no change). Needs the game's own player and money fields.

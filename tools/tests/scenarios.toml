@@ -215,3 +215,10 @@ about = "perf_overlay on: the performance overlay over the lab"
 input = "30:start,33:a,36:a,39:a,42:a,45:a"
 capture_at = [58]
 settings = { perf_overlay = true }
+
+[scenario.savefolder]
+about = "save_folder: the console's hard disk in another folder (a fresh one: no saves, the title's new player flow)"
+input = "30:start"
+capture_at = [40]
+duration = 44
+settings = { save_folder = "C:/Unchained-private/turns/savefolder-test" }
