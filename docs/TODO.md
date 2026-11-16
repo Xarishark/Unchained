@@ -110,12 +110,20 @@ eport.md`.
   ("Player invincible", "Enable debug menus", "Disable Creature Shadows", "Hide All") are not in the retail xbe and
   are ignored (served rewritten, 2026-11-16: no change). Needs the game's own player and money fields.
 - [x] **U. Clean menu and HUD edges** (user, 2026-11-16: "re render all the other letters and UI boxes ... to match
-  how clean the glyphs are") - SDK `ui_upscale`: a texture drawn by a draw that tests no depth into the frame is 2D
-  art; one of flat shapes (mostly clear and solid texels, under 40% partly clear: the font, the frame pieces; glows,
-  gradients and opaque pictures left alone) is drawn 4x on the texture worker, its outline by Scale2x three times
-  averaged 2x2 (corners kept, diagonals smoothed), its colour bilinear from its own texels. The prompts draw over the
-  4x font. Scenarios `ui_off` / `ui_on`, twice: the dialog's text and frames crisp; frame times unchanged (1% low
-  39.7/39.8 off vs 39.1/39.7 on, worst 79/79 vs 78/77 ms, 0 over 100 ms).
+  how clean the glyphs are", then "apply it to letters and any other simple things ... including all the genron green
+  old terminal like things") - SDK `ui_upscale`. A 2D draw is one into the frame writing no depth whose vertices are
+  on the screen already (0 to 1 across, as Whiplash's 2D programs give them, or pretransformed), or that tests no
+  depth: Whiplash draws its menus and HUD with depth tested, so the first version, which looked for depth off, caught
+  nothing. Its textures, when they are flat art, are drawn 4x on the texture worker: up to 8 flat colours
+  (premultiplied, see-through fills counted) cover 85% of the texels, colours between two flat ones are their
+  anti-aliased blend and go to the nearer end, few neighbours a gentle step apart (gradients and shading: clouds 0.26,
+  a shaded coin 0.08, the font 0.01, cut at 0.06) and no noise; the labels are scaled by Scale2x three times and
+  averaged 2x2, each flat colour stays flat. `ui_survey` logs each 2D texture's decision: drawn 4x the font, the menu
+  and dialog frames and tabs, the box pieces with their fills, the HUD's skull and sword boxes, "GENRON CORPORATION",
+  the clock; left the TV static, clouds, the shaded coin, the save portrait, the scanlines. Scenarios `ui_off` /
+  `ui_on` (dialog, lab HUD) and `prestart_ui_off` / `prestart_ui_on` (main menu): text and frames crisp, the HUD's
+  green icon as solid shapes (its faintest specks under half brightness drop out). Frame times twice each: 1% low
+  42.9/42.9 off vs 42.0/43.0 on, worst 77/77 vs 78/77 ms, 0 over 100 ms.
 - [x] **H. HUD at the screen edges** (user, 2026-11-16: "align to edge of screen like modern HUDs") - each HUD piece
   keeps its 4:3 shape and goes to its own edges, past the console's TV safe margin (`hud_edge`, 0 to 100, default
   100): left and right pieces to the sides, top and bottom pieces up and down, menus and centred text centred, full

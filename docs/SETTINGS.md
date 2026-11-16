@@ -40,7 +40,7 @@ the game closed. A missing key takes its default. The Configuration app will set
 | `colour_filter_strength` | `100` | Percent |
 | `colour_lut` | `""` | A colour table (`.cube`, as editors export them) in `luts\` in the data folder, applied after the grade |
 | `custom_textures` | `true` | Texture packs (see [MODS.md](MODS.md)) |
-| `ui_upscale` | `true` | The flat 2D textures (text, frames, hard edged icons) drawn 4x with clean edges; glows and pictures stay as they are |
+| `ui_upscale` | `true` | Flat 2D art (text, menu frames and boxes, the HUD's terminal icons) drawn 4x with clean edges; glows, gradients, pictures and noise stay as they are |
 | `dump_textures`, `texture_dump_format` | `false`, `0` | Write each texture once to `textures\dumps\` (`0` PNG, `1` DDS) |
 
 ## Controls

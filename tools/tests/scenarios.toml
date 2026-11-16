@@ -318,13 +318,34 @@ settings = { button_prompts = 1 }
 [scenario.ui_off]
 about = "ui_upscale off: the menus, the Play selected game? dialog and the lab's HUD as the console's texels (before)"
 input_file = "runs/lobby.txt"
-duration = 32
-capture_at = [12, 19.8, 30]
+duration = 45
+capture_at = [8, 10, 13, 16, 19.8, 30, 40]
 settings = { ui_upscale = false, button_prompts = 1 }
 
 [scenario.ui_on]
 about = "ui_upscale on: the same frames with the flat 2D textures (font, frames) drawn 4x with clean edges (after)"
 input_file = "runs/lobby.txt"
-duration = 32
-capture_at = [12, 19.8, 30]
+duration = 45
+capture_at = [8, 10, 13, 16, 19.8, 30, 40]
+settings = { ui_upscale = true, button_prompts = 1 }
+
+[scenario.ui_survey]
+about = "every 2D texture's ui_upscale decision through press start, the menus, the dialog and the lab's HUD, with texture dumps to see them"
+input_file = "runs/lobby.txt"
+duration = 45
+capture_at = [8, 10, 13, 16, 19.8, 30, 40]
+settings = { dump_textures = true }
+
+[scenario.prestart_ui_off]
+about = "press start and the login screen with ui_upscale off (the terminal art as the console's texels)"
+input = "30:start"
+capture_at = [27, 33, 36]
+duration = 38
+settings = { ui_upscale = false, button_prompts = 1 }
+
+[scenario.prestart_ui_on]
+about = "the same with ui_upscale on"
+input = "30:start"
+capture_at = [27, 33, 36]
+duration = 38
 settings = { ui_upscale = true, button_prompts = 1 }
