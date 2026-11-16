@@ -52,6 +52,7 @@ the game closed. A missing key takes its default. The Configuration app will set
 | `camera_speed` | `100` | The right stick's camera speed in percent (up to 300) |
 | `invert_camera_x`, `invert_camera_y` | `false` | |
 | `vibration` | `100` | Rumble strength in percent; `0` off |
+| `button_prompts` | `0` | The game's button prompts: `0` for the device in use (a controller's maker, or the keyboard with the bound keys), `1` Xbox, `2` PlayStation, `3` Nintendo, `4` keyboard |
 
 Default keys: W A S D move, mouse or I J K L camera, Space jump (A), left mouse or F attack (X), right mouse or Left
 Shift B, R Y, Q / E triggers, C / V black / white, Enter Start, Esc Back, arrows the d-pad. Key names: `A`-`Z`,

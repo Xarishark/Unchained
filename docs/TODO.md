@@ -34,8 +34,14 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
   buttons; `src/common/keyboard.cpp`), the mouse turns the camera (`mouse_camera`, `mouse_sensitivity`), left and
   right mouse are X and B. Built; scripted runs unaffected; the mouse camera not yet felt in play.
 - [ ] **14. Handheld preset** - detect PC handhelds; 30/40/45/60 fps and the screen's own size.
-- [ ] **15. Button prompts for the device in use** - Xbox, PlayStation or keyboard glyphs in the game's prompts,
-  switching live.
+- [x] **15. Button prompts for the device in use** - Xbox, PlayStation or keyboard glyphs in the game's prompts,
+  switching live. The prompts are characters in the game's font (texture `1a4d811ab994c436`); `src/common/prompts.cpp`
+  draws its button row again, 4x, through the SDK's new `GameInfo::texture_image`: PlayStation symbols, Nintendo
+  letters by position, or key caps with the keys bound in `[keys]`, made in code (no art). `button_prompts` 0 follows
+  the device in use (the last controller touched, by SDL's gamepad type, or the keyboard and mouse; the keyboard at
+  start with no controller). Scenarios `prompts_ps`, `prompts_nintendo`, `prompts_auto` (Space / Shift caps) in the
+  "Play selected game?" dialog; `prompts_switch`: PlayStation then Nintendo in the same dialog of one run, the switch
+  in a frame no longer than a capture's alone (91.9 vs 91.1 ms).
 - [x] **16. VRR and VSync modes** - `vsync_mode` = off, on, adaptive (on while frames keep up, a tear instead of a
   held frame), fast (no wait, no tear) or vrr (tearing allowed, capped 3 under the refresh). Evidence: scenarios
   `vsync_*` on this PC's 280 Hz monitor, uncapped: on 280 fps, adaptive 295, off 572, fast 559, vrr 277; no hitches.

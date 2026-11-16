@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -110,6 +111,15 @@ int16_t Clamp16(float v) { return int16_t(std::clamp(v, -32768.0f, 32767.0f)); }
 
 }  // namespace
 
+void PromptsKeyboard();  // prompts.cpp: the keyboard is the device in use
+
+// the action's first key's name, "" when unbound (prompts.cpp's key caps)
+std::string BoundKeyName(const char* action) {
+    for (const Action& a : g_actions)
+        if (std::strcmp(a.name, action) == 0 && !a.keys.empty()) return NameOfKey(a.keys[0]);
+    return {};
+}
+
 void LoadKeys(const void* table) {
     const auto* keys = (*static_cast<const toml::table*>(table))["keys"].as_table();
     if (!keys) return;
@@ -142,6 +152,7 @@ void KeyboardPad(input::Pad& p) {
         bool down = false;
         for (int vk : a.keys) down |= Down(vk);
         if (!down) continue;
+        PromptsKeyboard();
         p.buttons |= a.bit;
         if (a.analog >= 0) p.analog[a.analog] = 0xFF;
         if (a.stick >= 0) {
@@ -172,6 +183,7 @@ void KeyboardPad(input::Pad& p) {
         float k = kPerPixel * g_mouse_sensitivity / 100.0f;
         float mx = float(at.x - centre.x), my = float(at.y - centre.y);
         if (mx || my) {
+            PromptsKeyboard();
             p.rx = Clamp16(float(p.rx) + mx * k);
             p.ry = Clamp16(float(p.ry) - my * k);
         }

@@ -272,3 +272,38 @@ about = "the recorded lobby run captured around its two load hitches (20.1 s and
 input_file = "runs/lobby.txt"
 duration = 26
 capture_at = [19.8, 20.4, 22.8, 23.4]
+
+[scenario.dump_menus]
+about = "texture dump through the menus (the lobby run to the loading screen): finds the button glyphs' textures"
+input_file = "runs/lobby.txt"
+duration = 21
+settings = { dump_textures = true }
+
+[scenario.prompts_ps]
+about = "button_prompts 2: PlayStation glyphs in the Play selected game? dialog (cross, circle)"
+input_file = "runs/lobby.txt"
+duration = 21
+capture_at = [19.8]
+settings = { button_prompts = 2 }
+
+[scenario.prompts_nintendo]
+about = "button_prompts 3: Nintendo glyphs in the same dialog (south B, east A)"
+input_file = "runs/lobby.txt"
+duration = 21
+capture_at = [19.8]
+settings = { button_prompts = 3 }
+
+[scenario.prompts_auto]
+about = "button_prompts 0 with no controller plugged in: keyboard key caps (Space, Shift) in the same dialog"
+input_file = "runs/lobby.txt"
+duration = 21
+capture_at = [19.8]
+settings = { button_prompts = 0 }
+
+[scenario.prompts_switch]
+about = "the prompts switching live: PlayStation, then Nintendo at 19.25 s after the first poll (UNCHAINED_PROMPTS_SWITCH), captured either side in the same dialog"
+input_file = "runs/lobby.txt"
+duration = 21
+capture_at = [19.15, 19.95]
+settings = { button_prompts = 2 }
+env = { UNCHAINED_PROMPTS_SWITCH = "19.25:3" }

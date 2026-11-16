@@ -27,7 +27,10 @@ int16_t Axis(int16_t v, uint32_t percent, bool invert) {
 
 }  // namespace
 
+void PromptsPad(const input::Pad& p);  // prompts.cpp: the device in use
+
 void ControlsPad(int port, input::Pad& p) {
+    if (port == 0) PromptsPad(p);  // the controller alone, before the keyboard joins it
     UnchainedPad(port, p);
     uint32_t speed = std::min(g_camera_speed, kMaxCameraSpeed);
     p.rx = Axis(p.rx, speed, g_invert_camera_x);

@@ -145,6 +145,9 @@ extern bool g_invert_camera_x, g_invert_camera_y;
 extern bool g_mouse_camera;  // keyboard.cpp
 extern uint32_t g_mouse_sensitivity;
 void ControlsPad(int port, input::Pad& p);
+extern uint32_t g_button_prompts;  // prompts.cpp
+bool PromptsEdits(uint64_t key);
+bool PromptsImage(uint64_t key, uint32_t& w, uint32_t& h, std::vector<uint8_t>& bgra);
 void ControlsRumble(int port, uint16_t& left, uint16_t& right);
 
 // what the runtime asks of the game; strings must be set, hooks may stay null
@@ -167,7 +170,8 @@ const app::GameInfo app::kGame = {
                 {"mouse_camera", &g_mouse_camera, nullptr},
                 {"mouse_sensitivity", nullptr, &g_mouse_sensitivity},
                 {"character_shadows", &g_character_shadows, nullptr},
-                {"perf_overlay", &g_perf_overlay, nullptr}},  // game settings kept in the settings file
+                {"perf_overlay", &g_perf_overlay, nullptr},
+                {"button_prompts", nullptr, &g_button_prompts}},  // game settings kept in the settings file
     .load = LoadOptions,                         // reads more from the settings file's toml::table
     .save = SaveOptions,                  // writes more into it
     .init = InitOptions,                         // after the settings load, before the window and boot
@@ -186,4 +190,6 @@ const app::GameInfo app::kGame = {
     .skip_texture = SkipTexture,          // character_shadows
     .launcher = UnchainedLauncher,        // direct start, or the Configuration app (--configure, first run)
     .release_name = L"Unchained supports one Xbox release of Whiplash: the one whose default.xbe has the SHA-1 below.",
+    .texture_edits = PromptsEdits,        // the font's button glyphs for the device in use (prompts.cpp)
+    .texture_image = PromptsImage,
 };

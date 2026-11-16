@@ -530,6 +530,8 @@ void PageControls() {
     Check("Invert camera left-right", OptFlag("invert_camera_x"));
     Check("Invert camera up-down", OptFlag("invert_camera_y"));
     Slider("Vibration", OptValue("vibration"), 0, 100, "%d%%");
+    Combo("Button prompts", OptValue("button_prompts"),
+          {"The device in use", "Xbox", "PlayStation", "Nintendo", "Keyboard and mouse"});
     ImGui::PopItemWidth();
     ImGui::Spacing();
     Note("Keys: W A S D move, mouse or I J K L camera, Space jump, left mouse or F attack, right mouse or Left Shift "
