@@ -24,7 +24,8 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
 ### Platforms and input
 - [~] **10. Any SDL controller** - SDL3 pad to XInput HLE is up; confirm by button position, every pad open, the last
   one used is read.
-- [ ] **11. Camera speed and vibration strength** settings (the user found the camera "weird and off").
+- [~] **11. Camera speed and vibration strength** - `camera_speed` (percent), `invert_camera_x`/`_y`, `vibration`
+  (percent) in `src/common/controls.cpp`. Built, not yet felt in play (the user found the camera "weird and off").
 - [~] **12. Keyboard and mouse** - fixed keys exist (`src/common/input_keys.cpp`); add rebinding and a real mouse
   camera.
 - [ ] **14. Handheld preset** - detect PC handhelds; 30/40/45/60 fps and the screen's own size.
@@ -40,8 +41,9 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
 - [ ] **20. Shader and pipeline cache** across runs.
 - [ ] **21. Precompile every shader** before play (from a recorded list).
 - [~] **22. 30 to 360 fps at the right game speed** - SDK has an fps cap (60 by default); Whiplash's game logic speed
-  above its own rate is untested (menus, cutscenes, physics). Uncapped, the title runs at 280-570 fps here: check
-  whether the game speeds up before allowing more than 60.
+  above its own rate: the intro and the attract timer keep real time uncapped (scenarios `speed60` and `speed_uncapped`:
+  the same frames at 8, 14, 20 s at 60 and ~560 fps; attract movie at 56 s and 53 s). Gameplay physics and cutscenes
+  at high rates still to check before the default cap goes above 60.
 - [ ] **23. Graphics presets** - Original, High, Max (and a low one) plus an Advanced page.
 - [ ] **25. Faster release build** - profile-guided optimisation and ThinLTO for the runtime.
 - [ ] **26. Performance overlay** - fps, frame time graph, GPU use.
@@ -70,8 +72,11 @@ eport.md`.
 - [ ] **44. Direct start plus a Configuration app** (see Launcher below).
 - [ ] **45. One-click updates** from the Configuration app.
 - [ ] **46. Save profiles.**
-- [ ] **47. Save backups** at each start, the last 5 kept.
-- [ ] **48. Custom save folder.**
+- [x] **47. Save backups** at each start, the last 5 kept - SDK `save_backups` (5): E:\UDATA to
+  `save backups\<date time>` before boot. Evidence: log `saves: backed up to ...\save backups\2026-11-16 051540`;
+  three runs, three folders.
+- [~] **48. Custom save folder** - SDK `save_folder` (the console's hard disk, saves included). Built, not yet run
+  with a folder set.
 - [ ] **50. Cheats overlay** - money, invincibility, unlocks.
 - [ ] **51. Free camera and photo mode** - HUD hidden, a picture key.
 - [ ] **54. Translated menus** for Unchained's own screens.
