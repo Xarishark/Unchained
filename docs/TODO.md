@@ -107,6 +107,10 @@ eport.md`.
   passes stay full width; "off" is 4:3, "console" the old flag. The 448-line crop is `GameInfo::view_h`. Evidence:
   2026-11-16 run at 2544x1401, title and training level (`turns\multi-20261116-040301`, `shown.bmp`): wide 3D,
   HUD in the 4:3 middle, round icons round.
+  Pop-in at the widened edges (user, 2026-11-16): the game culled with its 4:3 view; the camera's aspect getter
+  (0x17F380) now gives the widened aspect, so the view, its culling and the projection agree. Evidence: the lab's
+  first frames draw 539 and 520 times instead of 483 and 454; the domed doorway at the right edge, missing before, is
+  drawn (turns/tests-20261116-071923 against turns/tests-20261116-071335).
 - [ ] **30-32. Modern upscalers and frame generation** - FSR 3/4, DLSS need motion vectors a D3D8 game does not make;
   later, from depth and camera reprojection.
 - [~] **33. Draw distance** - `draw_distance` (percent, 100-1000) raises the cameras' far clip in the projection

@@ -20,6 +20,22 @@ X86_EXTERN_FUNC(__imp__sub_001390C0);
 uint32_t g_fov_degrees = 60;
 uint32_t g_draw_distance = 100;  // percent of the game's far clip, 100 to 1000
 
+// The camera's aspect getter (0x17F380, fld [ecx+0x50]; ret): the render setup copies fov, aspect, near and far from
+// the camera into the frame's view (0x16A2BB), which the projection and the game's own visibility tests read. With
+// the 4:3 aspect there, objects coming in at the widened edges were culled until they reached the 4:3 view and
+// popped in. Widened here, the view and its culling cover what is shown; the projection hook leaves an aspect that is
+// no longer 4:3 alone, so nothing widens twice.
+X86_FUNC(sub_0017F380) {
+    constexpr float k43 = 4.0f / 3.0f;
+    constexpr float kNear43 = 0.001f;
+    float aspect;
+    std::memcpy(&aspect, kernel::HostPtr(ctx.ecx + 0x50), 4);
+    float k = app::WideFactor();
+    if (k != 1.0f && std::fabs(aspect - k43) < kNear43) aspect *= k;
+    x87_push(ctx, double(aspect));
+    ctx.esp += 4;  // ret
+}
+
 X86_FUNC(sub_001390C0) {
     constexpr float k43 = 4.0f / 3.0f;
     constexpr float kNear43 = 0.001f;  // 1.3330 and 1.3333334 are both the game's 4:3
