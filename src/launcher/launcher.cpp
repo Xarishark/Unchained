@@ -527,7 +527,7 @@ std::string Narrow(const std::wstring& w) {
     return s;
 }
 
-// the game code build, as Savage Wind's setup does it: right after the copy, its progress here; later starts find the
+// the game code build, part of the setup: right after the copy, its progress here; later starts find the
 // code current. A setup that copied nothing (the files were already there) offers it with a button.
 void BuildPanel(bool copied) {
     static bool started = false, tried = false;
@@ -807,7 +807,7 @@ bool Run(bool first_run) {
 }  // namespace launcher
 
 // GameInfo::launcher: the game at once when its files are there, else (or with --configure) the Configuration app.
-// As Savage Wind ships it, the release also has "Unchained Configuration.exe" (this executable under that name): it
+// The release also has "Unchained Configuration.exe" (this executable under that name): it
 // always opens the app, and PLAY starts Unchained.exe beside it.
 bool UnchainedLauncher() {
     if (std::getenv("XBE_AUTOSTART")) return true;  // unattended test runs

@@ -1,8 +1,8 @@
 # Unchained: PC port features to do
 
-Modelled on Savage Wind's feature set (upstream `test`, Alpha 6, 2026-11-16) the way SuperWonders was: every item
-that applies to Whiplash, either as Savage Wind has it or adapted to an original Xbox, 4:3, D3D8 game. Numbers are
-Savage Wind's (its feature list as given to the user). Status: `[ ]` to do, `[~]` started or partly there,
+What a good PC recomp release has, as the user sets the bar from the projects they contribute to and their own
+SuperWonders: every item that applies to Whiplash, as such ports have it or adapted to an original Xbox, 4:3, D3D8
+game. The numbers are the list's own. Status: `[ ]` to do, `[~]` started or partly there,
 `[x]` done. "SDK" marks what the XboxXBERecomp runtime (`sdk/runtime/app/app.h` Settings) already gives.
 
 Check every visual item against the reference (`C:\Unchained-private\reference\whiplash-reference-4k.mkv`, the PS2
@@ -151,10 +151,10 @@ eport.md`.
   the repo: our own drawing, colours and fonts; art from the player's own disc only at runtime after setup.
 - [x] **L2. First-run flow** (pick, verify, copy, build the code with its progress in the app, then PLAY) - choose the disc image or folder, verify, extract to the data folder, recompile with a
   themed progress screen, then start straight into the game.
-- [x] **L5. Installs as Savage Wind's do** (user, 2026-11-16) - the release zip holds the program only (exe, a
+- [x] **L5. Installs as a good recomp release does** (user, 2026-11-16) - the release zip holds the program only (exe, a
   `Unchained Configuration.exe` beside it, the bundled compiler and recompiler); the setup checks the player's files
   and copies them into the data folder; the game code is built once on their PC; saves, settings, logs and caches
-  live in the data folder, the exe's by default, `UNCHAINED_DATA_ROOT` moves it (as `SAVAGEWIND_DATA_ROOT`). Done:
+  live in the data folder, the exe's by default, `UNCHAINED_DATA_ROOT` moves it. Done:
   the Configuration exe (release.bat; PLAY starts Unchained.exe), the data root (log "Data: ..."), the code build
   inside the setup with its progress in the app (`app::StartGameCodeBuild`). Evidence: a release-like folder (exe
   and compiler only): setup copied the files, built the code in 35 s ("The game's code is built"), and the next start
