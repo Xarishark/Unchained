@@ -49,7 +49,15 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
   driver keeps its own pipeline cache. Evidence: recorded lobby run twice cold and twice warm
   (`turns\tests-20261116-055150`): worst frame 204-208 ms cold, 76-77 ms warm; 0.1% low 8 to 17-18 fps, 1% low 33 to
   41-43; hitches over 100 ms 2 to 0. The two left (53 and 77 ms) are the level entry (map open, shadow map made).
-- [ ] **21. Precompile every shader** before play (from a recorded list).
+- [x] **21. Precompile every shader** before play (from a recorded list) - shaders compile once per PC into
+  cache/shaders.bin; every pipeline is listed in cache/pipelines.bin and made ahead on worker threads at start (log
+  "29 of 29 listed pipelines made ahead in 10 ms on 4 threads"). Recorded lobby run, warm, twice each (`lobby_warm`
+  vs `lobby_warm_noahead`): 1% low 42.9/42.3 vs 42.7/42.3, 0.1% 18.2/18.3 vs 18.0/17.8, worst 77/78 vs 79/81 ms, 0
+  frames over 100 ms. The two warm hitches are the game's level load at loading-screen cuts (`lobby_loads`: 20.1 s,
+  "Play selected game?" to the falling animation, `map	raining.mxb` opened, 55 ms; 23.1 s, the animation to the lab,
+  the level's textures arriving, 78 ms), not shaders or pipelines (`lobby_perf`: 0 shaders, 0 pipelines those
+  seconds). A first run on a PC (`lobby_cold`) still compiles what it first sees, at those same cuts (214 and 124 ms):
+  the shaders come from the game as it draws, so none ship.
 - [~] **22. 30 to 360 fps at the right game speed** - SDK has an fps cap (60 by default); Whiplash's game logic speed
   above its own rate: the intro and the attract timer keep real time uncapped (scenarios `speed60` and `speed_uncapped`:
   the same frames at 8, 14, 20 s at 60 and ~560 fps; attract movie at 56 s and 53 s). Gameplay physics and cutscenes

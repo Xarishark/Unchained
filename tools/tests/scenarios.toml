@@ -246,3 +246,29 @@ settings = { hdr = true }
 about = "hdr's baseline: the same run in SDR, for its frame times"
 input = "30:start,33:a,36:a,39:a,42:a,45:a"
 capture_at = [55]
+
+[scenario.perf-intro]
+about = "the intro to the lab with XBE_PERF's per second lines, to name each hitch's cause"
+input = "30:start,33:a,36:a,39:a,42:a,45:a"
+env = { XBE_PERF = "1" }
+
+[scenario.lobby_warm_noahead]
+about = "lobby_warm's baseline: the pipelines not made ahead at start (XBE_NO_PSO_AHEAD), as before the pipeline list"
+input_file = "runs/lobby.txt"
+capture_at = [63]
+duration = 66
+perf_from = 4
+env = { XBE_NO_PSO_AHEAD = "1" }
+
+[scenario.lobby_perf]
+about = "the recorded lobby run warm with XBE_PERF's per second lines: what the hitches at 20 s and 23 s are"
+input_file = "runs/lobby.txt"
+duration = 30
+perf_from = 4
+env = { XBE_PERF = "1" }
+
+[scenario.lobby_loads]
+about = "the recorded lobby run captured around its two load hitches (20.1 s and 23.1 s): what is on screen"
+input_file = "runs/lobby.txt"
+duration = 26
+capture_at = [19.8, 20.4, 22.8, 23.4]
