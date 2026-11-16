@@ -482,6 +482,8 @@ void PageGraphics() {
     ImGui::PushItemWidth(S(300));
     Slider("Render scale", &s.render_percent, 50, 200, "%d%%", true);
     Combo("Upscaler", &s.upscaler, {"Bilinear", "AMD FSR 1"}, true);
+    Check("Clean menu and HUD edges", &s.ui_upscale, true);
+    Note("Text, frames and other flat 2D shapes drawn 4x with clean edges instead of blurry texels.");
     Slider("Sharpening", &s.sharpen, 0, 100, "%d%%", true);
     Choice("Texture filtering", &s.aniso, {{0, "As the game asks"}, {2, "2x"}, {4, "4x"}, {8, "8x"}, {16, "16x"}}, true);
     Choice("Shadow detail", OptValue("shadow_resolution"),

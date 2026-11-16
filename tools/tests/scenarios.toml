@@ -314,3 +314,17 @@ input_file = "runs/lobby.txt"
 duration = 21
 capture_at = [19.8]
 settings = { button_prompts = 1 }
+
+[scenario.ui_off]
+about = "ui_upscale off: the menus, the Play selected game? dialog and the lab's HUD as the console's texels (before)"
+input_file = "runs/lobby.txt"
+duration = 32
+capture_at = [12, 19.8, 30]
+settings = { ui_upscale = false, button_prompts = 1 }
+
+[scenario.ui_on]
+about = "ui_upscale on: the same frames with the flat 2D textures (font, frames) drawn 4x with clean edges (after)"
+input_file = "runs/lobby.txt"
+duration = 32
+capture_at = [12, 19.8, 30]
+settings = { ui_upscale = true, button_prompts = 1 }

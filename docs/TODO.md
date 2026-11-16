@@ -109,6 +109,13 @@ eport.md`.
 - [ ] **50. Cheats overlay** - money, invincibility, unlocks. Not through the disc's Game.ini: its debug switches
   ("Player invincible", "Enable debug menus", "Disable Creature Shadows", "Hide All") are not in the retail xbe and
   are ignored (served rewritten, 2026-11-16: no change). Needs the game's own player and money fields.
+- [x] **U. Clean menu and HUD edges** (user, 2026-11-16: "re render all the other letters and UI boxes ... to match
+  how clean the glyphs are") - SDK `ui_upscale`: a texture drawn by a draw that tests no depth into the frame is 2D
+  art; one of flat shapes (mostly clear and solid texels, under 40% partly clear: the font, the frame pieces; glows,
+  gradients and opaque pictures left alone) is drawn 4x on the texture worker, its outline by Scale2x three times
+  averaged 2x2 (corners kept, diagonals smoothed), its colour bilinear from its own texels. The prompts draw over the
+  4x font. Scenarios `ui_off` / `ui_on`, twice: the dialog's text and frames crisp; frame times unchanged (1% low
+  39.7/39.8 off vs 39.1/39.7 on, worst 79/79 vs 78/77 ms, 0 over 100 ms).
 - [x] **H. HUD at the screen edges** (user, 2026-11-16: "align to edge of screen like modern HUDs") - each HUD piece
   keeps its 4:3 shape and goes to its own edges, past the console's TV safe margin (`hud_edge`, 0 to 100, default
   100): left and right pieces to the sides, top and bottom pieces up and down, menus and centred text centred, full

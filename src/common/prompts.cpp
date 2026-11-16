@@ -235,11 +235,19 @@ void DrawCell(Canvas& cv, Cell cell, int shown) {
 // texture_edits: the font
 bool PromptsEdits(uint64_t key) { return key == kFontKey; }
 
+void DrawCells(std::vector<uint8_t>& big, uint32_t W, int shown);
+
 // texture_image: the font 4x, its button cells drawn for the device shown (left alone for the console's own)
 bool PromptsImage(uint64_t key, uint32_t& w, uint32_t& h, std::vector<uint8_t>& bgra) {
     int shown = g_applied.load();
-    if (key != kFontKey || shown < 0 || shown == kConsole || w != kFontSide || h != kFontSide) return false;
-    uint32_t W = w * kScale, H = h * kScale;
+    if (key != kFontKey || shown < 0 || shown == kConsole || w != h) return false;
+    uint32_t W = kFontSide * kScale, H = W;
+    // the SDK's ui_upscale has drawn the font 4x already; else it is upscaled here
+    if (w == W) {
+        DrawCells(bgra, W, shown);
+        return true;
+    }
+    if (w != kFontSide) return false;
     std::vector<uint8_t> big(size_t(W) * H * 4);
     // bilinear, as the GPU samples the console's font, on premultiplied colour
     auto at = [&](int x, int y, int c) {
@@ -263,6 +271,15 @@ bool PromptsImage(uint64_t key, uint32_t& w, uint32_t& h, std::vector<uint8_t>& 
             for (int c = 0; c < 3; c++) d[c] = uint8_t(std::lround(std::clamp(v[3] > 0 ? v[c] / v[3] : 0.0f, 0.0f, 1.0f) * 255));
             d[3] = uint8_t(std::lround(v[3] * 255));
         }
+    DrawCells(big, W, shown);
+    bgra = std::move(big);
+    w = W;
+    h = H;
+    return true;
+}
+
+// the button row's cells, drawn into the 4x font (W wide)
+void DrawCells(std::vector<uint8_t>& big, uint32_t W, int shown) {
     for (int cell = 0; cell < kCells; cell++) {
         int x0 = kCellLeft[cell] * int(kScale), x1 = (kCellRight[cell] + 1) * int(kScale);
         int y0 = kRowTop * int(kScale), y1 = (kRowBottom + 1) * int(kScale);
@@ -279,10 +296,6 @@ bool PromptsImage(uint64_t key, uint32_t& w, uint32_t& h, std::vector<uint8_t>& 
                 d[3] = uint8_t(std::lround(s[3] * 255));
             }
     }
-    bgra = std::move(big);
-    w = W;
-    h = H;
-    return true;
 }
 
 // port 0's poll, before the keyboard is added: a pad in use shows its maker's glyphs
