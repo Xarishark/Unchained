@@ -1,4 +1,5 @@
 #include "app/app.h"
+#include "core/input.h"
 
 #include <cstdlib>
 #include <windows.h>
@@ -32,6 +33,8 @@ bool OffscreenMessage(void*, uint32_t msg, uintptr_t, intptr_t lp, intptr_t*) {
 
 }  // namespace
 
+void UnchainedPad(int port, input::Pad& p);  // input_keys.cpp: keyboard and scripted test input
+
 // what the runtime asks of the game; strings must be set, hooks may stay null
 const app::GameInfo app::kGame = {
     .title = L"Unchained",                // window and splash
@@ -50,6 +53,6 @@ const app::GameInfo app::kGame = {
     .window = OffscreenWindow,                    // the game window is up
     .message = OffscreenMessage,                  // window messages first; true takes one
     .ui = nullptr,                        // ImGui drawing each frame
-    .pad = nullptr,                       // changes a polled pad
+    .pad = UnchainedPad,                  // keyboard and scripted input on port 0 (input_keys.cpp)
     .rumble = nullptr,                    // changes a rumble before it is set
 };
