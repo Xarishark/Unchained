@@ -54,7 +54,7 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
 - [ ] **26. Performance overlay** - fps, frame time graph, GPU use.
 - [x] **27. Benchmark routes** - `tools/tests/run_tests.py`: scenarios with scripted or recorded input
   (`record.ps1`, `UNCHAINED_INPUT_RECORD`), captures, reference comparison and per-present frame times (1%/0.1% lows,
-  hitches, stutter). Evidence: `turns	ests-20261116-045759
+  hitches, stutter). Evidence: `turns\tests-20261116-045759
 eport.md`.
 
 ### Graphics
