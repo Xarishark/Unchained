@@ -85,7 +85,9 @@ eport.md`.
   three runs, three folders.
 - [~] **48. Custom save folder** - SDK `save_folder` (the console's hard disk, saves included). Built, not yet run
   with a folder set.
-- [ ] **50. Cheats overlay** - money, invincibility, unlocks.
+- [ ] **50. Cheats overlay** - money, invincibility, unlocks. Not through the disc's Game.ini: its debug switches
+  ("Player invincible", "Enable debug menus", "Disable Creature Shadows", "Hide All") are not in the retail xbe and
+  are ignored (served rewritten, 2026-11-16: no change). Needs the game's own player and money fields.
 - [ ] **51. Free camera and photo mode** - HUD hidden, a picture key.
 - [x] **H. HUD at the screen edges** (user, 2026-11-16: "align to edge of screen like modern HUDs") - each HUD piece
   keeps its 4:3 shape and goes to its own edges, past the console's TV safe margin (`hud_edge`, 0 to 100, default
@@ -101,7 +103,9 @@ eport.md`.
 ## Adapted to Whiplash
 
 - [ ] **1. The whole game from your own disc** - one game, no DLC; ISO or extracted folder.
-- [ ] **6. Languages** - whatever text and voice languages the disc has, chosen in settings.
+- [x] **6. Languages** - whatever text and voice languages the disc has, chosen in settings. This release has
+  English only: no French, German, Spanish or Italian files in Xbox.rkv or .r01-.r09 (rkv-scan, 2026-11-16), and the
+  kernel answers XC_LANGUAGE English. Nothing to choose.
 - [ ] **9. Platforms** - Windows first; Linux needs the renderer ported off D3D12 (try Proton meanwhile).
 - [x] **18. Widescreen and ultrawide** - Whiplash ignores the widescreen TV flag (the SDK's old 16:9 just stretched
   it). Its projection (`0x1390C0`) has a vertical fov, so `src/game/widescreen.cpp` widens the game's 4:3 aspect by

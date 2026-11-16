@@ -188,3 +188,4 @@ about = "colour_filter 2 (deuteranopia correction) and hud_visible false on the 
 input = "30:start,33:a,36:a,39:a,42:a,45:a"
 capture_at = [58]
 settings = { colour_filter = 2, hud_visible = false }
+

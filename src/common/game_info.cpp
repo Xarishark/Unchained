@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <filesystem>
 #include <string>
 #include <windows.h>
 
@@ -141,7 +142,7 @@ const app::GameInfo app::kGame = {
                 {"invert_camera_y", &g_invert_camera_y, nullptr},
                 {"vibration", nullptr, &g_vibration},
                 {"mouse_camera", &g_mouse_camera, nullptr},
-                {"mouse_sensitivity", nullptr, &g_mouse_sensitivity}},  // game settings kept in the settings file  // game settings kept in the settings file
+                {"mouse_sensitivity", nullptr, &g_mouse_sensitivity},},  // game settings kept in the settings file
     .load = LoadOptions,                         // reads more from the settings file's toml::table
     .save = SaveOptions,                  // writes more into it
     .init = InitOptions,                         // after the settings load, before the window and boot
