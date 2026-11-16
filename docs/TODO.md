@@ -109,7 +109,9 @@ eport.md`.
   HUD in the 4:3 middle, round icons round.
 - [ ] **30-32. Modern upscalers and frame generation** - FSR 3/4, DLSS need motion vectors a D3D8 game does not make;
   later, from depth and camera reprojection.
-- [ ] **33. Draw distance** - find the game's far clip and level-of-detail distances and raise them.
+- [~] **33. Draw distance** - `draw_distance` (percent, 100-1000) raises the cameras' far clip in the projection
+  hook (src/game/widescreen.cpp). Indoors (lab, 400%) nothing changes and depth stays right; needs an outdoor level
+  to show, and the game's own distance culling and level-of-detail distances are not found yet.
 - [ ] **35. HDR10** - tone-map the game's output; needs correct brightness first (gamma ramp, `0x2B5740`).
 - [ ] **36. Effect toggles** - Whiplash's own: hyper-mode trail, fog, shadows, glow, screen effects.
 - [ ] **41. Highest level of detail** at any distance.

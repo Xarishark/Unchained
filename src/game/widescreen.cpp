@@ -18,6 +18,7 @@ X86_EXTERN_FUNC(__imp__sub_001390C0);
 // fov: the gameplay camera's vertical field of view in degrees (the game's is 60, 1.0471976 rad at 0x30C0AC). Only a
 // projection at exactly that angle changes, so cutscene cameras with their own angle keep it.
 uint32_t g_fov_degrees = 60;
+uint32_t g_draw_distance = 100;  // percent of the game's far clip, 100 to 1000
 
 X86_FUNC(sub_001390C0) {
     constexpr float k43 = 4.0f / 3.0f;
@@ -37,9 +38,20 @@ X86_FUNC(sub_001390C0) {
     uint32_t at = ctx.esp + 8;  // [esp] return, [esp+4] fov, [esp+8] aspect
     float aspect;
     std::memcpy(&aspect, kernel::HostPtr(at), 4);
-    if (k != 1.0f && std::fabs(aspect - k43) < kNear43) {
+    bool camera = std::fabs(aspect - k43) < kNear43;  // the game's 4:3 views, not a light's square one
+    if (k != 1.0f && camera) {
         float wide = aspect * k;
         std::memcpy(kernel::HostPtr(at), &wide, 4);
+    }
+    // draw_distance: the cameras' far clip, percent of the game's ([esp+0x10]); what the game culls itself stays
+    constexpr uint32_t kMaxDistance = 1000;
+    if (camera && g_draw_distance != 100) {
+        uint32_t far_at = ctx.esp + 0x10;
+        float far_clip;
+        std::memcpy(&far_clip, kernel::HostPtr(far_at), 4);
+        float pct = float(g_draw_distance < 100 ? 100 : g_draw_distance > kMaxDistance ? kMaxDistance : g_draw_distance);
+        far_clip *= pct / 100.0f;
+        std::memcpy(kernel::HostPtr(far_at), &far_clip, 4);
     }
     __imp__sub_001390C0(ctx, base);
 }

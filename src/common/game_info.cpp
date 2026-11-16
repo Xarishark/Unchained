@@ -114,7 +114,7 @@ void InitOptions() {
 }  // namespace
 
 void UnchainedPad(int port, input::Pad& p);  // input_keys.cpp: keyboard and scripted test input
-extern uint32_t g_fov_degrees;  // widescreen.cpp
+extern uint32_t g_fov_degrees, g_draw_distance;  // widescreen.cpp
 // controls.cpp: camera speed and inversion, vibration strength
 extern uint32_t g_camera_speed, g_vibration;
 extern bool g_invert_camera_x, g_invert_camera_y;
@@ -135,6 +135,7 @@ const app::GameInfo app::kGame = {
     .images = {{"default.xbe", "Unchained"}},  // each recompiled xbe and its exe, for title launches
     .options = {{"shadow_resolution", nullptr, &g_shadow_resolution},
                 {"fov", nullptr, &g_fov_degrees},
+                {"draw_distance", nullptr, &g_draw_distance},
                 {"camera_speed", nullptr, &g_camera_speed},
                 {"invert_camera_x", &g_invert_camera_x, nullptr},
                 {"invert_camera_y", &g_invert_camera_y, nullptr},

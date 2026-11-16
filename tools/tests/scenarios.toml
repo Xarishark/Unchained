@@ -175,3 +175,10 @@ capture_at = [58]
 perf_from = 50
 settings = { graphics_preset = "max" }
 target_fps = 60
+
+[scenario.far400]
+about = "draw_distance 400 against the lab scenario's frames: does more show in the distance?"
+input = "30:start,33:a,36:a,39:a,42:a,45:a,60:ly+:3000,66:rx+:800"
+capture_at = [55, 64, 72]
+perf_from = 55
+settings = { draw_distance = 400 }
