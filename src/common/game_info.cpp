@@ -55,4 +55,8 @@ const app::GameInfo app::kGame = {
     .ui = nullptr,                        // ImGui drawing each frame
     .pad = UnchainedPad,                  // keyboard and scripted input on port 0 (input_keys.cpp)
     .rumble = nullptr,                    // changes a rumble before it is set
+    .releases = {},                       // one release: the retail xbe
+    .view_w = 640,                        // the game draws 640x448 of its 640x480 back buffer (viewport c-96/c-95)
+    .view_h = 448,
+    .expands = true,                      // src/game/widescreen.cpp widens its projection
 };

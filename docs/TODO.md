@@ -45,7 +45,9 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
 - [ ] **27. Benchmark routes** - scripted runs (`UNCHAINED_INPUT`) that write per-present frame times.
 
 ### Graphics
-- [x] **28. Resolution and render scale** - SDK: `render_percent`.
+- [x] **28. Resolution and render scale** - SDK: `render_percent`. Fixed 2026-11-16: the scale followed the
+  `width`/`height` setting, so a 640x480 setting in a 2544x1401 window rendered at 1.0 and was upscaled; it now
+  follows the window (log: `render scale 3.975`), never under the console's, 200+ supersamples.
 - [ ] **29. FSR 1** upscaling.
 - [ ] **34. Colour grading** - exposure, contrast, saturation, temperature, tint, LUTs; HUD keeps its colours.
 - [x] **37. Anisotropic filtering** - SDK: `aniso`.
@@ -72,9 +74,12 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
 - [ ] **1. The whole game from your own disc** - one game, no DLC; ISO or extracted folder.
 - [ ] **6. Languages** - whatever text and voice languages the disc has, chosen in settings.
 - [ ] **9. Platforms** - Windows first; Linux needs the renderer ported off D3D12 (try Proton meanwhile).
-- [~] **18. Widescreen and ultrawide** - SDK reports a widescreen TV at 3:2 and wider; check what Whiplash does with
-  it (anamorphic or real wide), then a real wider field of view at 16:9 and beyond with the HUD kept 4:3 in the
-  middle. With it, the 448-line overscan crop (the game draws 640x448 of a 640x480 buffer).
+- [x] **18. Widescreen and ultrawide** - Whiplash ignores the widescreen TV flag (the SDK's old 16:9 just stretched
+  it). Its projection (`0x1390C0`) has a vertical fov, so `src/game/widescreen.cpp` widens the game's 4:3 aspect by
+  the output's: `widescreen = "expand"` (default) fills 16:9 up to 32:9, 2D stays 4:3 in the middle, full screen
+  passes stay full width; "off" is 4:3, "console" the old flag. The 448-line crop is `GameInfo::view_h`. Evidence:
+  2026-11-16 run at 2544x1401, title and training level (`turns\multi-20261116-040301`, `shown.bmp`): wide 3D,
+  HUD in the 4:3 middle, round icons round.
 - [ ] **30-32. Modern upscalers and frame generation** - FSR 3/4, DLSS need motion vectors a D3D8 game does not make;
   later, from depth and camera reprojection.
 - [ ] **33. Draw distance** - find the game's far clip and level-of-detail distances and raise them.
