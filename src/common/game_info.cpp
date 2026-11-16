@@ -156,4 +156,6 @@ const app::GameInfo app::kGame = {
     .view_h = 448,
     .expands = true,                      // src/game/widescreen.cpp widens its projection
     .target_scale = TargetScale,          // the shadow map at shadow_resolution
+    .one_release = true,                  // TODO.md item 8: the one supported Xbox release, others refused
+    .release_name = L"Unchained supports one Xbox release of Whiplash: the one whose default.xbe has the SHA-1 below.",
 };

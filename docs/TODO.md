@@ -18,8 +18,10 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
 - [~] **4. Whole game finishable** - training level plays; the rest untested. Track a playthrough per level.
 - [~] **5. Sound and voices correct** - sound bank plays; spoken dialogue (streamed `vo/VO_*`) never plays
   (docs/STATUS.md).
-- [ ] **8. One supported version** - refuse an XBE whose SHA-1 is not `3ea30323cec5734ddd4d535b5a269786b6900dc4`,
-  with a clear message.
+- [x] **8. One supported version** - refuse an XBE whose SHA-1 is not `3ea30323cec5734ddd4d535b5a269786b6900dc4`,
+  with a clear message. SDK `GameInfo::one_release`. Evidence: a copy beside a one-byte-changed default.xbe shows
+  "is a different release of the game ... Expected ... 3ea30323... Found 34a323e0..." and does not start (log:
+  "another release ... refused").
 
 ### Platforms and input
 - [~] **10. Any SDL controller** - SDL3 pad to XInput HLE is up; confirm by button position, every pad open, the last
