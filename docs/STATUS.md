@@ -144,3 +144,78 @@ Open:
 5. Try the union of PR #27's and hk21x's 5659 signatures for the other D3D/DSound functions.
 6. Name the rest in Ghidra (`analysis/whiplash.exe`), then run `xbe_symbols --sign` to make Whiplash-variant signatures for upstream.
 7. Add `data_ranges` for the XMV decoder tables once the attract movie path is HLE'd.
+
+## Systematic scan (2026-11-16)
+
+A pass over the same bug classes as the fixes above. Tools are outside the repo in `C:\Unchained-private\audit\`:
+`xbe.py` (image, sections, `.XTLID`, call sites), `dis.txt` (every instruction, taken from the recompiler's generated
+comments), `xtlid.txt` (the 141 `.XTLID` exports, with names from every signature file's ids).
+
+### 1. Library functions the matcher missed or misnamed
+The game's own code calls 25 library addresses that `config/game.toml` doesn't name. Each one was checked:
+- **Misnamed:** `0x2C7486` was matched as `IDirectSoundBuffer_SetFilter`. `.XTLID` says `0x0B0067`, which is
+  `SetEG` (ids are alphabetical: SetCurrentPosition 0x64, SetEG 0x67, SetFilter 0x68, SetFrequency 0x6A). The game
+  passes an envelope (amplitude EG, release 1, sustain 255) at `0x1C2D91`. **Renamed.** Both runtime functions are
+  no-ops, so this doesn't change the sound.
+- **Fixed:** `GetBackBuffer2` (`0x2B5DA0`) and `GetDepthStencilSurface2` (`0x2B5DF0`) ran the library's code, which reads
+  CDevice fields. The runtime set the front-buffer field to the back buffer, so the game got the same address for
+  both (`0x3AC154`/`0x3AC158`). Both are now mapped, and the field holds the front buffer (see class 3).
+- **Harmless:**
+  - `BlockUntilIdle` (`0x2B58F0`) jumps to the mapped `KickOffAndWaitForIdle`.
+  - Resource AddRef/Release (`0x2B73C0`/`0x2B7400`) and `CreatePushBuffer` (`0x2B7010`) only touch guest headers.
+  - `BeginPushBuffer`/`EndPushBuffer` (`0x2B70A0`/`0x2B7110`): the game records each whole frame, then runs it with
+    `RunPushBuffer`.
+  - `InsertCallback` (`0x2B9110`) adds a GPU timing callback (`0x1D06E0`). It uses `0x1D8C`/`0x1D90` as scratch
+    space, and those are also the pushed clear-value registers. No pushed clear follows in a play frame.
+  - The DSound stream thunks at `0x2C75B2`/`B7`/`0x2C7B10` jump to mapped functions.
+  - The XMV calls are the attract movie.
+- **Boot warning `dsound: exports running their original code`:**
+  - `B00A3` (`0x2C648D`) is pure pitch math (it compares the rate against 48000). Only DSOUND's own code calls it.
+  - `B0080` (`0x2C75C1`) is the `IDirectSoundStream_FlushEx` thunk, and only XMV calls it.
+  - `B002D` and `B000C` point into data tables.
+
+  None of these touch a host object.
+
+### 2. Pushed state the renderer took from stale API state
+A play-frame dump (`UNCHAINED_PB_DUMP_AT=55`, new) lists what Whiplash pushes per frame. The renderer already reads
+blend, colour mask, alpha test, depth func/write and stencil func from the pushed registers. From the API state it
+still reads cull, fill, stencil enable/fail, fog range, shadow func and texture factor:
+- **Cull (fixed, SDK `a7202e9`):**
+  - The game turns culling on and off 18 times a frame (`0x308`). It never pushes the culled face.
+  - Its last API call, the startup GPU timing test `0x1D0340`, leaves the D3D cull mode at NONE. So no pushed draw
+    was ever culled.
+  - Pushed draws now take culling from the registers. The API cull and front-face states set those registers as
+    the library's own `CullMode` does: `0x39C = FRONT` when the mode equals the front face.
+  - Check: culling the other winding (`UNCHAINED_PB_CULL=ccw`) wipes out the title road and the lab. The derived
+    clockwise culling matches the unculled picture with nothing missing.
+  - The game pushes front face `0` once a frame. That isn't a valid value, so the API's front face is kept.
+- **Not pushed in play:** stencil enable stays 0; fog mode and the shadow compare func aren't pushed; fill mode is
+  set once through the API. No change was needed.
+
+### 3. Frame-buffer addresses
+The full-screen effects pass (`XBoxFullScreenFX::Apply`, `0x1D2A70`) samples the front buffer when its mode is 0
+(`0x1D2CDC`, pitch `0xA00`). The game took that address from `GetBackBuffer2(-1)`, which gave the back buffer
+(class 1). Now the front buffer's first address reads the frame shown last, and the back buffer's first address still
+reads the one being drawn (SDK `a7202e9`). Whatever uses mode 0 (fades or the hyper trail) needs a play check.
+`CopyRects` and `PersistDisplay` are never called.
+
+### 4. Open problems
+- **(a) Dark picture:** the game's own ramp (`0x16C400`, called at boot with brightness 5.0) is
+  `255 * (min(255, i*(b+7)/12)/255)^1.4`, which darkens the midtones (128 goes to 97). Mapping `SetGammaRamp`
+  (`8ad0b8b`) applies that, so the picture gets **darker**, not brighter. The reference's lab scenes are dark teal
+  too. Compare a play frame side by side with the reference before going further, and if the console is brighter,
+  look at the TV output stage, not the ramp.
+- **(d) Voice lines:**
+  - `0x13D110` is the engine's second debug print, stripped to a bare `ret` in retail, with 358 callers. It now
+    goes to the log as `engine:` lines; only direct calls are formatted, because the folded empty function is
+    also a vtable slot.
+  - Traces of the stream path show that music (`StrStream`, stereo 0x24000 rings, called from `0x2227EC`) and mono
+    creature speech (called from `0x257A4F`) start and play at a peak of about 0.17.
+  - Redmond's lines are `goe::LipStream` (vtables `LipStream` `0x305658`, `LipStreamInst` `0x304FF4`, `CreateInst`
+    `0x1EE920`). At the lab's load, 9 LipStreams are created and their lip sync loads (`0x1C5BB0`, `0x1C6680`),
+    but `CreateInst` was never called in about 3 minutes of scripted play. So nothing asked to play them.
+  - Next: trace the cutscene lip-sync command (`CinLipSync` vtable `0x3094A4`, execute `0x2709B0`) and the
+    `VoiceOverBeginsMsg` senders (`0x2072E3`, `0x242ABE`, `0x26205A`) at a scene known to speak, such as the fire
+    machine at 13:03.
+- **(f) XMV attract movie:** opened at 47 s and 79 s of an idle title screen with no crash. It looks fixed.
+- (b) shadows, (c) hyper trail and (e) camera: not changed by this pass, apart from the front-buffer read in class 3.

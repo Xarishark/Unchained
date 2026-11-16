@@ -12,9 +12,9 @@
 #include <map>
 #include <string>
 
-// The game's debug print (cdecl, printf style): retail builds send it nowhere. Its messages go to the log, each
-// format at most 50 times, as the game's own account of what it skips ("SND: Start on not allocated channel!").
-X86_FUNC(sub_001ED470) {
+namespace {
+// a printf style debug print's message to the log, each format at most 50 times
+void LogGamePrint(X86Context& ctx, const char* tag) {
     using kernel::R32;
     auto guest_str = [](uint32_t va, size_t max) {
         std::string s;
@@ -62,10 +62,34 @@ X86_FUNC(sub_001ED470) {
             i = j;
         }
         while (!out.empty() && (out.back() == '\n' || out.back() == '\r')) out.pop_back();
-        LOGI("game: %s", out.c_str());
+        while (!out.empty() && (out.front() == '\n' || out.front() == '-')) out.erase(out.begin());
+        LOGI("%s: %s", tag, out.c_str());
     }
+}
+}  // namespace
+
+// The game's debug print (cdecl, printf style): retail builds send it nowhere. Its messages go to the log, as the
+// game's own account of what it skips ("SND: Start on not allocated channel!").
+X86_FUNC(sub_001ED470) {
+    LogGamePrint(ctx, "game");
     ctx.eax = 0;
     ctx.esp += 4;  // cdecl: the caller pops the arguments
+}
+
+// The engine's other debug print, compiled to a bare ret in the retail build, with 358 callers (the sound, stream and
+// file code's diagnostics, "SndStreamInst::StartSound() -> Just stole a channel.."). The linker folded every empty
+// function into it, so it is also a vtable slot: only a direct call (E8 rel32 to here) passes a format string.
+X86_FUNC(sub_0013D110) {
+    using kernel::R32;
+    uint32_t ret = R32(ctx.esp);
+    const auto* code = static_cast<const uint8_t*>(kernel::HostPtr(ret - 5));
+    int32_t rel;
+    std::memcpy(&rel, code + 1, 4);
+    uint32_t fmt = R32(ctx.esp + 4);
+    // the format lies in the image's .rdata
+    if (code[0] == 0xE8 && ret + uint32_t(rel) == 0x0013D110 && fmt >= 0x2FE860 && fmt < 0x348520)
+        LogGamePrint(ctx, "engine");
+    ctx.esp += 4;  // ret: the caller cleans up its arguments (cdecl, or a thiscall with none)
 }
 
 // XAPI's process start checks that the disc is an authentic Xbox disc: it opens the DVD drive and reads the disc
