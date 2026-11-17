@@ -7,7 +7,8 @@
 # (github.com/AppImage/type2-runtime, runtime-x86_64), which the squashfs is appended to. Inside:
 #   usr/bin/Unchained, usr/bin/compiler/ (xbe_recomp, the configs and headers, clang and ld.lld for the first-start
 #   build), usr/lib/ (SDL3 and the libraries clang and lld need), AppRun, the desktop entry and the icon.
-# Left to the system, as AppImages leave them: glibc, libstdc++ and libgcc_s, the Vulkan loader and the GPU driver.
+# Left to the system, as AppImages leave them: glibc, libstdc++ and libgcc_s, the Vulkan loader and the GPU driver,
+# libedit and libtinfo. The newest the image asks of the system: glibc 2.38, GLIBCXX_3.4.32 (Ubuntu 24.04, Fedora 39).
 # The player's data goes to ~/.local/share/Unchained (app/host.cpp), the built game code to its gamecode/.
 # Needs mksquashfs (squashfs-tools) and the system's clang and lld; nothing of the game is in the image.
 set -e
@@ -28,8 +29,10 @@ cp "$(readlink -f "$(command -v ld.lld)")" "$app/usr/bin/compiler/ld.lld"
 cp "$(dirname "$(readlink -f "$(command -v clang)")")/../../../share/doc/llvm-21/copyright" \
     "$app/usr/bin/compiler/LLVM-LICENSE.txt" 2>/dev/null || true
 
-# the libraries the three need, but the ones every desktop has and must use its own of
-skip='^(libc|libm|libdl|libpthread|librt|ld-linux-x86-64|libstdc\+\+|libgcc_s|libvulkan|libGL|libEGL|libGLX|libdrm|libgbm|libwayland-.*|libX.*|libxcb.*|libasound|libpulse.*|libdbus-1|libsystemd|libudev)\.so'
+# the libraries the three need, but the ones every desktop has and must use its own of. libedit and libtinfo (LLVM's
+# line editing, which clang never uses here) are the system's: a build machine's copies can want a newer glibc than
+# the rest (Ubuntu 26.04's want 2.42 for four terminal calls), and every desktop has libtinfo6 and libedit2
+skip='^(libc|libm|libdl|libpthread|librt|ld-linux-x86-64|libstdc\+\+|libgcc_s|libvulkan|libGL|libEGL|libGLX|libdrm|libgbm|libwayland-.*|libX.*|libxcb.*|libasound|libpulse.*|libdbus-1|libsystemd|libudev|libedit|libtinfo)\.so'
 for bin in "$app/usr/bin/Unchained" "$app/usr/bin/compiler/clang" "$app/usr/bin/compiler/ld.lld"; do
     ldd "$bin" | awk '/=> \// {print $3}' | while read -r lib; do
         name=$(basename "$lib")
