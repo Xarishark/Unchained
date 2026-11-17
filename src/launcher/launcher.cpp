@@ -272,10 +272,21 @@ SDL_Renderer* g_renderer = nullptr;
 float g_dpi = 1;
 bool g_quit = false, g_play = false;
 
+const char* g_shot = nullptr;  // UNCHAINED_CONFIG_SHOT: a frame's picture goes to this PNG, then the app closes
+bool g_shot_now = false;        // this frame's
+
 void Present() {
     SDL_SetRenderDrawColor(g_renderer, 5, 22, 24, 255);
     SDL_RenderClear(g_renderer);
     ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), g_renderer);
+    // the frame as drawn, before it is presented (after, the back buffer's contents are undefined)
+    if (g_shot_now) {
+        if (SDL_Surface* s = SDL_RenderReadPixels(g_renderer, nullptr)) {
+            SDL_SavePNG(s, g_shot);
+            SDL_DestroySurface(s);
+        }
+        g_shot_now = false;
+    }
     SDL_RenderPresent(g_renderer);
 }
 #endif
@@ -1082,16 +1093,11 @@ bool Run(bool first_run, bool build_only) {
         if (std::wstring src = platform::Env(L"UNCHAINED_SETUP_SOURCE"); !src.empty()) Start(src);
         if (const char* pg = std::getenv("UNCHAINED_CONFIG_PAGE")) g_page = Page(std::clamp(std::atoi(pg), 0, kPages - 1));
         // UNCHAINED_CONFIG_SHOT=<file.png>: the window's picture saved after a few frames, then it closes (tests)
-        const char* shot = std::getenv("UNCHAINED_CONFIG_SHOT");
+        g_shot = std::getenv("UNCHAINED_CONFIG_SHOT");
         int frames = 0;
         while (!g_quit && !g_play) {
-            if (shot && ++frames == 20) {
-                if (SDL_Surface* s = SDL_RenderReadPixels(g_renderer, nullptr)) {
-                    SDL_SavePNG(s, shot);
-                    SDL_DestroySurface(s);
-                }
-                g_quit = true;
-            }
+            if (g_shot && ++frames == 20) g_shot_now = true;
+            if (g_shot && frames == 21) g_quit = true;
             SDL_Event e;
             while (SDL_PollEvent(&e)) {
                 ImGui_ImplSDL3_ProcessEvent(&e);
@@ -1103,6 +1109,7 @@ bool Run(bool first_run, bool build_only) {
             }
             ImGui_ImplSDLRenderer3_NewFrame();
             ImGui_ImplSDL3_NewFrame();
+            if (g_shot) ImGui::GetIO().AddMousePosEvent(-FLT_MAX, -FLT_MAX);  // shots: nothing hovered
             ImGui::NewFrame();
             if (build_only) DrawBuildUi();
             else DrawUi();
@@ -1186,6 +1193,7 @@ bool Run(bool first_run, bool build_only) {
             }
             ImGui_ImplDX12_NewFrame();
             ImGui_ImplWin32_NewFrame();
+            if (g_shot) ImGui::GetIO().AddMousePosEvent(-FLT_MAX, -FLT_MAX);  // shots: nothing hovered
             ImGui::NewFrame();
             if (build_only) DrawBuildUi();
             else DrawUi();
