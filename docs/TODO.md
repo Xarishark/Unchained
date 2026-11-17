@@ -166,18 +166,36 @@ eport.md`.
   (0x17F380) now gives the widened aspect, so the view, its culling and the projection agree. Evidence: the lab's
   first frames draw 539 and 520 times instead of 483 and 454; the domed doorway at the right edge, missing before, is
   drawn (turns/tests-20261116-071923 against turns/tests-20261116-071335).
-  Still open (user, 2026-11-16 evening, snips and the recording `runs/popin.txt`): wall lights, plants and props near
-  the wide edges still vanish and come back as the camera turns, wall light glows glitch, and character shadows
-  sometimes go. Not the renderer: those are 3D draws (world space, fixed function), which the 2D narrowing and HUD
-  placement leave alone (they act on w == 1 only). Widening the camera's stored aspect at its constructor (0x17F3C0,
-  +0x50) widens the culling but also moves the game's follow camera (it frames with the same value), so that was
-  undone; the culling that still uses 4:3 has to be found and widened alone. Scenarios `popin_old` / `popin_new`
-  replay the recording (the runs drift apart, so compare within a run, not frame to frame).
+  Edge pop-in with a wider fov (user, 2026-11-16 evening, snips and the recording `runs/popin.txt`): wall lights,
+  plants, the planter and palm, hanging platforms and the lab's crystal vanished and came back near the edges as the
+  camera turned; wall light glows glitched and character shadows sometimes went. Cause: the `fov` setting (80 for
+  the user). The projection hook draws at that fov, but the renderer builds the frustum it culls with (0x16F620:
+  fov +0x518, aspect +0x51C, near +0x510, far +0x514; six planes that its sphere test 0x16D680 checks every room
+  drawable against in 0x194200) from the camera's own 60 degrees. A hook on 0x16F620 now builds it with the
+  projection's fov (and far, by the same rule), then puts the view's values back. At the default fov 60 the two
+  already agreed, which is why runs at 60 looked clean. Evidence: the frustum's left and right planes are 113.4
+  degrees apart at fov 80 and 16:9 (92.7 before, the 60 degree view); the user played it and everything popping is
+  gone, glows and shadows included. Scenario `popin_fov80` replays the recording at the user's fov 80 and draw
+  distance 291; `popin_fov80_old` is the same with `UNCHAINED_OLD_FRUSTUM=1` (the game's frustum) for A/B.
+  Frame times, two runs each, fix against old (turns/tests-20261116-211408 to -211629): average 59.7/59.8 against
+  59.8/59.8 fps, 1% low 29.9/31.0 against 30.2/31.6, p99 20.5/20.2 against 20.5/20.8 ms, hitches over 25 ms 13/12
+  against 13/13. Worse: the one frame at the cut from the loading screen into the lab (present 1049, 17.7 s) takes
+  132/127 ms against 90/93, so 0.1% low 10.0/10.4 against 11.3/12.6 and one frame over 100 ms. That is the level
+  load of item 21 with 45% more draws (130680 against 86956 a second in the lab, the objects fov 80 shows that were
+  culled before), their textures arriving in the first frame; play after it is the same. At fov 60 nothing changes.
+  Still open: the light beams wall lamps throw straight up vanish at some distances, anywhere on screen; not this
+  cull, not portals, not the frame rate. Findings and next steps: [LIGHT_BEAM_FLICKER.md](LIGHT_BEAM_FLICKER.md),
+  probe `tools/probes/cull_probe.cpp`. (`popin_old` sets `UNCHAINED_NO_CAMERA_WIDE`, which no code reads any more,
+  so it runs as `popin_new`.)
 - [ ] **30-32. Modern upscalers and frame generation** - FSR 3/4, DLSS need motion vectors a D3D8 game does not make;
   later, from depth and camera reprojection.
 - [~] **33. Draw distance** - `draw_distance` (percent, 100-1000) raises the cameras' far clip in the projection
   hook (src/game/widescreen.cpp). Indoors (lab, 400%) nothing changes and depth stays right; needs an outdoor level
-  to show, and the game's own distance culling and level-of-detail distances are not found yet.
+  to show, and the game's own distance culling and level-of-detail distances are not found yet. Found 2026-11-16:
+  the hook raises the far clip only for a projection given the game's 4:3 aspect, and with `widescreen = "expand"`
+  the gameplay camera's arrives already widened (the aspect getter 0x17F380), so its far clip never changes there;
+  only "off" and "console" get it. The cull frustum (0x16F620) follows the same rule. To make it apply, both have to
+  change together, and depth precision checked.
 - [~] **36. Effect toggles** - Whiplash's own: hyper-mode trail, fog, shadows, glow, screen effects. Done:
   `character_shadows` (the shadow map's floor draws left out through `GameInfo::skip_texture`; log confirms). To do:
   the rest, once each effect's draws are known.

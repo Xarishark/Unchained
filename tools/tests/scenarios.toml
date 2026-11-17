@@ -419,3 +419,39 @@ input_file = "runs/popin.txt"
 duration = 46
 capture_at = [30, 31.5, 33, 34.5, 36, 37.5, 39, 40.5, 42]
 env = { UNCHAINED_NO_CAMERA_WIDE = "1" }
+
+[scenario.popin_dbg]
+about = "pop-in run with the cull and beam probes on (tools/probes/cull_probe.cpp copied into src/game): logs the renderer frustum's planes, sphere test counts, the light beams' ray test, fade and draw gaps"
+input_file = "runs/popin.txt"
+duration = 44
+capture_at = [43]
+env = { UNCHAINED_DBG_CULL = "1", UNCHAINED_DBG_BEAM = "1" }
+
+[scenario.popin_nocull]
+about = "pop-in run with the renderer's sphere test passing everything (UNCHAINED_DBG_NOCULL, needs tools/probes/cull_probe.cpp built in): tells a cull from a draw problem"
+input_file = "runs/popin.txt"
+duration = 44
+capture_at = [43]
+env = { UNCHAINED_DBG_CULL = "1", UNCHAINED_DBG_NOCULL = "1" }
+
+[scenario.popin_allportals]
+about = "pop-in run with every portal test reporting all visible (UNCHAINED_DBG_PORTALS, needs tools/probes/cull_probe.cpp built in): tells a portal cull from anything else"
+input_file = "runs/popin.txt"
+duration = 44
+capture_at = [43]
+env = { UNCHAINED_DBG_PORTALS = "1" }
+
+[scenario.popin_fov80]
+about = "the pop-in run (runs/popin.txt) at fov 80 and draw distance 291: the cull frustum has to follow the wider fov"
+input_file = "runs/popin.txt"
+duration = 44
+capture_at = [34, 40]
+settings = { fov = 80, draw_distance = 291 }
+
+[scenario.popin_fov80_old]
+about = "popin_fov80 with the frustum fix off (UNCHAINED_OLD_FRUSTUM): the A/B baseline for culling and frame times"
+input_file = "runs/popin.txt"
+duration = 44
+capture_at = [34, 40]
+settings = { fov = 80, draw_distance = 291 }
+env = { UNCHAINED_OLD_FRUSTUM = "1" }
