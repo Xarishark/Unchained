@@ -37,13 +37,18 @@
         {"name": "linux-release", "displayName": "Linux Release", "inherits": "linux-base",
          "cacheVariables": {"CMAKE_BUILD_TYPE": "Release"}},
         {"name": "linux-relwithdebinfo", "displayName": "Linux RelWithDebInfo", "inherits": "linux-base",
-         "cacheVariables": {"CMAKE_BUILD_TYPE": "RelWithDebInfo"}}
+         "cacheVariables": {"CMAKE_BUILD_TYPE": "RelWithDebInfo"}},
+        {"name": "linux-portable", "displayName": "Linux Release for the AppImage (in an Ubuntu 22.04 container)",
+         "inherits": "linux-base",
+         "cacheVariables": {"CMAKE_BUILD_TYPE": "Release", "XBE_FETCH_GLSLANG": "ON",
+                            "CMAKE_EXE_LINKER_FLAGS": "-static-libstdc++"}}
     ],
     "buildPresets": [
         {"name": "debug", "configurePreset": "debug"},
         {"name": "release", "configurePreset": "release"},
         {"name": "relwithdebinfo", "configurePreset": "relwithdebinfo"},
         {"name": "linux-release", "configurePreset": "linux-release"},
-        {"name": "linux-relwithdebinfo", "configurePreset": "linux-relwithdebinfo"}
+        {"name": "linux-relwithdebinfo", "configurePreset": "linux-relwithdebinfo"},
+        {"name": "linux-portable", "configurePreset": "linux-portable"}
     ]
 }
