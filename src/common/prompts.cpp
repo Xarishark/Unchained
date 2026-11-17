@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 #include "app/win32_compat.h"  // <windows.h>, or its messages and key state from SDL on Linux
+#include "common/keyboard_mouse.h"
 
 uint32_t g_button_prompts = 0;
 
@@ -51,7 +52,7 @@ int ShownNow() {
         case 1: return kXbox;
         case 2: return kPlayStation;
         case 3: return kNintendo;
-        case 4: return kKeyboard;
+        case 4: return kKeyboardMouse ? kKeyboard : kXbox;
         case 5: return kConsole;
         default: return g_device.load();
     }
@@ -447,7 +448,7 @@ void PromptsPad(const input::Pad& p) {
                 std::abs(p.ry) > kStickDead;
     if (first) {
         // at start: the controller if one is plugged in, else the keyboard
-        g_device = p.connected ? p.family : kKeyboard;
+        g_device = p.connected || !kKeyboardMouse ? p.family : kKeyboard;
         first = false;
     } else if (p.connected && used) {
         g_device = p.family;
@@ -480,4 +481,6 @@ void PromptsPad(const input::Pad& p) {
 }
 
 // the keyboard or mouse in use
-void PromptsKeyboard() { g_device = kKeyboard; }
+void PromptsKeyboard() {
+    if (kKeyboardMouse) g_device = kKeyboard;
+}

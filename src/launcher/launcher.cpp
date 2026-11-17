@@ -52,6 +52,7 @@ extern char** environ;
 
 #include "app/app.h"
 #include "common/fonts.h"
+#include "common/keyboard_mouse.h"
 #include "core/log.h"
 #include "core/platform.h"
 #include "gpu/texturedumper.h"
@@ -708,21 +709,34 @@ void PageGraphics() {
 
 void PageControls() {
     ImGui::PushItemWidth(S(300));
-    Check("Mouse turns the camera", OptFlag("mouse_camera"));
-    Slider("Mouse sensitivity", OptValue("mouse_sensitivity"), 10, 300, "%d%%");
+    if (kKeyboardMouse) {
+        Check("Mouse turns the camera", OptFlag("mouse_camera"));
+        Slider("Mouse sensitivity", OptValue("mouse_sensitivity"), 10, 300, "%d%%");
+    }
     Slider("Camera speed", OptValue("camera_speed"), 25, 300, "%d%%");
     Check("Invert camera left-right", OptFlag("invert_camera_x"));
     Check("Invert camera up-down", OptFlag("invert_camera_y"));
     Slider("Vibration", OptValue("vibration"), 0, 100, "%d%%");
-    Combo("Button prompts", OptValue("button_prompts"),
-          {"The device in use", "Xbox", "PlayStation", "Nintendo", "Keyboard and mouse", "Original Xbox (the console's)"});
+    if (kKeyboardMouse)
+        Combo("Button prompts", OptValue("button_prompts"),
+              {"The device in use", "Xbox", "PlayStation", "Nintendo", "Keyboard and mouse",
+               "Original Xbox (the console's)"});
+    else
+        Choice("Button prompts", OptValue("button_prompts"),
+               {{0, "The controller in use"}, {1, "Xbox"}, {2, "PlayStation"}, {3, "Nintendo"},
+                {5, "Original Xbox (the console's)"}});
     ImGui::PopItemWidth();
     ImGui::Spacing();
-    Note("Click in the game window to turn the camera with the mouse; Alt gives the cursor back.");
-    Note("Keys: W A S D move, mouse or I J K L camera, Space jump, left mouse or F attack, right mouse or Left Shift "
-         "B, R Y, Q / E triggers, C / V black and white, Enter Start, Esc Back. Every key can be changed in "
-         "settings.toml's [keys] table (docs/SETTINGS.md). Any controller works: Xbox, PlayStation, Switch and "
-         "others, by button position.");
+    if (kKeyboardMouse) {
+        Note("Click in the game window to turn the camera with the mouse; Alt gives the cursor back.");
+        Note("Keys: W A S D move, mouse or I J K L camera, Space jump, left mouse or F attack, right mouse or Left "
+             "Shift B, R Y, Q / E triggers, C / V black and white, Enter Start, Esc Back. Every key can be changed "
+             "in settings.toml's [keys] table (docs/SETTINGS.md). Any controller works: Xbox, PlayStation, Switch "
+             "and others, by button position.");
+    } else {
+        Note("Unchained is played with a controller: Xbox, PlayStation, Switch and others work, by button position. "
+             "Keyboard and mouse play is off for now.");
+    }
 }
 
 void PageSound() {

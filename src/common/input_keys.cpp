@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 #include "app/win32_compat.h"  // <windows.h>, or its messages and key state from SDL on Linux
+#include "common/keyboard_mouse.h"
 
 namespace {
 
@@ -158,13 +159,13 @@ void KeyboardPad(input::Pad& p);  // keyboard.cpp
 
 void UnchainedPad(int port, input::Pad& p) {
     if (port != 0) return;
-    // port 0 always has a controller: the keyboard, as well as any real one
-    p.connected = true;
-    if (GameFocused()) {
-        KeyboardPad(p);
-    }
     static const auto start = std::chrono::steady_clock::now();
     static const std::vector<Scripted> script = Script();
+    // port 0 has a controller: a real one, the keyboard when it plays (kKeyboardMouse), or a test's script
+    if (kKeyboardMouse || !script.empty()) p.connected = true;
+    if (kKeyboardMouse && GameFocused()) {
+        KeyboardPad(p);
+    }
     static Recorder recorder;
     double t = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
     recorder.Update(p, t);  // the player's own input, before the script adds to it

@@ -8,6 +8,7 @@
 #endif
 #include "app/app.h"
 #include "common/fonts.h"
+#include "common/keyboard_mouse.h"
 #include "common/version.h"
 #include "core/input.h"
 
@@ -198,8 +199,13 @@ void PageHud() {
     Slider("HUD at the edges", &s.hud_edge, 0, 100, "%d%%");
     Note("0% keeps the HUD where the console put it, 100% moves it out to the screen's edges.");
     Check("Show the HUD", &s.hud_visible);
-    Combo("Button prompts", &g_button_prompts,
-          {"The device in use", "Xbox", "PlayStation", "Nintendo", "Keyboard", "Original Xbox (the console's)"});
+    if (kKeyboardMouse)
+        Combo("Button prompts", &g_button_prompts,
+              {"The device in use", "Xbox", "PlayStation", "Nintendo", "Keyboard", "Original Xbox (the console's)"});
+    else
+        Choice("Button prompts", &g_button_prompts,
+               {{0, "The controller in use"}, {1, "Xbox"}, {2, "PlayStation"}, {3, "Nintendo"},
+                {5, "Original Xbox (the console's)"}});
     Check("Performance overlay (F10)", &g_perf_overlay);
 }
 
@@ -208,7 +214,8 @@ void PageControls() {
     Check("Invert camera left-right", &g_invert_camera_x);
     Check("Invert camera up-down", &g_invert_camera_y);
     Slider("Vibration", &g_vibration, 0, 100, "%d%%");
-    Note("Keys are changed in Unchained Configuration, or in settings.toml's [keys] table.");
+    if (kKeyboardMouse) Note("Keys are changed in Unchained Configuration, or in settings.toml's [keys] table.");
+    else Note("Played with a controller: keyboard and mouse play is off for now.");
 }
 
 void Style() {

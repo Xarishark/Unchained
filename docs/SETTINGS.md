@@ -46,6 +46,10 @@ the game closed. A missing key takes its default. The Configuration app will set
 
 ## Controls
 
+Keyboard and mouse play is off in every version for now: the game is played with a controller, and `[keys]`,
+`mouse_camera`, `mouse_sensitivity` and `button_prompts = 4` (key caps) do nothing until it comes back
+(`src/common/keyboard_mouse.h`). The F-key shortcuts (F1 menu, F10 overlay, F12 screenshot) still work.
+
 | Key | Default | What it does |
 |---|---|---|
 | `[keys]` | see below | Each action's keys and mouse buttons |

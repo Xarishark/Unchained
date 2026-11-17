@@ -23,6 +23,7 @@
 #include "app/win32_compat.h"  // <windows.h>, or its messages and key state from SDL on Linux
 
 #include <toml++/toml.hpp>
+#include "common/keyboard_mouse.h"
 
 bool g_mouse_camera = false;
 std::atomic<bool> g_mouse_captured{false};  // the window thread captures and releases, the input thread reads
@@ -209,6 +210,7 @@ void KeyboardPad(input::Pad& p) {
 // the window thread: a click captures the mouse for the camera, Alt or losing focus releases it; the cursor hidden
 // over the window while captured
 bool KeyboardMessage(void*, uint32_t msg, uintptr_t wp, intptr_t lp, intptr_t* result) {
+    if (!kKeyboardMouse) return false;  // no mouse camera: the cursor stays the desktop's
     switch (msg) {
         case WM_LBUTTONDOWN:
         case WM_RBUTTONDOWN:
