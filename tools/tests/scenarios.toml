@@ -356,3 +356,38 @@ input = "30:start,33:a,36:a,39:a,42:a,45:a"
 duration = 70
 post_keys = [[54, 112], [57.5, 40], [58, 40], [58.5, 13], [64, 112]]
 capture_at = [56, 60, 66]
+
+[scenario.dump_lobby]
+about = "texture dump through the whole recorded lobby run (menus, loading, the lab, its popups): every 2D glyph texture"
+input_file = "runs/lobby.txt"
+duration = 66
+capture_at = [40, 48, 56, 62]
+settings = { dump_textures = true, button_prompts = 5 }
+
+[scenario.dump_lab]
+about = "texture dump in the lab from quickstart, standing at the start (the interaction popups at the top)"
+input = "30:start,33:a,36:a,39:a,42:a,45:a"
+duration = 75
+capture_at = [56, 60, 64, 68, 72]
+settings = { dump_textures = true, button_prompts = 5 }
+
+[scenario.icons_ps]
+about = "button_prompts 2: the lab's popup icon at the top of the screen (Y) drawn for the device"
+input = "30:start,33:a,36:a,39:a,42:a,45:a"
+duration = 70
+capture_at = [60, 64, 66]
+settings = { button_prompts = 2 }
+
+[scenario.icons_kb]
+about = "button_prompts 4: the lab's popup icon at the top of the screen (Y) drawn for the device"
+input = "30:start,33:a,36:a,39:a,42:a,45:a"
+duration = 70
+capture_at = [60, 64, 66]
+settings = { button_prompts = 4 }
+
+[scenario.icons_xbox]
+about = "button_prompts 1: the lab's popup icon at the top of the screen (Y) drawn for the device"
+input = "30:start,33:a,36:a,39:a,42:a,45:a"
+duration = 70
+capture_at = [60, 64, 66]
+settings = { button_prompts = 1 }

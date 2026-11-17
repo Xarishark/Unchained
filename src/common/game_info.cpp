@@ -151,7 +151,7 @@ extern bool g_mouse_camera;  // keyboard.cpp
 extern uint32_t g_mouse_sensitivity;
 void ControlsPad(int port, input::Pad& p);
 extern uint32_t g_button_prompts;  // prompts.cpp
-bool PromptsEdits(uint64_t key);
+bool PromptsEdits(uint64_t key, uint32_t w, uint32_t h);
 bool PromptsImage(uint64_t key, uint32_t& w, uint32_t& h, std::vector<uint8_t>& bgra);
 void ControlsRumble(int port, uint16_t& left, uint16_t& right);
 

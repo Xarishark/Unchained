@@ -16,6 +16,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 #include <string>
 #include <vector>
 #include <windows.h>
@@ -232,22 +233,63 @@ void DrawCell(Canvas& cv, Cell cell, int shown) {
 
 }  // namespace
 
-// texture_edits: the font
-bool PromptsEdits(uint64_t key) { return key == kFontKey; }
+namespace {
 
-void DrawCells(std::vector<uint8_t>& big, uint32_t W, int shown);
+// The game's popup icons: a 32x32 texture, a green box round a button's coloured disc (the Y icon that pops up at
+// the top of the screen in the lab, and its siblings for the other buttons). Found by what is in them, since only the
+// ones a run shows can be listed: the box's ring mostly green, and a bright disc of a button's colour inside.
+constexpr uint32_t kIconSide = 32;
 
-// texture_image: the font 4x, its button cells drawn for the device shown (left alone for the console's own)
-bool PromptsImage(uint64_t key, uint32_t& w, uint32_t& h, std::vector<uint8_t>& bgra) {
-    int shown = g_applied.load();
-    if (key != kFontKey || shown < 0 || shown == kConsole || w != h) return false;
-    uint32_t W = kFontSide * kScale, H = W;
-    // the SDK's ui_upscale has drawn the font 4x already; else it is upscaled here
-    if (w == W) {
-        DrawCells(bgra, W, shown);
-        return true;
+int IconButton(const std::vector<uint8_t>& bgra, uint32_t w) {
+    uint32_t k = w / kIconSide;
+    auto px = [&](uint32_t x, uint32_t y) { return &bgra[(size_t(y) * w + x) * 4]; };
+    size_t ring = 0, green = 0;
+    for (uint32_t y = 0; y < w; y++)
+        for (uint32_t x = 0; x < w; x++) {
+            if (std::min({x, y, w - 1 - x, w - 1 - y}) >= 2 * k) continue;
+            const uint8_t* p = px(x, y);
+            ring++;
+            green += p[3] > 100 && p[1] > 140 && p[2] < 140 && p[1] > p[0];
+        }
+    constexpr double kGreenRing = 0.9;
+    if (!ring || green < ring * kGreenRing) return -1;
+    // the disc: the centre's bright, coloured texels, by their hue
+    size_t n = 0, coloured = 0, white = 0;
+    double hx = 0, hy = 0;
+    for (uint32_t y = 10 * k; y < 22 * k; y++)
+        for (uint32_t x = 10 * k; x < 22 * k; x++) {
+            const uint8_t* p = px(x, y);
+            if (p[3] < 128) continue;
+            n++;
+            float b = p[0] / 255.0f, g = p[1] / 255.0f, r = p[2] / 255.0f;
+            float mx = std::max({r, g, b}), mn = std::min({r, g, b});
+            float sat = mx > 0 ? (mx - mn) / mx : 0;
+            if (mx > 0.65f && sat < 0.2f) white++;
+            if (mx < 0.35f || sat < 0.35f) continue;
+            float hue = mx == r ? std::fmod((g - b) / (mx - mn), 6.0f) : mx == g ? (b - r) / (mx - mn) + 2 : (r - g) / (mx - mn) + 4;
+            hue *= 60;
+            constexpr double kRad = 3.14159265358979 / 180;
+            hx += std::cos(hue * kRad);
+            hy += std::sin(hue * kRad);
+            coloured++;
+        }
+    constexpr double kDiscShare = 0.3;
+    if (n && coloured >= n * kDiscShare) {
+        double hue = std::atan2(hy, hx) * 180 / 3.14159265358979;
+        if (hue < 0) hue += 360;
+        if (hue < 20 || hue >= 330) return kB;
+        if (hue < 72) return kY;
+        if (hue < 170) return kA;
+        if (hue >= 180 && hue < 265) return kX;
+        return -1;
     }
-    if (w != kFontSide) return false;
+    if (n && white >= n * 0.4) return kWhite;
+    return -1;
+}
+
+// a texture's level 0 4x, bilinear as the GPU samples it, on premultiplied colour
+std::vector<uint8_t> Upscale4x(const std::vector<uint8_t>& bgra, uint32_t w, uint32_t h) {
+    uint32_t W = w * kScale, H = h * kScale;
     std::vector<uint8_t> big(size_t(W) * H * 4);
     // bilinear, as the GPU samples the console's font, on premultiplied colour
     auto at = [&](int x, int y, int c) {
@@ -271,6 +313,67 @@ bool PromptsImage(uint64_t key, uint32_t& w, uint32_t& h, std::vector<uint8_t>& 
             for (int c = 0; c < 3; c++) d[c] = uint8_t(std::lround(std::clamp(v[3] > 0 ? v[c] / v[3] : 0.0f, 0.0f, 1.0f) * 255));
             d[3] = uint8_t(std::lround(v[3] * 255));
         }
+    return big;
+}
+
+// a canvas over the picture (W wide) at x0, y0, its rows bottom up as the game's textures are stored
+void PutFlipped(std::vector<uint8_t>& big, uint32_t W, const Canvas& cv, int x0, int y0) {
+    int y1 = y0 + cv.h;
+    for (int y = 0; y < cv.h; y++)
+        for (int x = 0; x < cv.w; x++) {
+            const float* s = &cv.px[(size_t(y) * cv.w + x) * 4];
+            uint8_t* d = &big[(size_t(y1 - 1 - y) * W + (x0 + x)) * 4];
+            float a = s[3], da = d[3] / 255.0f, out = a + da * (1 - a);
+            for (int c = 0; c < 3; c++) {
+                float sc = s[2 - c], dc = d[c] / 255.0f;
+                d[c] = uint8_t(std::lround(std::clamp(out > 0 ? (sc * a + dc * da * (1 - a)) / out : 0.0f, 0.0f, 1.0f) * 255));
+            }
+            d[3] = uint8_t(std::lround(out * 255));
+        }
+}
+
+}  // namespace
+
+// texture_edits: the font, and any 32x32 texture that may be a popup icon (looked at on the worker)
+bool PromptsEdits(uint64_t key, uint32_t w, uint32_t h) {
+    return key == kFontKey || (w == kIconSide && h == kIconSide);
+}
+
+void DrawCells(std::vector<uint8_t>& big, uint32_t W, int shown);
+
+// texture_image: the font 4x with its button cells drawn for the device shown, and the popup icons' buttons the same
+// way (both left alone for the console's own)
+bool PromptsImage(uint64_t key, uint32_t& w, uint32_t& h, std::vector<uint8_t>& bgra) {
+    int shown = g_applied.load();
+    if (shown < 0 || shown == kConsole || w != h) return false;
+    if (key != kFontKey) {
+        if (w != kIconSide && w != kIconSide * kScale) return false;
+        int button = IconButton(bgra, w);
+        if (button < 0) return false;
+        std::vector<uint8_t> big = w == kIconSide ? Upscale4x(bgra, w, h) : bgra;
+        uint32_t W = kIconSide * kScale;
+        // the inside of the box: its own dark colour, then the button drawn for the device
+        constexpr int kInset = 3;  // texels of the box's frame and margin
+        int in0 = kInset * int(kScale), in1 = int(W) - kInset * int(kScale);
+        const uint8_t* fill = &big[(size_t(in0) * W + in0) * 4];
+        uint8_t back[4] = {fill[0], fill[1], fill[2], fill[3]};
+        for (int y = in0; y < in1; y++)
+            for (int x = in0; x < in1; x++) std::memcpy(&big[(size_t(y) * W + x) * 4], back, 4);
+        Canvas cv(in1 - in0, in1 - in0);
+        DrawCell(cv, Cell(button), shown);
+        PutFlipped(big, W, cv, in0, in0);
+        bgra = std::move(big);
+        w = h = W;
+        return true;
+    }
+    uint32_t W = kFontSide * kScale, H = W;
+    // the SDK's ui_upscale has drawn the font 4x already; else it is upscaled here
+    if (w == W) {
+        DrawCells(bgra, W, shown);
+        return true;
+    }
+    if (w != kFontSide) return false;
+    std::vector<uint8_t> big = Upscale4x(bgra, w, h);
     DrawCells(big, W, shown);
     bgra = std::move(big);
     w = W;
