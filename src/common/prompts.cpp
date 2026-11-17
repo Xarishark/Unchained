@@ -19,7 +19,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
-#include <windows.h>
+#include "app/win32_compat.h"  // <windows.h>, or its messages and key state from SDL on Linux
 
 uint32_t g_button_prompts = 0;
 
@@ -86,7 +86,11 @@ float RoundBox(float px, float py, float cx, float cy, float hw, float hh, float
     return std::hypot(std::max(qx, 0.0f), std::max(qy, 0.0f)) + std::min(std::max(qx, qy), 0.0f) - r;
 }
 
-// text's coverage from GDI, white on black, centred in the canvas
+// text's coverage from GDI, white on black, centred in the canvas. Linux draws no text yet (FreeType is to come): the
+// plates and key caps show without their letters.
+#ifndef _WIN32
+void Text(Canvas&, const std::wstring&, const float[4], float, float) {}
+#else
 void Text(Canvas& cv, const std::wstring& s, const float c[4], float height, float max_w) {
     HDC dc = CreateCompatibleDC(nullptr);
     BITMAPINFO bi{};
@@ -126,6 +130,7 @@ void Text(Canvas& cv, const std::wstring& s, const float c[4], float height, flo
     DeleteObject(bmp);
     DeleteDC(dc);
 }
+#endif
 
 constexpr float kDark[4] = {0.10f, 0.10f, 0.11f, 1};
 constexpr float kRim[4] = {0.62f, 0.64f, 0.66f, 1};

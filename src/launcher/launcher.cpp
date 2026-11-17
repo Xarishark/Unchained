@@ -5,6 +5,10 @@
 // The look is a lab terminal: dark teal, green terminal frames with a tab and cut corners, scanlines, and big slanted
 // words (FREEDOM, CRAZY, MADNESS) for headings. No names or art from the game: the shapes are drawn here and the
 // fonts are Windows' own (Bahnschrift, Consolas).
+//
+// Windows only for now: on Linux the game starts directly (GameInfo::launcher returns true below), and FindGame says
+// what is missing.
+#ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -980,3 +984,6 @@ bool UnchainedLauncher() {
     }
     return false;
 }
+#else
+bool UnchainedLauncher() { return true; }
+#endif

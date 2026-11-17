@@ -26,7 +26,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <windows.h>
+#include "app/win32_compat.h"  // <windows.h>, or its messages and key state from SDL on Linux
 
 namespace {
 

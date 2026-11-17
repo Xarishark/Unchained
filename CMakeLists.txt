@@ -46,4 +46,6 @@ if(UNCHAINED_VERBOSE_LOG)
 endif()
 
 # the icon of the exe and its windows, drawn by tools/installer/art.py (no art from the game)
-target_sources(Unchained PRIVATE src/res/unchained.rc)
+if(WIN32)
+    target_sources(Unchained PRIVATE src/res/unchained.rc)
+endif()

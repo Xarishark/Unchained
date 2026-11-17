@@ -155,7 +155,36 @@ eport.md`.
 - [x] **6. Languages** - whatever text and voice languages the disc has, chosen in settings. This release has
   English only: no French, German, Spanish or Italian files in Xbox.rkv or .r01-.r09 (rkv-scan, 2026-11-16), and the
   kernel answers XC_LANGUAGE English. Nothing to choose.
-- [ ] **9. Platforms** - Windows first; Linux needs the renderer ported off D3D12 (try Proton meanwhile).
+- [~] **9. Platforms** - Windows first. Linux natively, in four stages (branch `linux`, SDK branch `linux`; Ubuntu
+  26.04, clang 21, Ryzen 7 7800X3D, RX 9070 XT on RADV, Wayland):
+  1. [x] **Builds, links and boots** (2026-11-16). `cmake --preset linux-relwithdebinfo`, then `Unchained` and
+     `libUnchained.so` in `out/build/linux-relwithdebinfo`. The recompiler's output is byte-identical to Windows'.
+     The game code is a shared library: its function names are weak aliases of the bodies, so an override the
+     executable exports (`-rdynamic`) comes first in the lookup and wins; the executable's own calls to bodies are
+     weak references bound at their first call (`-z lazy`, the library loaded `RTLD_GLOBAL`), which is what the
+     delay loaded DLL does on Windows. The first-start build runs as on Windows (xbe_recomp, then clang and
+     ld.lld, the system's for now): 65 files in 16 s on 16 threads, stamped, loaded. Host: SDL3 window and events
+     (`app/window_sdl.cpp`); the game's Win32 window code gets the same messages, virtual keys and key state from
+     SDL (`app/win32_compat.h`); SDL3 audio (5.1, or the console's stereo fold); guest RAM a memfd mapped at both
+     physical windows; POSIX sockets for system link (the guest still sees Winsock's numbers); a pipe for the
+     relaunch handover; PNG through SDL and BC1-3 unpacked in software for texture packs and ui_upscale. Evidence:
+     the first run built the game code, booted (guest threads, kernel, audio opened stereo, the DirectSound effects
+     image), closed with Exit (0), no crash report. Nothing is drawn yet (`gpu/null_backend.cpp`).
+  2. [ ] **Drawn, to the title.** The D3D12 renderer unchanged, on vkd3d (Direct3D 12 on Vulkan, LGPL-2.1, with
+     its own HLSL compiler for the translated shaders): `D3D12CreateDevice` and `D3DCompile2` from vkd3d-utils, a
+     Vulkan swap chain on the SDL window whose images `vkd3d_create_image_resource` wraps as the back buffers,
+     presents through `vkd3d_acquire_vk_queue`; ComPtr and the few Win32 types from a small header; ImGui's DX12
+     backend with its SDL3 one. Ubuntu packages vkd3d 1.2 (2020, no HLSL compiler), so 1.19 is built from its
+     release (`-DXBE_VKD3D_DIR=`); running that build on the Ubuntu PC waits for the user's OK. Check: every
+     generated shader compiles with vkd3d's compiler (the log names any that fail), F3 captures against Windows'.
+  3. [ ] **Parity.** The present pass (FSR 1, gamma, colour grading), HUD placement, widescreen and ui_upscale come
+     with the renderer. Still to port: the prompts' key and plate text (FreeType and a bundled font instead of
+     GDI), the Configuration app and the first-start progress window (ImGui on SDL3), the boot splash, the menu's
+     fonts (no Windows fonts folder), HDR (the swap chain's HDR10 colour space), exclusive fullscreen modes. Frame-
+     time suite (1% / 0.1% lows, hitches, pacing) on both platforms, same scenes, Linux no worse.
+  4. [ ] **Release: one AppImage**, as the Windows release is one installer exe: SDL3, vkd3d, and clang with
+     ld.lld for the first-start build inside it; the player's data under `XDG_DATA_HOME` (an AppImage's own folder
+     is read-only).
 - [~] **18. Widescreen and ultrawide** - Whiplash ignores the widescreen TV flag (the SDK's old 16:9 just stretched
   it). Its projection (`0x1390C0`) has a vertical fov, so `src/game/widescreen.cpp` widens the game's 4:3 aspect by
   the output's: `widescreen = "expand"` (default) fills 16:9 up to 32:9, 2D stays 4:3 in the middle, full screen

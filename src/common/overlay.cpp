@@ -11,7 +11,7 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-#include <windows.h>
+#include "app/win32_compat.h"  // <windows.h>, or its messages and key state from SDL on Linux
 
 #include <imgui.h>
 
