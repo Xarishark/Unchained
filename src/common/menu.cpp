@@ -401,7 +401,11 @@ void MenuUi() {
     ImGui::BeginChild("page", ImVec2(b.x - a.x - S(44), b.y - a.y - S(36)), false);
     ImGui::SetWindowFontScale(g_s);
     if (g_body) ImGui::PushFont(g_body);
-    ImGui::PushItemWidth(S(330));
+    // as wide as the longest choice (the Widescreen one), its arrow and padding: no choice cut off in any font
+    const ImGuiStyle& st = ImGui::GetStyle();
+    float longest = ImGui::CalcTextSize("Wider view (16:9 and ultrawide)").x + ImGui::GetFrameHeight() +
+                    st.FramePadding.x * 2 + st.ItemInnerSpacing.x;
+    ImGui::PushItemWidth(std::max(S(330), longest));
     switch (g_page) {
         case kDisplay: PageDisplay(); break;
         case kGraphics: PageGraphics(); break;
