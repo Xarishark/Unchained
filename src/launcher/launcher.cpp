@@ -423,6 +423,17 @@ bool SliderS(const char* label, int32_t* value, int lo, int hi, const char* fmt 
     return changed;
 }
 
+// a setting kept in hundredths, shown and dragged in whole units (exposure: hundredths of a stop)
+bool SliderHundredths(const char* label, int32_t* value, int lo, int hi, const char* fmt) {
+    float v = *value / 100.0f;
+    bool changed = ImGui::SliderFloat(label, &v, lo / 100.0f, hi / 100.0f, fmt);
+    if (changed) {
+        *value = int32_t(std::lround(v * 100.0f));
+        Touched(true);
+    }
+    return changed;
+}
+
 bool Check(const char* label, bool* value, bool graphics = false) {
     bool changed = ImGui::Checkbox(label, value);
     if (changed) Touched(graphics);
@@ -603,6 +614,7 @@ void PageDisplay() {
     }
     Choice("Frame rate cap", &s.fps_cap, {{60, "60"}, {1, "Monitor's refresh rate"}, {0, "None"}});
     Note("Above 60 the game is checked in the intro and menus only so far.");
+#ifdef _WIN32
     ImGui::Separator();
     static app::HdrInfo hdr = app::HdrDisplay(nullptr);
     Check("HDR", &s.hdr, true);
@@ -620,6 +632,7 @@ void PageDisplay() {
         Slider("HDR highlights", &s.hdr_highlights, 0, 100, "%d%%", true);
         Note("How far the brightest parts (sky, lights, explosions) reach toward the peak. 0 keeps the SDR look.");
     }
+#endif  // HDR10 output is the Windows D3D12 renderer's
     ImGui::PopItemWidth();
 }
 
@@ -637,7 +650,7 @@ void PageGraphics() {
     Check("Character shadows", OptFlag("character_shadows"), true);
     Slider("Draw distance", OptValue("draw_distance"), 100, 1000, "%d%%", true);
     ImGui::Separator();
-    SliderS("Exposure", &s.grade_exposure, -300, 300, "%d / 100 stop");
+    SliderHundredths("Exposure", &s.grade_exposure, -300, 300, "%+.2f stops");
     Slider("Contrast", &s.grade_contrast, 50, 200, "%d%%", true);
     Slider("Saturation", &s.grade_saturation, 0, 200, "%d%%", true);
     SliderS("Temperature", &s.grade_temperature, -100, 100);
@@ -822,8 +835,15 @@ void PageAbout() {
     Note("Built on: Xbox XBE Recomp, XenonRecomp's function layout, Zydis, toml++, Dear ImGui, SDL, AMD FidelityFX "
          "Super Resolution 1 (MIT).");
     ImGui::Spacing();
+#ifdef _WIN32
     Note("Settings are in settings.toml beside Unchained.exe; docs/SETTINGS.md lists them. Logs are in logs\\, saves in "
          "hdd\\ (backed up to \"save backups\\\").");
+#else
+    static const std::string where = "Settings are in settings.toml in " + app::DataDir().string() +
+                                     "; docs/SETTINGS.md lists them. Logs are in logs/ there, saves in hdd/ (backed up "
+                                     "to \"save backups/\").";
+    Note(where.c_str());
+#endif
 }
 
 void Style() {
