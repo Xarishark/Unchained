@@ -48,7 +48,7 @@ the game closed. A missing key takes its default. The Configuration app will set
 | Key | Default | What it does |
 |---|---|---|
 | `[keys]` | see below | Each action's keys and mouse buttons |
-| `mouse_camera` | `true` | A click in the window captures the mouse to turn the camera (cursor hidden); Alt or switching away gives it back |
+| `mouse_camera` | `false` | A click in the window captures the mouse to turn the camera (cursor hidden); Alt or switching away gives it back |
 | `mouse_sensitivity` | `100` | Percent |
 | `camera_speed` | `100` | The right stick's camera speed in percent (up to 300) |
 | `invert_camera_x`, `invert_camera_y` | `false` | |

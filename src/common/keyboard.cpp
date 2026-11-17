@@ -7,7 +7,7 @@
 // Key names: A-Z, 0-9, F1-F12, Up Down Left Right, Space Enter Escape Tab Backspace, LShift RShift LCtrl RCtrl LAlt
 // RAlt, Mouse1 (left) Mouse2 (right) Mouse3 (middle) Mouse4 Mouse5. An action with no keys is unbound.
 //
-// mouse_camera (on by default): a click in the game window captures the mouse, which then turns the camera (the
+// mouse_camera (off by default until it is right in play: it still held the cursor, user 2026-11-16): a click in the game window captures the mouse, which then turns the camera (the
 // right stick), the cursor hidden and kept in the window; Alt, or the window losing focus, gives the cursor back.
 // mouse_sensitivity in percent.
 #include "app/app.h"
@@ -24,7 +24,7 @@
 
 #include <toml++/toml.hpp>
 
-bool g_mouse_camera = true;
+bool g_mouse_camera = false;
 std::atomic<bool> g_mouse_captured{false};  // the window thread captures and releases, the input thread reads
 std::atomic<bool> g_capture_click{false};   // the click that captured: its buttons held back until let go
 uint32_t g_mouse_sensitivity = 100;

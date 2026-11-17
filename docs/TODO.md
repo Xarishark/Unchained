@@ -30,9 +30,6 @@ suite (1% / 0.1% lows, hitches over 25/33/50/100 ms), never an fps average.
   one used is read.
 - [~] **11. Camera speed and vibration strength** - `camera_speed` (percent), `invert_camera_x`/`_y`, `vibration`
   (percent) in `src/common/controls.cpp`. Built, not yet felt in play (the user found the camera "weird and off").
-- [~] **12. Keyboard and mouse** - every action rebindable in the settings file's `[keys]` table (keys and mouse
-  buttons; `src/common/keyboard.cpp`), the mouse turns the camera (`mouse_camera`, `mouse_sensitivity`), left and
-  right mouse are X and B. Built; scripted runs unaffected; the mouse camera not yet felt in play.
 - [ ] **14. Handheld preset** - detect PC handhelds; 30/40/45/60 fps and the screen's own size.
 - [x] **15. Button prompts for the device in use** - Xbox, PlayStation or keyboard glyphs in the game's prompts,
   switching live. The prompts are characters in the game's font (texture `1a4d811ab994c436`); `src/common/prompts.cpp`
@@ -193,9 +190,12 @@ eport.md`.
 
 ## Later
 
-Started, then set aside by the user (2026-11-16: "Color lut and HDR can wait for now too", "Photo mode can wait"):
-kept as they are, not counted in the progress.
+Started, then set aside by the user (2026-11-16: "Color lut and HDR can wait for now too", "Photo mode can wait",
+"lets leave mouse and keyboard out for now and pick it up later"): kept as they are, not counted in the progress.
 
+- [~] **12. Keyboard and mouse** - every action rebindable in the settings file's `[keys]` table (keys and mouse
+  buttons; `src/common/keyboard.cpp`), the mouse turns the camera (`mouse_camera`, `mouse_sensitivity`), left and
+  right mouse are X and B. Built; scripted runs unaffected; the mouse camera not yet felt in play. The mouse camera still held the cursor in the middle of the window after the click-to-capture change (user, 2026-11-16), so `mouse_camera` is off by default until it is picked up again.
 - [~] **34. Colour grading** - exposure, contrast, saturation, temperature, tint (`grade_*`) and LUT files
   (`colour_lut`: a .cube from luts/, picked in the Configuration app; scenario `lut`: a test split tone applied, log
   "colour LUT ... 17^3"). Missing: the HUD keeping its colours (it is graded with the picture).
