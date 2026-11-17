@@ -56,8 +56,8 @@ def script_of(sc):
     return sc.get("input", "")
 
 
-def run(name, sc, base, exe, game, out, cold, renderer, hdd):
-    data = out / "data"
+def run(name, sc, base, exe, game, out, data, cold, renderer, hdd):
+    out.mkdir(parents=True, exist_ok=True)
     data.mkdir(parents=True, exist_ok=True)
     link_game(data, game)
     # the scenarios' recorded input expects a profile on the console's disk: a copy of one, fresh each run
@@ -137,11 +137,16 @@ def main():
     records = []
     for name in names:
         sc = cfg["scenario"][name]
+        # one data folder per scenario across its runs: the first starts without caches, the later ones warm, as a
+        # player's second start is (--cold, or a cold scenario, clears them before every run)
+        data = a.out / f"{name}-data"
+        shutil.rmtree(data / "cache", ignore_errors=True)
         for i in range(a.repeat):
             out = a.out / f"{name}-{i + 1}"
-            cold = a.cold or sc.get("cold", False)
-            rec = run(name, sc, base, a.exe.resolve(), a.game.resolve(), out, cold, a.renderer,
-                      a.hdd.resolve() if a.hdd else None)
+            cold = a.cold or sc.get("cold", False) or i == 0
+            rec = run(name, sc, base, a.exe.resolve(), a.game.resolve(), out, data, a.cold or sc.get("cold", False),
+                      a.renderer, a.hdd.resolve() if a.hdd else None)
+            rec["cold"] = cold
             records.append(rec)
             f = rec["frames"]
             print(f"{name} run {i + 1}{' (cold)' if cold else ''}: " + (frametimes.line(f) if f else "no frame times"))
