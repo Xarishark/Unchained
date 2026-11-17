@@ -190,21 +190,31 @@ eport.md`.
      same picture), D3D12's cold 150 ms frames being its shader and pipeline creation. Both renderers share two game
      stalls, not renderer work: one 73 ms frame when Start skips the logo (the menu's files and textures load in one
      game frame) and the 3-5 presents before the first picture while the device and audio start.
-  3. [~] **Parity**, screen by screen against Windows D3D12 (`tools/tests/compare_runs.py`). Done: the button prompts'
-     key and plate letters (stb_truetype from ImGui) and the menu's fonts (`common/fonts.cpp`: Windows' own, else
-     `fonts/` beside the data or the exe, else Liberation Sans Narrow for Bahnschrift, DejaVu Sans Mono for
-     Consolas; headings in the narrow bold). The Configuration app on SDL3 and its renderer (same pages; About names
-     the XDG data folder, no HDR on Linux, Exposure in stops), pages checked against Windows' captures
-     (`UNCHAINED_CONFIG_SHOT`). Mouse look on Wayland: the window goes relative while the game hides the cursor and
-     the game's cursor calls work on a position SDL's motion moves (Wayland moves no pointer for a program); to
-     check by hand. Known differences: the watermark words in Liberation Sans Narrow Bold for Impact (no free heavy
-     condensed font on a stock system). Still to port: the first-start build window (Win32 GDI; Linux builds with
-     its progress in the log), the boot splash, HDR10 (set aside in every version for now, user 2026-11-16: hidden in the Configuration app; D3D12's
-     code stays),
-     depth targets in F3 captures, renderer extensions (`gpu/ext.h`, none in Unchained).
-  4. [ ] **Release: one AppImage**, as the Windows release is one installer exe: SDL3, glslang, and clang with
-     ld.lld for the first-start build inside it; the player's data under `XDG_DATA_HOME` (an AppImage's own folder
-     is read-only).
+  3. [x] **Parity** (user, 2026-11-16: every window the same on both). One look everywhere: the Configuration app,
+     its first-start build screen, the in-game menu, the button prompts' letters, the boot splash and the installer
+     art draw with `fonts/` (Barlow Semi Condensed for Bahnschrift, Anton for Impact, Cascadia Mono for Consolas;
+     SIL OFL) on both systems, through `common/fonts.cpp`; the prompts' letters through one stb_truetype path. The
+     Configuration app is 1240x780 inside the frame on both (SDL3 and its renderer on Linux; About names the XDG
+     data folder, Exposure in stops). The boot splash (`res/splash.png`, `art.py --splash`) ships in both releases,
+     an SDL window on Linux. Every screen's version is `src/common/version.h` (Configuration app, in-game menu, log,
+     installer, Unchained.exe's details, the AppImage's name). Error dialogs say the same, each with its system's
+     fix (renderer: the driver to install). Evidence: Windows and Linux captures of the Configuration pages side by
+     side (same pixels but each system's paths on About), the in-game menu on both renderers. Mouse look on Wayland:
+     the window goes relative while the game hides the cursor and the game's cursor calls work on a position SDL's
+     motion moves (Wayland moves no pointer for a program); to check by hand. Set aside: HDR10 in every version
+     (user, 2026-11-16: hidden in the Configuration app; D3D12's code stays), depth targets in F3 captures. The
+     SDK's own build window (GDI on Windows, a plain SDL one on Linux) is for games without a launcher; Unchained's
+     players see the Configuration app's build screen.
+  4. [x] **Release: one AppImage**, as the Windows release is one installer exe (user, 2026-11-16: plug and play).
+     `tools/appimage/release.sh`: the game built in an Ubuntu 22.04 container (`linux-portable`: glslang from
+     source, libstdc++ linked in), packed with LLVM's own clang and lld 23.1.5 (and its license), the fonts and the
+     splash. Needs glibc 2.35 and GLIBCXX_3.4.30: Ubuntu 22.04, Debian 12, Fedora 36, SteamOS 3 and newer. It
+     mounts with the system's fusermount3 (on every current desktop); without FUSE, `APPIMAGE_EXTRACT_AND_RUN=1`.
+     On start it adds Unchained and Unchained Configuration to the applications menu (as the installer's
+     shortcuts). Player data under `XDG_DATA_HOME`. A PC without a Vulkan 1.3 driver is told what to install.
+     Evidence: first start from the AppImage built the game code with the bundled clang in 10 s and played; every
+     tool in it runs on a stock Ubuntu 22.04 container. Windows needs no installs either: the C++ runtime DLLs ship
+     beside the exe. To do: the final test on Ubuntu 22.04/24.04, Fedora, Arch and a Steam Deck desktop.
   5. [x] **Windows on Vulkan, the default** (user, 2026-11-16): `renderer = "vulkan"` unless the settings file says
      `"d3d12"`; a Vulkan that fails to start falls back to D3D12
      (`gpu/backend_select.cpp`); the Configuration app's Graphics page has the choice. Evidence: fullscreen
