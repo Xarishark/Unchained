@@ -33,6 +33,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageStat
 
+from frametimes import frame_stats  # the statistics, shared with run_suite.py
+
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent.parent
 DEFAULT_EXE = REPO / "out" / "build" / "release" / "Unchained.exe"
@@ -46,8 +48,6 @@ REF_DARK = 0.75         # our mean luma over the reference's under this: too dar
 REF_BRIGHT = 1.35       # over this: too bright
 REF_GREY = 0.6          # our mean saturation over the reference's under this: washed out
 SCALE_SLACK = 0.98      # render scale at least this share of what the window needs
-HITCH_MS = (25, 33, 50, 100)
-STUTTER_MS = 4.0
 
 user32 = ctypes.WinDLL("user32", use_last_error=True)
 WM_CLOSE = 0x0010
@@ -295,53 +295,6 @@ def compare_reference(rec, sc, video, cache):
             rec["warnings"].append(f"reference: {lr:.2f}x the reference's brightness at {cap['t']} s (ref {ref_t} s)")
         if sr < REF_GREY:
             rec["warnings"].append(f"reference: {sr:.2f}x the reference's saturation at {cap['t']} s")
-
-
-def percentile(sorted_vals, p):
-    if not sorted_vals:
-        return 0.0
-    k = (len(sorted_vals) - 1) * p / 100
-    lo, hi = math.floor(k), math.ceil(k)
-    return sorted_vals[lo] + (sorted_vals[hi] - sorted_vals[lo]) * (k - lo)
-
-
-CAPTURE_SKIP_S = 1.0  # a capture's read-backs stall the frames after it: those are the test's, not the game's
-
-
-def frame_stats(path, from_s, captures=(), target_fps=60):
-    if not path.exists():
-        return None
-    rows = []
-    with open(path) as f:
-        for r in csv.DictReader(f):
-            try:
-                rows.append((float(r["time_ms"]), float(r["interval_ms"])))
-            except (KeyError, ValueError):
-                pass
-    def near_capture(t):
-        return any(c * 1000 <= t <= (c + CAPTURE_SKIP_S) * 1000 for c in captures)
-
-    dts = [dt for t, dt in rows[1:] if t >= from_s * 1000 and not near_capture(t)]
-    if len(dts) < 10:
-        return None
-    s = sorted(dts)
-    n = len(dts)
-    target = 1000.0 / target_fps if target_fps else percentile(s, 50)
-
-    def low(share):  # the fps of the slowest share of frames
-        k = max(1, int(n * share))
-        return 1000.0 / (sum(s[-k:]) / k)
-
-    worst = sorted(((dt, i) for i, dt in enumerate(dts)), reverse=True)[:5]
-    return {
-        "frames": n, "avg_fps": 1000.0 * n / sum(dts), "low1": low(0.01), "low01": low(0.001),
-        "p50": percentile(s, 50), "p99": percentile(s, 99), "p999": percentile(s, 99.9), "max": s[-1],
-        "hitches": {h: sum(1 for d in dts if d > h) for h in HITCH_MS},
-        "stutter": sum(1 for a, b in zip(dts, dts[1:]) if abs(b - a) > STUTTER_MS),
-        # within 10% of the target interval (target_fps 0: the run's median, for uncapped or refresh-paced runs)
-        "pacing": sum(1 for d in dts if abs(d - target) <= target * 0.1) / n,
-        "worst": [(round(dt, 1), i) for dt, i in worst],
-    }
 
 
 def sheet(records, path):
