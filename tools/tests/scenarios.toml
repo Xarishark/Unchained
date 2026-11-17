@@ -281,23 +281,23 @@ settings = { dump_textures = true }
 
 [scenario.prompts_ps]
 about = "button_prompts 2: PlayStation glyphs in the Play selected game? dialog (cross, circle)"
-input_file = "runs/lobby.txt"
-duration = 21
-capture_at = [19.8]
+input_file = "runs/popin.txt"
+duration = 34
+capture_at = [32]  # the dialog popin.txt opens at 28.4 s and leaves up
 settings = { button_prompts = 2 }
 
 [scenario.prompts_nintendo]
 about = "button_prompts 3: Nintendo glyphs in the same dialog (south B, east A)"
-input_file = "runs/lobby.txt"
-duration = 21
-capture_at = [19.8]
+input_file = "runs/popin.txt"
+duration = 34
+capture_at = [32]  # the dialog popin.txt opens at 28.4 s and leaves up
 settings = { button_prompts = 3 }
 
 [scenario.prompts_auto]
 about = "button_prompts 0 with no controller plugged in: keyboard key caps (Space, Shift) in the same dialog"
-input_file = "runs/lobby.txt"
-duration = 21
-capture_at = [19.8]
+input_file = "runs/popin.txt"
+duration = 34
+capture_at = [32]  # the dialog popin.txt opens at 28.4 s and leaves up
 settings = { button_prompts = 0 }
 
 [scenario.prompts_switch]
@@ -310,9 +310,9 @@ env = { UNCHAINED_PROMPTS_SWITCH = "19.25:3" }
 
 [scenario.prompts_xbox]
 about = "button_prompts 1: today's Xbox glyphs (lettered dark discs) in the Play selected game? dialog"
-input_file = "runs/lobby.txt"
-duration = 21
-capture_at = [19.8]
+input_file = "runs/popin.txt"
+duration = 34
+capture_at = [32]  # the dialog popin.txt opens at 28.4 s and leaves up
 settings = { button_prompts = 1 }
 
 [scenario.ui_off]
@@ -455,3 +455,18 @@ duration = 44
 capture_at = [34, 40]
 settings = { fov = 80, draw_distance = 291 }
 env = { UNCHAINED_OLD_FRUSTUM = "1" }
+
+[scenario.popin_walk]
+about = "the user's pop-in run with the Play selected game? dialog confirmed (runs/popin_confirm.txt: popin.txt and an A at 30.5 s): the lobby with the camera turning"
+input_file = "runs/popin_confirm.txt"
+duration = 48
+capture_at = [34, 37, 40, 43, 46]
+perf_from = 34
+
+[scenario.popin_walk_fov80]
+about = "popin_walk at fov 80 and draw distance 291, the user's settings"
+input_file = "runs/popin_confirm.txt"
+duration = 48
+capture_at = [34, 37, 40, 43, 46]
+perf_from = 34
+settings = { fov = 80, draw_distance = 291 }
