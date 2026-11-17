@@ -185,13 +185,22 @@ eport.md`.
      past 16, the title camera's pan); windowed suite (`tools/tests/run_suite.py`, both systems, one data folder per
      scenario so later runs start warm): title 60 fps, 1% low 58, no hitches; first level and the recorded lobby run
      not worse than D3D12's on the same scenes (lobby 1% low 35.7-39.6 against D3D12's 25.3-25.4, max 74 against
-     155 ms, all runs cold). Fullscreen at 2560x1440 and the warm runs: in progress.
+     155 ms, all runs cold). Fullscreen at 2560x1440, cold and warm, on Windows: Vulkan equal or better everywhere
+     (lobby 1% low 36.0/43.7 against 25.3/37.7, worst frame 62/53 ms against 151/89; menu, HUD and prompts the
+     same picture), D3D12's cold 150 ms frames being its shader and pipeline creation. Both renderers share two game
+     stalls, not renderer work: one 73 ms frame when Start skips the logo (the menu's files and textures load in one
+     game frame) and the 3-5 presents before the first picture while the device and audio start.
   3. [~] **Parity**, screen by screen against Windows D3D12 (`tools/tests/compare_runs.py`). Done: the button prompts'
      key and plate letters (stb_truetype from ImGui) and the menu's fonts (`common/fonts.cpp`: Windows' own, else
      `fonts/` beside the data or the exe, else Liberation Sans Narrow for Bahnschrift, DejaVu Sans Mono for
-     Consolas). Still to port: the Configuration app and the first-start build window (Win32 GDI; Linux builds with
-     its progress in the log), the boot splash, HDR10 on Vulkan (D3D12 only), depth targets in F3 captures, renderer
-     extensions (`gpu/ext.h`, none in Unchained).
+     Consolas; headings in the narrow bold). The Configuration app on SDL3 and its renderer (same pages; About names
+     the XDG data folder, no HDR on Linux, Exposure in stops), pages checked against Windows' captures
+     (`UNCHAINED_CONFIG_SHOT`). Mouse look on Wayland: the window goes relative while the game hides the cursor and
+     the game's cursor calls work on a position SDL's motion moves (Wayland moves no pointer for a program); to
+     check by hand. Known differences: the watermark words in Liberation Sans Narrow Bold for Impact (no free heavy
+     condensed font on a stock system). Still to port: the first-start build window (Win32 GDI; Linux builds with
+     its progress in the log), the boot splash, HDR10 on Vulkan (D3D12 only; user, 2026-11-16: not needed now),
+     depth targets in F3 captures, renderer extensions (`gpu/ext.h`, none in Unchained).
   4. [ ] **Release: one AppImage**, as the Windows release is one installer exe: SDL3, glslang, and clang with
      ld.lld for the first-start build inside it; the player's data under `XDG_DATA_HOME` (an AppImage's own folder
      is read-only).
