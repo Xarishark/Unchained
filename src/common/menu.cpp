@@ -9,6 +9,7 @@
 #include "app/app.h"
 #include "common/fonts.h"
 #include "common/keyboard_mouse.h"
+#include "common/resolutions.h"
 #include "common/version.h"
 #include "core/input.h"
 
@@ -18,6 +19,8 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <cctype>
 #include <filesystem>
 #include <mutex>
 #include <string>
@@ -29,6 +32,8 @@
 
 extern bool g_perf_overlay, g_invert_camera_x, g_invert_camera_y;
 extern uint32_t g_fov_degrees, g_draw_distance, g_camera_speed, g_vibration, g_button_prompts;
+std::string& GraphicsPreset();  // game_info.cpp: the preset the Configuration app sets, and applying it
+void ApplyGraphicsPreset();
 
 namespace {
 
@@ -56,9 +61,9 @@ constexpr ImU32 kBlack = Rgba(0, 0, 0);
 float S(float v) { return v * g_s; }
 ImVec4 F(ImU32 c) { return ImGui::ColorConvertU32ToFloat4(c); }
 
-enum Page { kDisplay, kGraphics, kHud, kControls, kPages };
-const char* kPageNames[kPages] = {"DISPLAY", "GRAPHICS", "HUD & PROMPTS", "CONTROLS"};
-const char* kPageWords[kPages] = {"FREEDOM", "MADNESS", "CRAZY", "FREEDOM"};
+enum Page { kDisplay, kGraphics, kHud, kControls, kSound, kPages };
+const char* kPageNames[kPages] = {"DISPLAY", "GRAPHICS", "HUD & PROMPTS", "CONTROLS", "SOUND & SAVES"};
+const char* kPageWords[kPages] = {"FREEDOM", "MADNESS", "CRAZY", "FREEDOM", "CRAZY"};
 int g_page = kDisplay;
 
 // the Configuration app's drawing: a word's vertices leaned right, the big word, the frame with its tab
@@ -94,6 +99,14 @@ void Frame(ImDrawList* dl, ImVec2 a, ImVec2 b, const char* tab) {
 }
 
 void Changed() { g_changed = true; }
+
+// a game option's value by its settings key (GameInfo::options)
+uint32_t* OptValue(const char* key) {
+    static uint32_t none = 0;
+    for (const app::Option& o : app::kGame.options)
+        if (std::string(o.key) == key && o.value) return o.value;
+    return &none;
+}
 
 // a game option's flag by its settings key (GameInfo::options)
 bool* OptFlag(const char* key) {
@@ -161,11 +174,28 @@ void PageDisplay() {
         s.display_mode = app::DisplayMode(mode);
         app::ApplyDisplay();
     }
+    // the resolution as in the Configuration app: Desktop, or one of the display's; applied at once
+    static const std::vector<std::pair<uint32_t, uint32_t>> res = DisplayResolutions();
+    static std::vector<std::string> names;
+    if (names.empty()) {
+        names.push_back("Desktop");
+        for (auto [w, h] : res) names.push_back(std::to_string(w) + " x " + std::to_string(h));
+    }
+    int at = 0;
+    for (size_t i = 0; i < res.size(); i++)
+        if (res[i].first == s.width && res[i].second == s.height) at = int(i + 1);
+    std::vector<const char*> cnames;
+    for (const std::string& n : names) cnames.push_back(n.c_str());
+    if (ImGui::Combo("Resolution", &at, cnames.data(), int(cnames.size()))) {
+        s.width = at ? res[size_t(at - 1)].first : 0;
+        s.height = at ? res[size_t(at - 1)].second : 0;
+        app::ApplyDisplay();
+    }
     uint32_t wide = uint32_t(s.widescreen);
     if (Choice("Widescreen", &wide, {{2, "Wider view (16:9 and ultrawide)"}, {1, "4:3 with bars, as on a TV"},
                                      {0, "Console's widescreen (stretched)"}}))
         s.widescreen = app::Wide(wide);
-    Slider("Render resolution", &s.render_percent, 50, 200, "%d%%");
+    Slider("Render scale", &s.render_percent, 50, 200, "%d%%");
     Note("Of the window's size: below 100% renders smaller and upscales, above it supersamples.");
     Slider("Field of view", &g_fov_degrees, 40, 110, "%d deg");
     uint32_t vsync = uint32_t(s.vsync_mode);
@@ -176,22 +206,100 @@ void PageDisplay() {
     Choice("Frame rate cap", &s.fps_cap, {{60, "60"}, {1, "Monitor's refresh rate"}, {0, "None"}});
 }
 
+// a setting in hundredths, shown and dragged in whole units (exposure: hundredths of a stop)
+bool SliderHundredths(const char* label, int32_t* value, int lo, int hi, const char* fmt) {
+    float v = *value / 100.0f;
+    if (!ImGui::SliderFloat(label, &v, lo / 100.0f, hi / 100.0f, fmt)) return false;
+    *value = int32_t(std::lround(v * 100.0f));
+    Changed();
+    return true;
+}
+
+// a change to one graphics setting leaves the preset: the settings are the player's own from then
+void Custom(bool changed) {
+    if (changed) GraphicsPreset() = "custom";
+}
+
 void PageGraphics() {
     app::Settings& s = app::Get();
-    Combo("Upscaler", &s.upscaler, {"Bilinear", "AMD FSR 1"});
-    Slider("Sharpening", &s.sharpen, 0, 100, "%d%%");
-    Choice("Texture filtering", &s.aniso, {{0, "As the game asks"}, {2, "2x"}, {4, "4x"}, {8, "8x"}, {16, "16x"}});
-    Check("Clean menu and HUD edges", &s.ui_upscale);
-    Check("Character shadows", OptFlag("character_shadows"));
-    Slider("Draw distance", &g_draw_distance, 100, 1000, "%d%%");
+    // the presets as the Configuration app has them, applied at once
+    static const char* const kPresets[] = {"custom", "og", "original", "low", "high", "max"};
+    static const char* const kShown[] = {"custom", "OG Graphics", "original", "low", "high", "max"};
+    int at = 0;
+    for (int i = 0; i < 6; i++)
+        if (GraphicsPreset() == kPresets[i]) at = i;
+    if (ImGui::Combo("Graphics preset", &at, kShown, 6)) {
+        GraphicsPreset() = kPresets[at];
+        ApplyGraphicsPreset();
+        Changed();
+    }
+#ifdef _WIN32
+    uint32_t renderer = s.renderer;
+    if (Combo("Renderer", &renderer, {"Direct3D 12", "Vulkan"})) s.renderer = renderer;
+    Note("Vulkan is the default. The renderer changes at the next start.");
+#endif
+    Custom(Slider("Render scale", &s.render_percent, 50, 200, "%d%%"));
+    Custom(Combo("Upscaler", &s.upscaler, {"Bilinear", "AMD FSR 1"}));
+    Custom(Check("Clean menu and HUD edges", &s.ui_upscale));
+    Custom(Slider("Sharpening", &s.sharpen, 0, 100, "%d%%"));
+    Custom(Choice("Texture filtering", &s.aniso,
+                  {{0, "As the game asks"}, {2, "2x"}, {4, "4x"}, {8, "8x"}, {16, "16x"}}));
+    Custom(Choice("Shadow detail", OptValue("shadow_resolution"),
+                  {{0, "With the render scale"}, {1024, "1024"}, {2048, "2048"}, {4096, "4096"}}));
+    Custom(Check("Character shadows", OptFlag("character_shadows")));
+    Custom(Slider("Draw distance", &g_draw_distance, 100, 1000, "%d%%"));
     ImGui::Separator();
-    SliderS("Exposure", &s.grade_exposure, -200, 200);
-    Slider("Contrast", &s.grade_contrast, 50, 200, "%d%%");
-    Slider("Saturation", &s.grade_saturation, 0, 200, "%d%%");
-    SliderS("Temperature", &s.grade_temperature, -100, 100);
-    SliderS("Tint", &s.grade_tint, -100, 100);
+    Custom(SliderHundredths("Exposure", &s.grade_exposure, -300, 300, "%+.2f stops"));
+    Custom(Slider("Contrast", &s.grade_contrast, 50, 200, "%d%%"));
+    Custom(Slider("Saturation", &s.grade_saturation, 0, 200, "%d%%"));
+    Custom(SliderS("Temperature", &s.grade_temperature, -100, 100));
+    Custom(SliderS("Tint", &s.grade_tint, -100, 100));
+    // colour LUTs: the .cube files in luts in the data folder
+    static const std::vector<std::string> luts = [] {
+        std::vector<std::string> out = {"None"};
+        std::error_code ec;
+        for (auto& e : std::filesystem::directory_iterator(app::DataDir() / "luts", ec)) {
+            auto u8 = e.path().filename().u8string();
+            std::string name(u8.begin(), u8.end());
+            std::string ext = name.size() > 5 ? name.substr(name.size() - 5) : std::string();
+            for (char& ch : ext) ch = char(std::tolower(uint8_t(ch)));
+            if (ext == ".cube") out.push_back(name);
+        }
+        return out;
+    }();
+    int lut = 0;
+    for (size_t i = 1; i < luts.size(); i++)
+        if (luts[i] == s.colour_lut) lut = int(i);
+    std::vector<const char*> lut_names;
+    for (const std::string& n : luts) lut_names.push_back(n.c_str());
+    if (ImGui::Combo("Colour LUT", &lut, lut_names.data(), int(lut_names.size()))) {
+        s.colour_lut = lut ? luts[size_t(lut)] : std::string();
+        Changed();
+        Custom(true);
+    }
+    ImGui::Separator();
     Combo("Colour vision", &s.colour_filter, {"Off", "Protanopia", "Deuteranopia", "Tritanopia"});
     Slider("Colour vision strength", &s.colour_filter_strength, 0, 200, "%d%%");
+}
+
+void PageSound() {
+    app::Settings& s = app::Get();
+    Combo("Sound output", &s.audio_output, {"Automatic", "Stereo", "Surround", "Mono"});
+    Note("The sound output changes at the next start.");
+    ImGui::Separator();
+    Slider("Save backups kept", &s.save_backups, 0, 20);
+    Note("Each start copies your saves to \"save backups\" beside the game; the newest are kept.");
+    static char profile[64] = {};
+    static bool loaded = false;
+    if (!loaded) {
+        std::strncpy(profile, s.save_profile.c_str(), sizeof(profile) - 1);
+        loaded = true;
+    }
+    if (ImGui::InputText("Save profile", profile, sizeof(profile))) {
+        s.save_profile = profile;
+        Changed();
+    }
+    Note("A name keeps its own set of saves; empty is the main one. It changes at the next start.");
 }
 
 void PageHud() {
@@ -418,6 +526,7 @@ void MenuUi() {
         case kGraphics: PageGraphics(); break;
         case kHud: PageHud(); break;
         case kControls: PageControls(); break;
+        case kSound: PageSound(); break;
         default: break;
     }
     ImGui::PopItemWidth();
