@@ -2,9 +2,9 @@
 // Dear ImGui on D3D12, before the game is looked for (GameInfo::launcher). Unchained.exe starts the game directly when
 // its files are there; "Unchained.exe --configure", or a first run without them, opens this instead.
 //
-// The look follows Whiplash's Genron Corporation lab: dark teal, green terminal frames with a tab and cut corners,
-// scanlines, and the game's big slanted words (FREEDOM, CRAZY, MADNESS) for headings. Nothing of the game's art is in
-// the repository: the shapes are drawn here and the fonts are Windows' own (Bahnschrift, Consolas).
+// The look is a lab terminal: dark teal, green terminal frames with a tab and cut corners, scanlines, and big slanted
+// words (FREEDOM, CRAZY, MADNESS) for headings. No names or art from the game: the shapes are drawn here and the
+// fonts are Windows' own (Bahnschrift, Consolas).
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -380,11 +380,11 @@ std::wstring PickFile(bool folder) {
 void PagePlay() {
     bool ready = GameFilesPresent();
     ImGui::PushFont(g_head);
-    ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(kGreen), ready ? "SUBJECTS READY" : "GAME FILES MISSING");
+    ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(kGreen), ready ? "READY TO PLAY" : "GAME FILES MISSING");
     ImGui::PopFont();
     ImGui::Spacing();
     if (ready) {
-        Note("Spanx and Redmond are chained up in Genron's lab. Press PLAY to break them out.");
+        Note("Everything is set up. Press PLAY to break out.");
     } else {
         Note("Unchained needs your own copy of Whiplash for the original Xbox: its disc image (.iso) or extracted "
              "files. Open GAME FILES to set it up once.");
@@ -716,7 +716,8 @@ void DrawUi() {
     // header: the name as the game writes its words, the lab's caption
     Word(bg, g_head, S(64), ImVec2(S(36), S(14)), "UNCHAINED");
     bg->AddText(g_term, g_term->FontSize, ImVec2(S(44), S(86)), kGreen, "WHIPLASH  //  PC PORT  //  CONFIGURATION");
-    const char* corp = "GENRON CORPORATION  -  SUBJECT RELEASE TERMINAL";
+    std::string corp_text = std::string("RELEASE TERMINAL  -  BUILD ") + kUnchainedVersion;
+    const char* corp = corp_text.c_str();
     float cw = g_term->CalcTextSizeA(g_term->FontSize, 1e9f, 0, corp).x;
     bg->AddText(g_term, g_term->FontSize, ImVec2(io.DisplaySize.x - cw - S(36), S(30)), kGreenDim, corp);
     bg->AddLine(ImVec2(S(36), S(114)), ImVec2(io.DisplaySize.x - S(36), S(114)), kGreenDim, S(1));

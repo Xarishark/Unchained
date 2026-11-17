@@ -107,7 +107,7 @@ eport.md`.
   ("Player invincible", "Enable debug menus", "Disable Creature Shadows", "Hide All") are not in the retail xbe and
   are ignored (served rewritten, 2026-11-16: no change). Needs the game's own player and money fields.
 - [x] **U. Clean menu and HUD edges** (user, 2026-11-16: "re render all the other letters and UI boxes ... to match
-  how clean the glyphs are", then "apply it to letters and any other simple things ... including all the genron green
+  how clean the glyphs are", then "apply it to letters and any other simple things ... including all the green
   old terminal like things") - SDK `ui_upscale`. A 2D draw is one into the frame writing no depth whose vertices are
   on the screen already (0 to 1 across, as Whiplash's 2D programs give them, or pretransformed), or that tests no
   depth: Whiplash draws its menus and HUD with depth tested, so the first version, which looked for depth off, caught
@@ -116,7 +116,7 @@ eport.md`.
   anti-aliased blend and go to the nearer end, few neighbours a gentle step apart (gradients and shading: clouds 0.26,
   a shaded coin 0.08, the font 0.01, cut at 0.06) and no noise; the labels are scaled by Scale2x three times and
   averaged 2x2, each flat colour stays flat. `ui_survey` logs each 2D texture's decision: drawn 4x the font, the menu
-  and dialog frames and tabs, the box pieces with their fills, the HUD's skull and sword boxes, "GENRON CORPORATION",
+  and dialog frames and tabs, the box pieces with their fills, the HUD's skull and sword boxes, the corner company name,
   the clock; left the TV static, clouds, the shaded coin, the save portrait, the scanlines. Scenarios `ui_off` /
   `ui_on` (dialog, lab HUD) and `prestart_ui_off` / `prestart_ui_on` (main menu): text and frames crisp, the HUD's
   green icon as solid shapes (its faintest specks under half brightness drop out). Frame times twice each: 1% low
@@ -171,8 +171,8 @@ eport.md`.
 - [~] **L1. Configuration app themed to Whiplash** (done: dark teal lab, green terminal frames with the game's tab
   and cut corner, slanted FREEDOM / CRAZY / MADNESS words, Windows' Bahnschrift, Consolas and Impact; seven pages:
   play, display, graphics, controls, sound and saves, game files, about; turns/config-pages.png. To do: the
-  player's own disc art at runtime) - Genron Corporation's lab look: dark teal, the green terminal
-  HUD frames, the "FREEDOM / CRAZY / MADNESS" word style for headings, Spanx and Redmond as accents. No game art in
+  player's own disc art at runtime) - a lab terminal look: dark teal, the green terminal
+  HUD frames, the "FREEDOM / CRAZY / MADNESS" word style for headings; no character or company names. No game art in
   the repo: our own drawing, colours and fonts; art from the player's own disc only at runtime after setup.
 - [x] **L2. First-run flow** (pick, verify, copy, build the code with its progress in the app, then PLAY) - choose the disc image or folder, verify, extract to the data folder, recompile with a
   themed progress screen, then start straight into the game.

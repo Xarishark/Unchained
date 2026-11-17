@@ -146,7 +146,7 @@ Open:
   320x224 target (`0xD7EA00`). Before the frame-buffer read fix it read the other (shown) buffer and looked like a
   smeared frame blend; now it reads the drawn one and nothing shows, so the trail's alpha is likely 0: check the
   alpha-only character pass's output alpha and that the 320x224 copy keeps it. User's call: fine for now, noted.
-- **Redmond's voice lines** (most missing): `CDirectSoundStream_Pause` is now mapped (`0x2C6E96`); the game drops a
+- **The partner character's voice lines** (most missing): `CDirectSoundStream_Pause` is now mapped (`0x2C6E96`); the game drops a
   line when `Pause(stream, 2)` fails. Not tested yet.
 - **Camera "felt weird and off"** (user): not described yet.
 
@@ -226,7 +226,7 @@ reads the one being drawn (SDK `a7202e9`). Whatever uses mode 0 (fades or the hy
     also a vtable slot.
   - Traces of the stream path show that music (`StrStream`, stereo 0x24000 rings, called from `0x2227EC`) and mono
     creature speech (called from `0x257A4F`) start and play at a peak of about 0.17.
-  - Redmond's lines are `goe::LipStream` (vtables `LipStream` `0x305658`, `LipStreamInst` `0x304FF4`, `CreateInst`
+  - The partner's lines are `goe::LipStream` (vtables `LipStream` `0x305658`, `LipStreamInst` `0x304FF4`, `CreateInst`
     `0x1EE920`). At the lab's load, 9 LipStreams are created and their lip sync loads (`0x1C5BB0`, `0x1C6680`),
     but `CreateInst` was never called in about 3 minutes of scripted play. So nothing asked to play them.
   - Next: trace the cutscene lip-sync command (`CinLipSync` vtable `0x3094A4`, execute `0x2709B0`) and the

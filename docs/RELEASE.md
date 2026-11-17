@@ -119,7 +119,7 @@ Whiplash pieces in `src/`.
 
 ### The Configuration app and install
 
-- **07:53** The Configuration app in the Genron lab look (dark teal, green terminal frames, the FREEDOM / CRAZY /
+- **07:53** The Configuration app in a lab terminal look (dark teal, green terminal frames, the FREEDOM / CRAZY /
   MADNESS headings, Windows' own fonts, no game art): play, display, graphics, controls, sound and saves, game
   files, about. `Unchained.exe` starts the game directly once it is set up.
 - **08:03** First run: pick the disc image or folder, the release checked, the files copied, the game code built on
