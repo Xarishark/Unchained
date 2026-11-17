@@ -123,6 +123,8 @@ def main():
     ap.add_argument("--cold", action="store_true", help="every run without the shader and pipeline caches")
     ap.add_argument("--renderer", help="settings.toml renderer for the runs (Windows: d3d12 or vulkan)")
     ap.add_argument("--hdd", type=Path, help="a console disk (hdd folder) with a profile, copied into each run")
+    ap.add_argument("--env", action="append", default=[], metavar="NAME=VALUE",
+                    help="an environment variable for every run (repeatable), e.g. XBE_PERF=1")
     ap.add_argument("--set", action="append", default=[], metavar="KEY=VALUE",
                     help="a setting over the scenarios' (repeatable): display_mode=fullscreen width=0 height=0 is the "
                          "desktop's full resolution")
@@ -130,6 +132,7 @@ def main():
     a = ap.parse_args()
     cfg = tomllib.loads((HERE / "scenarios.toml").read_text())
     base = dict(cfg.get("base_settings", {}))
+    extra_env = dict(kv.partition("=")[::2] for kv in a.env)
     for kv in a.set:
         k, _, v = kv.partition("=")
         base[k] = int(v) if v.lstrip("-").isdigit() else {"true": True, "false": False}.get(v, v)
@@ -144,8 +147,10 @@ def main():
         for i in range(a.repeat):
             out = a.out / f"{name}-{i + 1}"
             cold = a.cold or sc.get("cold", False) or i == 0
-            rec = run(name, sc, base, a.exe.resolve(), a.game.resolve(), out, data, a.cold or sc.get("cold", False),
-                      a.renderer, a.hdd.resolve() if a.hdd else None)
+            sc_run = dict(sc)
+            sc_run["env"] = {**sc.get("env", {}), **extra_env}
+            rec = run(name, sc_run, base, a.exe.resolve(), a.game.resolve(), out, data,
+                      a.cold or sc.get("cold", False), a.renderer, a.hdd.resolve() if a.hdd else None)
             rec["cold"] = cold
             records.append(rec)
             f = rec["frames"]
