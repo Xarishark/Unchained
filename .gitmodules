@@ -1,3 +1,4 @@
 [submodule "sdk"]
 	path = sdk
-	url = https://github.com/TGP482/XboxXBERecomp.git
+	url = https://github.com/devall96/XboxXBERecomp.git
+	branch = unchained

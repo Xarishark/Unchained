@@ -300,7 +300,7 @@ The game's code is never in this repository: the build recompiles your own `defa
 
 ## Credits
 
-- **[Xbox XBE Recomp](https://github.com/TGP482/XboxXBERecomp)** (MIT): the recompiler and runtime Unchained is built on.
+- **[Xbox XBE Recomp](https://github.com/TGP482/XboxXBERecomp)** (MIT): the recompiler and runtime Unchained is built on. Unchained's changes to it (the push buffer interpreter, the rendering fixes, the Vulkan renderer and the Linux port) are on the `unchained` branch of [devall96/XboxXBERecomp](https://github.com/devall96/XboxXBERecomp/tree/unchained), which `sdk/` points to.
 - [XenonRecomp](https://github.com/hedge-dev/XenonRecomp) for the overridable function layout and instruction hooks.
 - [AMD FidelityFX Super Resolution 1](https://github.com/GPUOpen-Effects/FidelityFX-FSR) (MIT).
 - [SDL 3](https://github.com/libsdl-org/SDL), [Dear ImGui](https://github.com/ocornut/imgui), [toml++](https://github.com/marzer/tomlplusplus), [Zydis](https://github.com/zyantific/zydis) and Zycore, [volk](https://github.com/zeux/volk), [Vulkan Memory Allocator](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator), [Vulkan-Headers](https://github.com/KhronosGroup/Vulkan-Headers), [glslang](https://github.com/KhronosGroup/glslang) and [stb_truetype](https://github.com/nothings/stb).
