@@ -204,10 +204,12 @@ eport.md`.
   4. [ ] **Release: one AppImage**, as the Windows release is one installer exe: SDL3, glslang, and clang with
      ld.lld for the first-start build inside it; the player's data under `XDG_DATA_HOME` (an AppImage's own folder
      is read-only).
-  5. [~] **Windows on Vulkan**: `renderer = "vulkan"` in the settings file (default `d3d12`; a Vulkan that fails to
-     start falls back to D3D12, `gpu/backend_select.cpp`). Built and drawn (title on the RX 9070 XT, Vulkan 1.4).
-     To check: the suite fullscreen and windowed against D3D12, every screen against D3D12's, then Vulkan the
-     default once it has HDR10 and is no worse.
+  5. [x] **Windows on Vulkan, the default** (user, 2026-11-16): `renderer = "vulkan"` unless the settings file says
+     `"d3d12"`; HDR on starts D3D12 (HDR10 is its alone), and a Vulkan that fails to start falls back to it
+     (`gpu/backend_select.cpp`); the Configuration app's Graphics page has the choice. Evidence: fullscreen
+     2560x1440 on the RX 9070 XT, Vulkan equal or better than D3D12 on every scenario (walk 1% low 55-57, prompts
+     cold 34 against 28, menu no frame over 100 ms against D3D12's 148 ms), the in-game menu the same. Not run on
+     an NVIDIA card (user: switch anyway).
 - [~] **18. Widescreen and ultrawide** - Whiplash ignores the widescreen TV flag (the SDK's old 16:9 just stretched
   it). Its projection (`0x1390C0`) has a vertical fov, so `src/game/widescreen.cpp` widens the game's 4:3 aspect by
   the output's: `widescreen = "expand"` (default) fills 16:9 up to 32:9, 2D stays 4:3 in the middle, full screen

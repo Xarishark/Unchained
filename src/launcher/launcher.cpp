@@ -640,6 +640,13 @@ void PageDisplay() {
 void PageGraphics() {
     app::Settings& s = app::Get();
     ImGui::PushItemWidth(S(300));
+#ifdef _WIN32
+    uint32_t renderer = s.renderer;
+    if (Combo("Renderer", &renderer, {"Direct3D 12", "Vulkan"})) s.renderer = renderer;
+    Note(s.hdr && s.renderer == app::kRendererVulkan
+             ? "HDR is on, and HDR10 is drawn with Direct3D 12: the game starts on Direct3D 12 until HDR is off."
+             : "Vulkan is the default. Direct3D 12 takes over when Vulkan cannot start, and for HDR.");
+#endif
     Slider("Render scale", &s.render_percent, 50, 200, "%d%%", true);
     Combo("Upscaler", &s.upscaler, {"Bilinear", "AMD FSR 1"}, true);
     Check("Clean menu and HUD edges", &s.ui_upscale, true);
