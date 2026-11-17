@@ -48,4 +48,19 @@ endif()
 # the icon of the exe and its windows, drawn by tools/installer/art.py (no art from the game)
 if(WIN32)
     target_sources(Unchained PRIVATE src/res/unchained.rc)
+    # the file's version in Explorer's details: src/common/version.h, as every screen and the installer have it
+    file(STRINGS src/common/version.h UNCHAINED_VERSION REGEX "kUnchainedVersion =")
+    string(REGEX MATCH "\"([^\"]+)\"" UNCHAINED_VERSION "${UNCHAINED_VERSION}")
+    set(UNCHAINED_VERSION "${CMAKE_MATCH_1}")
+    string(REGEX MATCH "^([0-9]+)\\.([0-9]+)\\.([0-9]+)" UNCHAINED_VERSION_NUMBERS "${UNCHAINED_VERSION}")
+    set_source_files_properties(src/res/unchained.rc PROPERTIES COMPILE_DEFINITIONS
+        "UNCHAINED_VERSION=\"${UNCHAINED_VERSION}\";UNCHAINED_VERSION_NUMBERS=${CMAKE_MATCH_1},${CMAKE_MATCH_2},${CMAKE_MATCH_3},0")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS src/common/version.h)
 endif()
+
+# the fonts every window of ours draws with, the same on Windows and Linux (fonts/, SIL Open Font License), beside the
+# executable as the releases have them
+add_custom_command(TARGET Unchained POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/fonts $<TARGET_FILE_DIR:Unchained>/fonts
+    # the boot splash (GameInfo::splash), drawn by tools/installer/art.py --splash
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/res/splash.png $<TARGET_FILE_DIR:Unchained>)

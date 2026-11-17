@@ -12,11 +12,13 @@ set -e
 image=$1
 llvm=$(cd "$2" && pwd)
 runtime=$(cd "$(dirname "$3")" && pwd)/$(basename "$3")
-out=${4:-Unchained-x86_64.AppImage}
 src=$(cd "$(dirname "$0")/../.." && pwd)
+# the version every screen shows (src/common/version.h), in the file's name as the Windows release has it
+version=$(sed -n 's/.*kUnchainedVersion = "\([^"]*\)".*/\1/p' "$src/src/common/version.h")
+out=${4:-Unchained-$version-x86_64.AppImage}
 assets=$(readlink -f "$src/assets")
 
 # the source at /src, the game files where assets/ points (read only)
 podman run --rm --userns=keep-id -v "$src:/src" -v "$assets:$assets:ro" -w /src "$image" \
     sh -c 'cmake --preset linux-portable && cmake --build out/build/linux-portable'
-LLVM_DIR=$llvm sh "$src/tools/appimage/build_appimage.sh" "$src/out/build/linux-portable" "$runtime" "$out"
+VERSION=$version LLVM_DIR=$llvm sh "$src/tools/appimage/build_appimage.sh" "$src/out/build/linux-portable" "$runtime" "$out"

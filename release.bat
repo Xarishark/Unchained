@@ -35,6 +35,9 @@ if errorlevel 8 (echo Copying the compiler failed & exit /b 1)
 del /q "%STAGE%\compiler\*.dll" 2>nul
 for %%f in (msvcp140 vcruntime140) do copy /y "%VCRUNTIME%\%%f.dll" "%STAGE%\compiler\" >nul
 for %%f in (msvcp140 vcruntime140 vcruntime140_1) do copy /y "%VCRUNTIME%\%%f.dll" "%STAGE%\" >nul
+copy /y res\splash.png "%STAGE%\" >nul
+robocopy fonts "%STAGE%\fonts" /njh /njs /nfl /ndl >nul
+if errorlevel 8 (echo Copying the fonts failed & exit /b 1)
 copy /y README.md "%STAGE%\" >nul
 copy /y LICENSE "%STAGE%\LICENSE.txt" >nul
 copy /y "%SDK%\THIRD_PARTY.txt" "%STAGE%\" >nul

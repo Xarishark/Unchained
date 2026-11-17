@@ -89,9 +89,8 @@ float RoundBox(float px, float py, float cx, float cy, float hw, float hh, float
     return std::hypot(std::max(qx, 0.0f), std::max(qy, 0.0f)) + std::min(std::max(qx, qy), 0.0f) - r;
 }
 
-// text's coverage, centred in the canvas at the largest size up to height that fits max_w: GDI's on Windows, ImGui's
-// stb_truetype on Linux, both from the bold sans of common/fonts.cpp
-#ifndef _WIN32
+// text's coverage, centred in the canvas at the largest size up to height that fits max_w: ImGui's stb_truetype with
+// the bundled bold sans (common/fonts.cpp), the same letters on Windows and Linux
 }  // namespace
 #define STB_TRUETYPE_IMPLEMENTATION
 #define STBTT_STATIC
@@ -102,7 +101,12 @@ const std::vector<unsigned char>& FontData() {
     static const std::vector<unsigned char> data = [] {
         std::vector<unsigned char> d;
         std::filesystem::path p = fonts::File(L"bahnschrift.ttf", true);
-        if (FILE* f = p.empty() ? nullptr : std::fopen(p.c_str(), "rb")) {
+#ifdef _WIN32
+        FILE* f = p.empty() ? nullptr : _wfopen(p.c_str(), L"rb");
+#else
+        FILE* f = p.empty() ? nullptr : std::fopen(p.c_str(), "rb");
+#endif
+        if (f) {
             std::fseek(f, 0, SEEK_END);
             d.resize(size_t(std::max(0L, std::ftell(f))));
             std::fseek(f, 0, SEEK_SET);
@@ -158,47 +162,6 @@ void Text(Canvas& cv, const std::wstring& s, const float c[4], float height, flo
         if (i + 1 < s.size()) x += stbtt_GetCodepointKernAdvance(&f, cp, int(s[i + 1])) * scale;
     }
 }
-#else
-void Text(Canvas& cv, const std::wstring& s, const float c[4], float height, float max_w) {
-    HDC dc = CreateCompatibleDC(nullptr);
-    BITMAPINFO bi{};
-    bi.bmiHeader = {sizeof(BITMAPINFOHEADER), cv.w, -cv.h, 1, 32, BI_RGB};
-    void* bits = nullptr;
-    HBITMAP bmp = CreateDIBSection(dc, &bi, DIB_RGB_COLORS, &bits, nullptr, 0);
-    if (!dc || !bmp) {
-        if (bmp) DeleteObject(bmp);
-        if (dc) DeleteDC(dc);
-        return;
-    }
-    HGDIOBJ old_bmp = SelectObject(dc, bmp);
-    SetBkMode(dc, TRANSPARENT);
-    SetTextColor(dc, RGB(255, 255, 255));
-    // the largest size up to height that fits max_w
-    HFONT font = nullptr;
-    for (int size = int(height); size >= 6; size--) {
-        if (font) DeleteObject(font);
-        font = CreateFontW(-size, 0, 0, 0, FW_BOLD, 0, 0, 0, DEFAULT_CHARSET, OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS,
-                           ANTIALIASED_QUALITY, DEFAULT_PITCH, L"Bahnschrift");
-        SelectObject(dc, font);
-        SIZE ext{};
-        GetTextExtentPoint32W(dc, s.c_str(), int(s.size()), &ext);
-        if (ext.cx <= max_w) break;
-    }
-    RECT rc{0, 0, cv.w, cv.h};
-    DrawTextW(dc, s.c_str(), int(s.size()), &rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
-    GdiFlush();
-    const uint8_t* p = static_cast<const uint8_t*>(bits);
-    for (int y = 0; y < cv.h; y++)
-        for (int x = 0; x < cv.w; x++) {
-            const uint8_t* q = p + (size_t(y) * cv.w + x) * 4;
-            cv.Put(x, y, c, std::max({q[0], q[1], q[2]}) / 255.0f);
-        }
-    SelectObject(dc, old_bmp);
-    if (font) DeleteObject(font);
-    DeleteObject(bmp);
-    DeleteDC(dc);
-}
-#endif
 
 constexpr float kDark[4] = {0.10f, 0.10f, 0.11f, 1};
 constexpr float kRim[4] = {0.62f, 0.64f, 0.66f, 1};

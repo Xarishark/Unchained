@@ -307,9 +307,9 @@ ImFont* g_term = nullptr;
 ImFont* g_head = nullptr;
 ImFont* g_word = nullptr;
 
-// bold: on Linux, where the stand-in for Bahnschrift reads thinner than it, the headings take its bold face
+// bold: the semibold face, for headings
 ImFont* LoadFont(const wchar_t* file, float size, bool bold = false) {
-    fs::path path = fonts::File(file, bold);  // Windows' font, or on Linux the nearest
+    fs::path path = fonts::File(file, bold);  // the bundled stand-in (common/fonts.cpp)
     if (path.empty()) return nullptr;
     return ImGui::GetIO().Fonts->AddFontFromFileTTF(path.string().c_str(), size * g_dpi);
 }
@@ -1134,6 +1134,11 @@ bool Run(bool first_run, bool build_only) {
     RegisterClassExW(&wc);
     g_dpi = GetDpiForSystem() / 96.0f;
     int w = int((build_only ? 980 : 1240) * g_dpi), h = int((build_only ? 560 : 780) * g_dpi);
+    // w x h is the picture inside the frame, as SDL's window size is on Linux: the same layout on both
+    RECT outer{0, 0, w, h};
+    AdjustWindowRectEx(&outer, WS_OVERLAPPEDWINDOW, FALSE, 0);
+    w = outer.right - outer.left;
+    h = outer.bottom - outer.top;
     RECT work;
     SystemParametersInfoW(SPI_GETWORKAREA, 0, &work, 0);
     w = std::min(w, int(work.right - work.left));

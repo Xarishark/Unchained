@@ -1,11 +1,13 @@
 """The installer's art and Unchained's icon, drawn here in the Configuration app's look: dark teal with a faint grid and
 scanlines, green terminal frames, and the name as a big slanted word (white, a red edge, a black outline). No art from
-the game. Windows' own fonts (Impact, Consolas).
+the game. The fonts in fonts/ that every window of ours draws with (Anton, Cascadia Mono), so the art matches the
+windows on Windows and Linux alike.
 
   py -3 tools/installer/art.py <out dir> <version>
 
 writes installer-side.bmp (328x628, the welcome and finish pages), installer-header.bmp (300x114, the other pages'
-header) and unchained.ico (16 to 256 px).
+header), unchained.ico (16 to 256 px) and unchained.png (256 px, Linux's icon). With --splash <file.png> it writes
+the boot splash instead (res/splash.png, committed: builds copy it beside the executable without Python).
 """
 import os
 import sys
@@ -18,11 +20,14 @@ GREEN = (57, 242, 138)
 GREEN_DIM = (31, 143, 85)
 RED = (224, 52, 58)
 WHITE = (235, 248, 240)
-FONTS = os.path.join(os.environ.get('WINDIR', r'C:\Windows'), 'Fonts')
+FONTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'fonts')
+# the Windows fonts the look was made with, and the bundled ones standing in for them (src/common/fonts.cpp)
+BUNDLED = {'impact.ttf': 'Anton-Regular.ttf', 'consola.ttf': 'CascadiaMono-Regular.ttf',
+           'consolab.ttf': 'CascadiaMono-Bold.ttf'}
 
 
 def font(name, size):
-    return ImageFont.truetype(os.path.join(FONTS, name), size)
+    return ImageFont.truetype(os.path.join(FONTS, BUNDLED[name]), size)
 
 
 def room(w, h):
@@ -133,13 +138,37 @@ def icon():
     return im
 
 
+def splash():
+    """the boot splash: the name over the room in a green frame, what loads under it"""
+    w, h = 720, 340
+    im = room(w, h)
+    d = ImageDraw.Draw(im, 'RGBA')
+    d.rectangle([0, 0, w - 1, h - 1], outline=GREEN, width=2)
+    big = fit(word('UNCHAINED', 150), w - 80)
+    im.paste(big, ((w - big.width) // 2, 50), big)
+    mono = font('consolab.ttf', 22)
+    text = 'WHIPLASH  //  PC PORT'
+    tw = mono.getbbox(text)[2]
+    d.text(((w - tw) // 2, 50 + big.height + 6), text, font=mono, fill=GREEN)
+    small = font('consola.ttf', 16)
+    text = 'BOOTING...'
+    tw = small.getbbox(text)[2]
+    d.text(((w - tw) // 2, h - 46), text, font=small, fill=GREEN_DIM)
+    return im
+
+
 def main():
+    if sys.argv[1] == '--splash':
+        splash().save(sys.argv[2])
+        print('splash in', sys.argv[2])
+        return
     out, version = sys.argv[1], sys.argv[2]
     os.makedirs(out, exist_ok=True)
     side(version).save(os.path.join(out, 'installer-side.bmp'))
     header(version).save(os.path.join(out, 'installer-header.bmp'))
     icon().save(os.path.join(out, 'unchained.ico'), sizes=[(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128),
                                                            (256, 256)])
+    icon().save(os.path.join(out, 'unchained.png'))
     print('art in', out)
 
 

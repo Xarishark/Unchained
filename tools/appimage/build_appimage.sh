@@ -28,6 +28,8 @@ trap 'rm -rf "$work"' EXIT
 
 mkdir -p "$app/usr/bin/compiler" "$app/usr/lib"
 cp "$build/Unchained" "$app/usr/bin/"
+cp -r "$build/fonts" "$app/usr/bin/fonts"  # the windows' fonts, as the Windows release has them beside the exe
+cp "$build/splash.png" "$app/usr/bin/"     # the boot splash
 # the compiler folder without what a build left in it
 (cd "$build/compiler" && tar cf - --exclude=./work --exclude=./build.lock .) | (cd "$app/usr/bin/compiler" && tar xf -)
 # clang and ld.lld for the first-start build: LLVM's own Linux release where LLVM_DIR names one (what releases ship:
@@ -57,6 +59,8 @@ done
 cp "$here/AppRun" "$app/AppRun"
 chmod +x "$app/AppRun"
 cp "$here/unchained.desktop" "$app/unchained.desktop"
+# the version (release.sh gives it from src/common/version.h) for software centres and AppImage tools
+[ -n "$VERSION" ] && echo "X-AppImage-Version=$VERSION" >> "$app/unchained.desktop"
 cp "$here/unchained.png" "$app/unchained.png"
 ln -s unchained.png "$app/.DirIcon"
 

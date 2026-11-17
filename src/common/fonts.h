@@ -3,8 +3,8 @@
 
 namespace fonts {
 
-// a Windows font file by its name there ("bahnschrift.ttf", "consola.ttf"), or on Linux the nearest one; empty when
-// there is none. bold picks the bold face where the font comes in separate files.
+// the font standing in for a Windows font by its name there ("bahnschrift.ttf", "consola.ttf"): the bundled one in
+// fonts\ beside the executable, the same on every system; empty when there is none. bold picks the bold face.
 std::filesystem::path File(const wchar_t* windows_file, bool bold = false);
 
 }  // namespace fonts

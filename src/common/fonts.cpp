@@ -1,7 +1,8 @@
-// The fonts the menu and the button prompts draw with: Windows' own (Bahnschrift, Consolas) from its fonts folder. On
-// Linux a copy of the same file in fonts\ in the data folder or beside the executable, else the nearest font the
-// system has: Liberation Sans Narrow for Bahnschrift (both narrow sans serifs) and, bold, for Impact; DejaVu Sans Mono
-// for Consolas.
+// The fonts every window of ours draws with: the same files on Windows and Linux, shipped in fonts\ beside the
+// executable (SIL Open Font License, fonts/OFL-*.txt). Each stands in for the Windows font the look was made with:
+// Barlow Semi Condensed for Bahnschrift, Anton for Impact, Cascadia Mono for Consolas. A file of the same name in
+// fonts\ in the data folder comes first; without the bundled ones (a build missing them) Windows' own, or on Linux
+// the nearest the system has.
 #include "common/fonts.h"
 
 #include <cstdlib>
@@ -18,23 +19,32 @@ bool Exists(const std::filesystem::path& p) {
     return std::filesystem::is_regular_file(p, ec);
 }
 
+bool Starts(const std::wstring& name, const wchar_t* prefix) { return name.rfind(prefix, 0) == 0; }
+
+// the bundled file for a Windows font name
+const wchar_t* Bundled(const std::wstring& name, bool bold) {
+    if (Starts(name, L"impact")) return L"Anton-Regular.ttf";
+    if (Starts(name, L"consola")) return bold ? L"CascadiaMono-Bold.ttf" : L"CascadiaMono-Regular.ttf";
+    return bold ? L"BarlowSemiCondensed-SemiBold.ttf" : L"BarlowSemiCondensed-Medium.ttf";
+}
+
 }  // namespace
 
 std::filesystem::path File(const wchar_t* windows_file, bool bold) {
+    std::wstring name = windows_file;
+    std::filesystem::path bundled = Bundled(name, bold);
+    for (const auto& dir : {app::DataDir(), app::ExeDir()}) {
+        std::filesystem::path own = dir / "fonts" / bundled;
+        if (Exists(own)) return own;
+    }
 #ifdef _WIN32
-    (void)bold;
     wchar_t windir[MAX_PATH];
     GetWindowsDirectoryW(windir, MAX_PATH);
     std::filesystem::path p = std::filesystem::path(windir) / L"Fonts" / windows_file;
     return Exists(p) ? p : std::filesystem::path();
 #else
-    for (const auto& dir : {app::DataDir(), app::ExeDir()}) {
-        std::filesystem::path own = dir / "fonts" / windows_file;
-        if (Exists(own)) return own;
-    }
-    std::wstring name = windows_file;
-    bool mono = name.rfind(L"consola", 0) == 0;
-    if (name.rfind(L"impact", 0) == 0) bold = true;  // Impact's heavy condensed words: the narrow bold
+    bool mono = Starts(name, L"consola");
+    if (Starts(name, L"impact")) bold = true;  // Impact's heavy condensed words: the narrow bold
     const char* const narrow[] = {bold ? "/usr/share/fonts/truetype/liberation/LiberationSansNarrow-Bold.ttf"
                                        : "/usr/share/fonts/truetype/liberation/LiberationSansNarrow-Regular.ttf",
                                   bold ? "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
