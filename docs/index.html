@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unchained: Whiplash on PC</title>
+  <meta name="description" content="Unchained: a native Windows and Linux port of Whiplash (original Xbox, 2003), made by static recompilation. Full resolution, real widescreen, FSR 1, Vulkan, controller prompts and a Configuration app. Bring your own copy of the game.">
+  <link rel="icon" href="art/icon.png" type="image/png">
+  <meta property="og:title" content="Unchained: Whiplash on PC">
+  <meta property="og:description" content="Whiplash (original Xbox, 2003) recompiled into a native Windows and Linux game. Bring your own copy.">
+  <meta property="og:image" content="https://devall96.github.io/Unchained/art/splash.png">
+  <meta name="theme-color" content="#051618">
+  <style>
+    @font-face { font-family: "Anton"; src: url("fonts/Anton-Regular.ttf") format("truetype"); font-display: swap; }
+    @font-face { font-family: "Barlow SC"; src: url("fonts/BarlowSemiCondensed-Medium.ttf") format("truetype"); font-weight: 400 500; font-display: swap; }
+    @font-face { font-family: "Barlow SC"; src: url("fonts/BarlowSemiCondensed-SemiBold.ttf") format("truetype"); font-weight: 600 700; font-display: swap; }
+    @font-face { font-family: "Cascadia Mono"; src: url("fonts/CascadiaMono-Regular.ttf") format("truetype"); font-display: swap; }
+
+    /* the Configuration app's colours: the lab's teal and the terminal's green */
+    :root {
+      --back: #051618; --back-2: #092628; --panel: rgba(6, 30, 32, .9); --panel-solid: #061e20;
+      --green: #39f28a; --green-dim: #1f8f55; --green-faint: rgba(57, 242, 138, .09); --green-wash: rgba(57, 242, 138, .14);
+      --red: #e0343a; --white: #ebf8f0; --text: #c9ded3; --muted: #84a99a; --line: rgba(57, 242, 138, .28);
+      --amber: #f2c14e;
+      --head: "Anton", Impact, "Arial Narrow", sans-serif;
+      --body: "Barlow SC", "Bahnschrift", "Segoe UI", system-ui, sans-serif;
+      --term: "Cascadia Mono", Consolas, ui-monospace, monospace;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+    html, body { margin: 0; }
+    body {
+      background: linear-gradient(180deg, var(--back-2), var(--back) 70%);
+      background-attachment: fixed;
+      color: var(--text);
+      font: 500 17px/1.6 var(--body);
+      -webkit-font-smoothing: antialiased;
+    }
+    /* the room: a faint grid and the terminal's scanlines */
+    body::before {
+      content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        repeating-linear-gradient(0deg, rgba(0,0,0,.16) 0 1px, transparent 1px 3px),
+        linear-gradient(var(--green-faint) 1px, transparent 1px) 0 0 / 40px 40px,
+        linear-gradient(90deg, var(--green-faint) 1px, transparent 1px) 0 0 / 40px 40px;
+    }
+    a { color: var(--green); text-underline-offset: 3px; }
+    a:hover { color: var(--white); }
+    a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+    .wrap { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+    code, .term { font-family: var(--term); font-size: .86em; }
+    code { background: var(--green-wash); color: var(--white); padding: 1px 6px; word-break: break-word; }
+
+    /* ---- top bar */
+    .bar { position: sticky; top: 0; z-index: 10; background: rgba(5, 22, 24, .92); backdrop-filter: blur(6px);
+           border-bottom: 1px solid var(--line); }
+    .bar .wrap { display: flex; align-items: center; gap: 18px; min-height: 64px; flex-wrap: wrap; padding-top: 8px; padding-bottom: 8px; }
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--white); }
+    .brand img { width: 40px; height: 40px; }
+    .brand b { font: 400 26px/1 var(--head); letter-spacing: .02em; transform: skewX(-12deg); display: inline-block;
+               text-shadow: 2px 2px 0 var(--red); }
+    .brand small { display: block; font: 12px/1.3 var(--term); color: var(--green); letter-spacing: .08em; }
+    .bar nav { margin-left: auto; display: flex; gap: 4px 20px; flex-wrap: wrap; }
+    .bar nav a { font: 13px/1 var(--term); color: var(--green); text-decoration: none; letter-spacing: .08em; padding: 6px 0; }
+    .bar nav a:hover { color: var(--white); }
+    @media (max-width: 760px) { .bar { position: static; } .bar nav { margin-left: 0; width: 100%; } }
+
+    /* ---- the slanted word: white, a red edge down-right, a black outline */
+    .word { font-family: var(--head); font-weight: 400; color: var(--white); text-transform: uppercase; line-height: .95;
+            display: inline-block; transform: skewX(-12deg); letter-spacing: .01em;
+            text-shadow: -.03em -.03em 0 #000, .03em -.03em 0 #000, -.03em .03em 0 #000, .03em .03em 0 #000, 0 .03em 0 #000, .03em 0 0 #000,
+                         .055em .055em 0 var(--red), .075em .075em 0 #000; }
+
+    /* ---- hero */
+    .hero { padding: 64px 0 36px; }
+    .eyebrow { font: 13px/1.4 var(--term); color: var(--green); letter-spacing: .14em; }
+    .hero h1 { margin: 18px 0 8px; font-size: clamp(64px, 13vw, 150px); }
+    .hero .tag { font: 600 clamp(20px, 2.6vw, 26px)/1.3 var(--body); color: var(--white); margin: 18px 0 10px; max-width: 820px; }
+    .hero .lead { color: var(--text); font-size: 19px; max-width: 820px; margin: 0; }
+
+    /* ---- buttons */
+    .downloads { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 14px; margin: 32px 0 12px; }
+    .dl { display: block; text-decoration: none; color: var(--white); padding: 16px 20px 15px; background: var(--panel);
+          border: 2px solid var(--green-dim); position: relative;
+          clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%); }
+    .dl:hover { border-color: var(--green); color: var(--white); background: rgba(10, 50, 48, .95); }
+    .dl.primary { border-color: var(--green); background: linear-gradient(180deg, rgba(57,242,138,.22), rgba(31,143,85,.12)); }
+    .dl .os { font: 12px/1.3 var(--term); color: var(--green); letter-spacing: .12em; }
+    .dl .name { font: 600 21px/1.25 var(--body); margin: 6px 0 2px; }
+    .dl .meta { color: var(--muted); font-size: 14px; }
+    .fine { color: var(--muted); font-size: 14px; }
+    .soon { font: 13px/1.5 var(--term); color: var(--amber); border: 1px dashed rgba(242,193,78,.55); padding: 8px 12px; display: inline-block; margin-top: 4px; }
+
+    /* ---- the stats strip */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1px; margin: 40px 0 0;
+             background: var(--line); border: 1px solid var(--line); }
+    .stat { background: var(--panel-solid); padding: 16px 18px; }
+    .stat b { display: block; font: 400 34px/1.1 var(--head); color: var(--white); letter-spacing: .02em; }
+    .stat span { font: 12px/1.4 var(--term); color: var(--green); letter-spacing: .06em; }
+
+    /* ---- the menu frame: a tab with a slanted edge on top, the box's top right corner cut off */
+    .frame { position: relative; margin-top: 30px; display: flex; flex-direction: column; }
+    .frame > .box { flex: 1; display: flex; }
+    .frame > .box > .in { flex: 1; min-width: 0; }
+    .frame > .tab { position: absolute; top: 0; left: 10px; height: 27px; padding: 4px 34px 0 12px;
+                    font: 13px/1.4 var(--term); color: var(--green); letter-spacing: .08em; text-transform: uppercase;
+                    background: var(--green-dim); clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%); }
+    .frame > .tab::before { content: ""; position: absolute; inset: 2px 2px 0 2px; background: #0d3d33; z-index: -1;
+                    clip-path: polygon(0 0, calc(100% - 15px) 0, 100% 15px, 100% 100%, 0 100%); }
+    .frame > .tab { z-index: 1; isolation: isolate; }
+    .frame > .box { margin-top: 26px; background: var(--green);
+                    clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%); padding: 2px; }
+    .frame > .box > .in { background: var(--panel-solid); padding: 22px 24px;
+                    clip-path: polygon(0 0, calc(100% - 21px) 0, 100% 21px, 100% 100%, 0 100%); }
+    .frame.dim > .box { background: var(--green-dim); }
+    .frame.warn > .tab { color: var(--amber); }
+    .frame.warn > .box { background: rgba(242,193,78,.7); }
+    .frame h3 { margin: 0 0 6px; font: 600 20px/1.3 var(--body); color: var(--white); }
+    .frame p { margin: 0 0 10px; }
+    .frame p:last-child { margin-bottom: 0; }
+
+    /* ---- sections */
+    section { padding: 56px 0 8px; scroll-margin-top: 80px; }
+    .sec-head { display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+    .sec-head h2 { margin: 0; font-size: clamp(40px, 6vw, 64px); }
+    .sec-head p { margin: 0 0 6px; color: var(--muted); font: 13px/1.5 var(--term); letter-spacing: .06em; max-width: 520px; }
+    .intro { max-width: 860px; font-size: 18px; margin: 18px 0 0; }
+
+    .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 0 22px; }
+    .notes .frame { margin-top: 26px; }
+    .notes .in { font-size: 15.5px; }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr)); gap: 0 22px; }
+    ul.ticks { list-style: none; padding: 0; margin: 0; }
+    ul.ticks li { position: relative; padding-left: 22px; margin: 7px 0; }
+    ul.ticks li::before { content: ">"; position: absolute; left: 0; top: 0; color: var(--green); font-family: var(--term); }
+    ul.ticks b { color: var(--white); font-weight: 600; }
+
+    /* ---- the Configuration app viewer */
+    .viewer { margin-top: 28px; border: 2px solid var(--green-dim); background: var(--panel-solid); }
+    .viewer .pages { border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; }
+    .viewer button { all: unset; cursor: pointer; font: 13px/1 var(--term); letter-spacing: .08em; color: var(--green); padding: 14px 18px; }
+    .viewer button:hover { background: rgba(31,143,85,.35); color: var(--white); }
+    .viewer button[aria-selected="true"] { background: #2bbf6e; color: #04201a; }
+    .viewer button[aria-selected="true"]::before { content: "> "; }
+    .viewer figure { margin: 0; padding: 16px; }
+    .viewer img { width: 100%; height: auto; display: block; border: 1px solid var(--line); }
+    .viewer figcaption { margin-top: 10px; color: var(--muted); font-size: 15px; min-height: 2.6em; }
+    @media (max-width: 760px) {
+      .viewer .pages { flex-wrap: nowrap; overflow-x: auto; }
+      .viewer button { white-space: nowrap; padding: 14px 14px; }
+      .viewer figure { padding: 10px; }
+    }
+
+    /* ---- in-game shots */
+    .shot { margin: 34px 0 0; }
+    .shot img, .shots img { width: 100%; height: auto; display: block; border: 2px solid var(--green-dim); }
+    .shot.hero img { border-color: var(--green); box-shadow: 0 0 60px rgba(57, 242, 138, .12); }
+    .shot figcaption, .shots figcaption { margin-top: 8px; color: var(--muted); font-size: 15px; }
+    .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 22px; margin-top: 26px; }
+    .shots figure { margin: 0; }
+
+    /* ---- status */
+    .bars { display: grid; gap: 10px; margin-top: 22px; }
+    .row { display: grid; grid-template-columns: minmax(150px, 230px) 1fr 120px; gap: 14px; align-items: center; }
+    .row .label { color: var(--white); font-weight: 600; }
+    .row .track { height: 12px; background: rgba(57,242,138,.1); border: 1px solid var(--line); position: relative; }
+    .row .fill { position: absolute; inset: 0 auto 0 0; background: repeating-linear-gradient(90deg, var(--green) 0 10px, #2bbf6e 10px 12px); }
+    .row .pct { font: 13px/1 var(--term); color: var(--green); text-align: right; }
+    .row.all .label { font-family: var(--head); font-weight: 400; letter-spacing: .04em; font-size: 20px; }
+    @media (max-width: 600px) { .row { grid-template-columns: 1fr 70px; } .row .track { grid-column: 1 / -1; grid-row: 2; } }
+
+    table { border-collapse: collapse; width: 100%; font-size: 15.5px; }
+    td, th { border-bottom: 1px solid var(--line); padding: 10px 10px 10px 0; text-align: left; vertical-align: top; }
+    th { font: 12px/1.4 var(--term); color: var(--green); letter-spacing: .08em; font-weight: 400; text-transform: uppercase; }
+    td:first-child { color: var(--white); font-weight: 600; }
+    .ok { color: var(--green); } .warnc { color: var(--amber); } .unk { color: var(--muted); }
+    .scroll { overflow-x: auto; }
+
+    /* ---- steps */
+    ol.steps { counter-reset: s; list-style: none; padding: 0; margin: 10px 0 0; }
+    ol.steps > li { counter-increment: s; position: relative; padding: 0 0 0 44px; margin: 14px 0; }
+    ol.steps > li::before { content: counter(s, decimal-leading-zero); position: absolute; left: 0; top: 1px;
+                            font: 13px/1 var(--term); color: #04201a; background: var(--green); padding: 5px 6px; }
+    ol.steps b { color: var(--white); }
+    .req { font: 13px/1.6 var(--term); color: var(--muted); border-left: 2px solid var(--green-dim); padding: 4px 0 4px 12px; margin: 0 0 12px; }
+
+    /* ---- timeline */
+    .timeline { margin: 26px 0 0; border-left: 2px solid var(--green-dim); padding-left: 24px; }
+    .tl { position: relative; padding: 0 0 22px; }
+    .tl::before { content: ""; position: absolute; left: -31px; top: 6px; width: 12px; height: 12px; background: var(--back); border: 2px solid var(--green); transform: rotate(45deg); }
+    .tl .when { font: 12px/1.4 var(--term); color: var(--green); letter-spacing: .06em; }
+    .tl h3 { margin: 2px 0 2px; font: 600 19px/1.3 var(--body); color: var(--white); }
+    .tl p { margin: 0; max-width: 820px; }
+
+    /* ---- roadmap */
+    .road { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 0 22px; }
+    .road .frame { margin-top: 26px; }
+    .road .in { font-size: 15.5px; }
+    .chip { display: inline-block; font: 11px/1 var(--term); letter-spacing: .1em; padding: 4px 7px; margin-bottom: 10px; border: 1px solid; }
+    .chip.now { color: var(--green); border-color: var(--green-dim); }
+    .chip.next { color: var(--amber); border-color: rgba(242,193,78,.5); }
+    .chip.later { color: var(--muted); border-color: var(--line); }
+
+    /* ---- faq */
+    details { border-bottom: 1px solid var(--line); padding: 4px 0; }
+    summary { cursor: pointer; list-style: none; padding: 12px 30px 12px 0; position: relative; color: var(--white); font-weight: 600; font-size: 18px; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "+"; position: absolute; right: 4px; top: 10px; font: 20px/1 var(--term); color: var(--green); }
+    details[open] summary::after { content: "-"; }
+    details p { margin: 0 0 14px; max-width: 880px; }
+
+    footer { margin-top: 70px; border-top: 1px solid var(--line); padding: 28px 0 48px; font-size: 14.5px; color: var(--muted); }
+    footer .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+    footer h4 { margin: 0 0 8px; font: 12px/1.4 var(--term); color: var(--green); letter-spacing: .1em; font-weight: 400; }
+    footer p { margin: 0 0 8px; }
+    .legal { margin-top: 26px; font-size: 13.5px; }
+  </style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Unchained, back to the top">
+      <img src="art/icon.png" alt="" width="40" height="40">
+      <span><b>UNCHAINED</b><small>WHIPLASH // PC PORT</small></span>
+    </a>
+    <nav aria-label="Sections">
+      <a href="#download">DOWNLOAD</a>
+      <a href="#features">FEATURES</a>
+      <a href="#app">SCREENSHOTS</a>
+      <a href="#testers">TESTERS</a>
+      <a href="#status">STATUS</a>
+      <a href="#issues">ISSUES</a>
+      <a href="#roadmap">ROADMAP</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/devall96/Unchained">GITHUB</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap" id="top">
+
+  <!-- ===================================================== hero -->
+  <div class="hero" id="download">
+    <div class="eyebrow">STATIC RECOMPILATION &nbsp;//&nbsp; RELEASE 0.1 &nbsp;//&nbsp; WINDOWS + LINUX</div>
+    <h1 class="word">Unchained</h1>
+    <p class="tag">Whiplash, the 2003 original Xbox game, rebuilt as a native PC game for Windows and Linux.</p>
+    <p class="lead">The game's own Xbox code is translated ahead of time into a native program, so no emulator runs it. On top sits what a good PC release should have: your screen's full resolution, real widescreen and ultrawide, a HUD at the screen's edges, AMD FSR 1, a Vulkan renderer with no shader stutter on later starts, button prompts for the controller in your hands, an in-game settings menu and a Configuration app that sets it all up from <b>your own copy of the game</b>.</p>
+
+    <div class="downloads">
+      <a class="dl primary" href="https://github.com/devall96/Unchained/releases/latest/download/Unchained-0.1-Setup.exe">
+        <div class="os">WINDOWS 10 / 11 &nbsp;·&nbsp; INSTALLER</div>
+        <div class="name">Unchained-0.1-Setup.exe</div>
+        <div class="meta">55 MB · installs for you only, no admin</div>
+      </a>
+      <a class="dl" href="https://github.com/devall96/Unchained/releases/latest/download/Unchained-0.1-x86_64.AppImage">
+        <div class="os">LINUX &nbsp;·&nbsp; STEAM DECK</div>
+        <div class="name">Unchained-0.1-x86_64.AppImage</div>
+        <div class="meta">148 MB · one file, everything inside</div>
+      </a>
+      <a class="dl" href="https://github.com/devall96/Unchained/releases/latest/download/Unchained-0.1.zip">
+        <div class="os">WINDOWS &nbsp;·&nbsp; PORTABLE</div>
+        <div class="name">Unchained-0.1.zip</div>
+        <div class="meta">83 MB · extract and run, no installer</div>
+      </a>
+    </div>
+    <p class="fine">Every file, the release notes and <code>SHA256SUMS.txt</code> are on the <a href="https://github.com/devall96/Unchained/releases">releases page</a>. Source code and build steps are on <a href="https://github.com/devall96/Unchained">GitHub</a>.</p>
+
+    <div class="stats" aria-label="At a glance">
+      <div class="stat"><b>25,805</b><span>GAME FUNCTIONS RECOMPILED</span></div>
+      <div class="stat"><b>2</b><span>SYSTEMS: WINDOWS + LINUX</span></div>
+      <div class="stat"><b>65%</b><span>OF THE PC FEATURE LIST DONE</span></div>
+      <div class="stat"><b>0</b><span>GAME FILES IN THE DOWNLOAD</span></div>
+    </div>
+
+    <figure class="shot hero">
+      <img src="images/game-lobby.jpg" width="1920" height="1080" alt="The lobby at 2560x1440 with the wider 16:9 view and the HUD at the screen's top corner">
+      <figcaption>The lobby at 1440p in release 0.1: the game's own view widened to 16:9, the HUD out at the screen's corner.</figcaption>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <div class="frame warn"><div class="tab">Bring your own</div><div class="box"><div class="in">
+      <h3>No game files are included, ever.</h3>
+      <p>You need your own copy of <i>Whiplash</i> for the original Xbox (USA): a disc image made from your disc, or its files copied off it. The game's code is rebuilt on your PC, from your copy, the first time you start it. Please never share or ask for game files in the project's issues.</p>
+    </div></div></div>
+    <div class="frame"><div class="tab">Made with AI</div><div class="box"><div class="in">
+      <h3>Written by Claude, directed and played by a human.</h3>
+      <p>Every line of Unchained's code, the tests, the art and this page were written by Claude, Anthropic's AI, through Claude Code. <a href="https://github.com/devall96">devall96</a> came up with it, makes the decisions and plays every build, but no human reviews the code line by line. You run it at your own risk.</p>
+    </div></div></div>
+    <div class="frame dim"><div class="tab">Early: 0.1</div><div class="box"><div class="in">
+      <h3>The opening levels play. The rest is unexplored.</h3>
+      <p>The training lab and the lobby around it have been played through on Windows and Linux, on one PC. Later levels haven't been played on Unchained yet. Saves are backed up at every start, but keep a copy of any you care about.</p>
+    </div></div></div>
+    <div class="frame dim"><div class="tab">Not official</div><div class="box"><div class="in">
+      <h3>A fan project.</h3>
+      <p>Not made by, affiliated with or endorsed by Crystal Dynamics, Eidos, Square Enix, Embracer Group or Microsoft, or by the authors of the recompiler it's built on. Problems go to <a href="https://github.com/devall96/Unchained/issues">Unchained's issues</a>.</p>
+    </div></div></div>
+  </div>
+
+  <!-- ===================================================== testers -->
+  <section id="testers">
+    <div class="sec-head"><h2 class="word">Testers wanted</h2><p>ONE PC SO FAR. YOURS WOULD MAKE TWO.</p></div>
+    <p class="intro">Everything so far has run on exactly one computer: an AMD Ryzen 7 7800X3D with a Radeon RX 9070 XT, on Windows 11 and Ubuntu 26.04. That says very little about how Unchained does on yours. If you own the game and have an evening, a report, even "it worked fine", would help a great deal.</p>
+    <div class="grid">
+      <div class="frame"><div class="tab">Never tested on</div><div class="box"><div class="in">
+        <ul class="ticks">
+          <li><b>NVIDIA graphics</b>, any generation, and <b>Intel</b> Arc or integrated graphics. The Vulkan renderer has only met AMD's drivers.</li>
+          <li><b>Steam Deck</b> and other PC handhelds (ROG Ally, Legion Go). It should work; nobody has tried.</li>
+          <li><b>Laptops</b>, older or slower PCs, and Linux distros and desktops beyond Ubuntu.</li>
+          <li><b>Controllers</b> other than an Xbox pad: DualSense, DualShock 4, Switch Pro, 8BitDo, generic pads.</li>
+          <li><b>Ultrawide</b> (21:9, 32:9) and <b>16:10</b> screens, high refresh rates, G-Sync and FreeSync, several monitors.</li>
+        </ul>
+      </div></div></div>
+      <div class="frame"><div class="tab">How to help</div><div class="box"><div class="in">
+        <ol class="steps">
+          <li><b>Download</b> the installer or the AppImage above and set it up with your copy of the game.</li>
+          <li><b>Play a level</b>, ideally one past the first few, and note anything that looks, sounds or plays wrong.</li>
+          <li><b>Open a <a href="https://github.com/devall96/Unchained/issues/new/choose">bug report</a></b> with your system, GPU and driver, where it happened, a screenshot (F12) and the newest log from the <code>logs</code> folder. The form walks you through it.</li>
+        </ol>
+        <p class="fine">Can you code? <a href="https://github.com/devall96/Unchained/blob/main/CONTRIBUTING.md">Contributions</a> are very welcome too, on the <code>test</code> branch. A bit of help goes a long way.</p>
+      </div></div></div>
+    </div>
+  </section>
+
+  <!-- ===================================================== features -->
+  <section id="features">
+    <div class="sec-head"><h2 class="word">What it does</h2><p>THE CONSOLE GAME, FAITHFULLY, PLUS A REAL PC RELEASE AROUND IT.</p></div>
+    <div class="grid">
+      <div class="frame"><div class="tab">The game, natively</div><div class="box"><div class="in">
+        <ul class="ticks">
+          <li><b>The whole Xbox game as native code</b>: 25,805 functions, rebuilt on your PC from your copy at the first start, in about 10 to 40 seconds with the bundled compiler.</li>
+          <li><b>No emulator.</b> The console's system is stood in for by a runtime made for it, and the game's graphics go straight to Vulkan.</li>
+          <li><b>Saves</b> on a virtual Xbox hard disk, like the console's, backed up every start.</li>
+          <li><b>One supported release</b>, checked at setup, so you never chase a bug from a different disc.</li>
+        </ul>
+      </div></div></div>
+      <div class="frame"><div class="tab">Picture</div><div class="box"><div class="in">
+        <ul class="ticks">
+          <li><b>Your screen's resolution</b>, and supersampling past 100%.</li>
+          <li><b>Real widescreen and ultrawide</b>, 16:9 up to 32:9: the game's own camera is widened, so you see more instead of a stretch, with nothing popping in at the edges.</li>
+          <li><b>AMD FSR 1</b> upscaling with sharpening, <b>16x texture filtering</b>, <b>shadows at 2048</b> instead of 256, field of view and draw distance.</li>
+          <li><b>Clean menu and HUD edges</b>: text, frames and the terminal icons redrawn at 4x.</li>
+          <li><b>Colour grading</b> and <b>presets</b>, including <b>OG Graphics</b>: the console as it was, 640x480 at 4:3.</li>
+        </ul>
+      </div></div></div>
+      <div class="frame"><div class="tab">HUD and prompts</div><div class="box"><div class="in">
+        <ul class="ticks">
+          <li><b>The HUD at the screen's edges</b>, like a modern game, at any aspect, with menus kept centred. A slider moves it back to where the console had it.</li>
+          <li><b>Button prompts for the controller in your hands</b>, switching live: today's Xbox pad, PlayStation symbols or Nintendo letters, or the console's own glyphs.</li>
+        </ul>
+      </div></div></div>
+      <div class="frame"><div class="tab">Smoothness</div><div class="box"><div class="in">
+        <ul class="ticks">
+          <li><b>Vulkan by default</b> on both systems, Direct3D 12 as the fallback on Windows. In frame-time tests Vulkan's lows matched or beat D3D12's everywhere.</li>
+          <li><b>No shader stutter after the first start</b>: shaders are kept, and every graphics pipeline is made ahead in the background.</li>
+          <li><b>VSync modes</b>: off, on, adaptive, fast and VRR for G-Sync and FreeSync.</li>
+          <li><b>Performance overlay (F10)</b>: frame times, 1% and 0.1% lows, hitches.</li>
+        </ul>
+      </div></div></div>
+      <div class="frame"><div class="tab">Menus and setup</div><div class="box"><div class="in">
+        <ul class="ticks">
+          <li><b>In-game menu (F1, or Back + Start)</b> with every option the Configuration app has, applied as you play.</li>
+          <li><b>Configuration app</b> in a lab-terminal look of its own: pick your disc image or folder, it checks and copies, builds the code with its progress on screen, then PLAY.</li>
+          <li><b>The same windows and fonts</b> on Windows and Linux.</li>
+        </ul>
+      </div></div></div>
+      <div class="frame"><div class="tab">Controls, saves, extras</div><div class="box"><div class="in">
+        <ul class="ticks">
+          <li><b>Any controller</b> through SDL3, by button position, with camera speed, inversion and vibration strength.</li>
+          <li><b>Save backups</b> (last 5), <b>save profiles</b> and a movable data folder.</li>
+          <li><b>Screenshots (F12)</b>, <b>colour vision filters</b> and a HUD-off switch.</li>
+          <li><b>Texture packs</b>: dump, edit or upscale, and your images are drawn instead.</li>
+        </ul>
+      </div></div></div>
+    </div>
+  </section>
+
+  <!-- ===================================================== configuration app -->
+  <section id="app">
+    <div class="sec-head"><h2 class="word">Screenshots</h2><p>RELEASE 0.1, 2560x1440, CAPTURED FROM THE RENDERER.</p></div>
+    <div class="shots">
+      <figure><img src="images/game-walkway.jpg" width="1920" height="1080" alt="On a walkway above the lobby, the floors below drawn at 1440p" loading="lazy"><figcaption>Above the lobby: every floor below drawn sharp at 1440p, with high-resolution shadows and 16x texture filtering.</figcaption></figure>
+      <figure><img src="images/game-balcony.jpg" width="1920" height="1080" alt="A dim balcony in the lobby, lit the way the original Xbox version lights it" loading="lazy"><figcaption>A balcony, lit as the original Xbox version lights it: dim, with the lamps doing the work.</figcaption></figure>
+    </div>
+    <p class="fine">The game graphics in these screenshots come from a legally obtained copy of the game, as they do on your PC. They belong to their owners and aren't part of Unchained.</p>
+
+    <h3 class="word" style="font-size:clamp(30px,4vw,42px);margin:44px 0 0">The Configuration app</h3>
+    <p class="fine" style="font-family:var(--term);letter-spacing:.06em">CAPTURED FROM THE 0.1 RELEASE ON A FRESH INSTALL, BEFORE ANY GAME FILES WERE ADDED.</p>
+    <div class="viewer" data-viewer>
+      <div class="pages" role="tablist" aria-label="Configuration app pages">
+        <button role="tab" aria-selected="true" data-src="images/config-play.png" data-cap="PLAY: the graphics preset (OG Graphics, Original, Low, High, Max or your own) and the window mode. Before setup it points you to GAME FILES.">PLAY</button>
+        <button role="tab" aria-selected="false" data-src="images/config-display.png" data-cap="DISPLAY: window mode, resolution, the wider view for 16:9 and ultrawide, how far the HUD moves to the edges, field of view, VSync and the frame cap.">DISPLAY</button>
+        <button role="tab" aria-selected="false" data-src="images/config-graphics.png" data-cap="GRAPHICS: Vulkan or Direct3D 12, render scale, AMD FSR 1, clean menu and HUD edges, sharpening, filtering, shadows, draw distance and colour grading.">GRAPHICS</button>
+        <button role="tab" aria-selected="false" data-src="images/config-controls.png" data-cap="CONTROLS: camera speed, inverted axes, vibration strength and the button prompt style.">CONTROLS</button>
+        <button role="tab" aria-selected="false" data-src="images/config-saves.png" data-cap="SOUND &amp; SAVES: sound output, how many save backups to keep, and named save profiles.">SOUND &amp; SAVES</button>
+        <button role="tab" aria-selected="false" data-src="images/config-files.png" data-cap="GAME FILES: choose your disc image or extracted folder. The setup checks it, copies it beside Unchained and builds the game's code once.">GAME FILES</button>
+      </div>
+      <figure>
+        <img src="images/config-play.png" width="1240" height="780" alt="The Unchained Configuration app" data-img>
+        <figcaption data-cap>PLAY: the graphics preset (OG Graphics, Original, Low, High, Max or your own) and the window mode. Before setup it points you to GAME FILES.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ===================================================== status -->
+  <section id="status">
+    <div class="sec-head"><h2 class="word">Where it's at</h2><p>STARTED SUN 15 NOV 2026. PLAYABLE OPENING TWO DAYS LATER.</p></div>
+    <p class="intro">Progress against the PC feature list (started items count half). The full list, item by item with its evidence, is <a href="https://github.com/devall96/Unchained/blob/main/docs/TODO.md">docs/TODO.md</a>.</p>
+    <div class="bars">
+      <div class="row"><span class="label">Core</span><span class="track"><span class="fill" style="width:75%"></span></span><span class="pct">75% · 3/4</span></div>
+      <div class="row"><span class="label">Platforms and input</span><span class="track"><span class="fill" style="width:67%"></span></span><span class="pct">67% · 4/6</span></div>
+      <div class="row"><span class="label">Performance</span><span class="track"><span class="fill" style="width:75%"></span></span><span class="pct">75% · 6/8</span></div>
+      <div class="row"><span class="label">Graphics</span><span class="track"><span class="fill" style="width:92%"></span></span><span class="pct">92% · 5.5/6</span></div>
+      <div class="row"><span class="label">Player features</span><span class="track"><span class="fill" style="width:58%"></span></span><span class="pct">58% · 7/12</span></div>
+      <div class="row"><span class="label">Adapted to Whiplash</span><span class="track"><span class="fill" style="width:36%"></span></span><span class="pct">36% · 4/11</span></div>
+      <div class="row"><span class="label">Launcher, files and theme</span><span class="track"><span class="fill" style="width:88%"></span></span><span class="pct">88% · 3.5/4</span></div>
+      <div class="row all"><span class="label">ALL</span><span class="track"><span class="fill" style="width:65%"></span></span><span class="pct">65% · 33/51</span></div>
+    </div>
+
+    <div class="frame"><div class="tab">Status board</div><div class="box"><div class="in scroll">
+      <table>
+        <tr><th>Part</th><th>Status</th></tr>
+        <tr><td>Boots, menus, saves</td><td class="ok">Works</td></tr>
+        <tr><td>Opening levels (training lab, lobby)</td><td class="ok">Played through on Windows and Linux</td></tr>
+        <tr><td>The rest of the game</td><td class="unk">Not played on Unchained yet. <a href="#testers">Help wanted</a>.</td></tr>
+        <tr><td>Music and sound effects</td><td class="ok">Work</td></tr>
+        <tr><td>Spoken dialogue</td><td class="warnc">Some of the partner character's lines don't play yet</td></tr>
+        <tr><td>Windows, Vulkan with D3D12 fallback</td><td class="ok">Tested on one AMD PC</td></tr>
+        <tr><td>Linux AppImage</td><td class="ok">Tested on Ubuntu 26.04; reaches the title on Ubuntu 24.04, Fedora and Arch</td></tr>
+        <tr><td>Steam Deck</td><td class="unk">Should work, untested</td></tr>
+        <tr><td>macOS</td><td class="unk">On the <a href="#roadmap">roadmap</a></td></tr>
+      </table>
+    </div></div></div>
+    <p class="fine">What doesn't work yet is listed under <a href="#issues">Known issues</a>.</p>
+
+  </section>
+
+  <!-- ===================================================== known issues -->
+  <section id="issues">
+    <div class="sec-head"><h2 class="word">Known issues</h2><p>WHAT RELEASE 0.1 DOESN'T GET RIGHT YET.</p></div>
+    <div class="frame warn"><div class="tab">Release 0.1</div><div class="box"><div class="in">
+      <ul class="ticks">
+        <li><b>Spoken dialogue:</b> many of the partner character's lines don't play yet. The main character's voice, the sound effects and the music do. The first sure example is the fire machine scene in the training lab.</li>
+        <li><b>Light beams flicker:</b> the beams the lab's wall lamps throw straight up vanish and come back at some distances. What's known so far is in <a href="https://github.com/devall96/Unchained/blob/main/docs/LIGHT_BEAM_FLICKER.md">LIGHT_BEAM_FLICKER.md</a>, for anyone who wants to pick it up.</li>
+        <li><b>Hyper mode</b> works, but its trail effect doesn't show yet.</li>
+        <li><b>Only the opening levels</b> have been played through. Later levels are untested.</li>
+        <li><b>Controller only for now.</b> Keyboard and mouse play is on the <a href="#roadmap">roadmap</a>.</li>
+        <li><b>Above 60 fps</b> is only checked in the intro and menus, so the cap stays at 60 by default.</li>
+        <li><b>Draw distance</b> doesn't reach the gameplay camera in the wide view yet (it does at 4:3).</li>
+        <li><b>The title screen in widescreen</b> shows a white strip at each side, past the edge of its sky.</li>
+        <li><b>The very first start</b> compiles shaders as it goes, so the first loading-screen cuts hitch once. From the second start they're gone.</li>
+        <li><b>Some rooms are darker and greener than you may remember.</b> That's the original Xbox version's own lighting; the PS2 version lights characters more brightly. An optional brighter look is on the roadmap.</li>
+        <li><b>Not code-signed yet</b>, so Windows SmartScreen warns on the first run.</li>
+      </ul>
+      <p class="fine">Found something else? Please <a href="https://github.com/devall96/Unchained/issues/new/choose">report it</a>.</p>
+    </div></div></div>
+  </section>
+
+  <!-- ===================================================== getting started -->
+  <section id="start">
+    <div class="sec-head"><h2 class="word">Getting started</h2><p>ABOUT 5 GB FREE, YOUR COPY OF THE GAME, A CONTROLLER.</p></div>
+    <div class="grid">
+      <div class="frame"><div class="tab">Windows</div><div class="box"><div class="in">
+        <p class="req">Windows 10 or 11, 64-bit<br>A GPU with Vulkan 1.3 or Direct3D 12<br>Nothing else to install</p>
+        <ol class="steps">
+          <li><b>Run the installer.</b> It installs for your user only, to <code>C:\Unchained</code> by default. Or extract the zip to any folder you can write to (not Program Files).</li>
+          <li><b>If SmartScreen warns</b> ("Windows protected your PC"), choose More info, then Run anyway. Unchained isn't code-signed yet.</li>
+          <li><b>On GAME FILES</b>, choose your disc image or game folder. It checks, copies and builds the game's code once.</li>
+          <li><b>Press PLAY.</b> From then on, Unchained starts straight into the game.</li>
+        </ol>
+      </div></div></div>
+      <div class="frame"><div class="tab">Linux</div><div class="box"><div class="in">
+        <p class="req">A 64-bit distro from 2022 on (Ubuntu 22.04, Debian 12, Fedora 36, SteamOS 3 or newer)<br>A Vulkan 1.3 driver (Mesa, or NVIDIA's own)<br>The compiler is inside the AppImage</p>
+        <ol class="steps">
+          <li><b>Make the AppImage executable</b>: right-click, Properties, allow executing, or <code>chmod +x Unchained-0.1-x86_64.AppImage</code>.</li>
+          <li><b>Run it.</b> It adds Unchained and Unchained Configuration to your applications menu.</li>
+          <li><b>Choose your game files</b> and press PLAY, as on Windows.</li>
+        </ol>
+        <p class="fine">No FUSE on your system? Run it with <code>APPIMAGE_EXTRACT_AND_RUN=1</code>. Without a Vulkan driver, Unchained tells you which to install. Your data lives in <code>~/.local/share/Unchained</code>.</p>
+      </div></div></div>
+      <div class="frame dim" id="deck"><div class="tab">Steam Deck</div><div class="box"><div class="in">
+        <p><b style="color:var(--white)">It should run, but nobody has tried yet.</b> SteamOS 3 is newer than the AppImage needs, the Deck's GPU has a Vulkan 1.3 driver and its controls appear as a controller.</p>
+        <ol class="steps">
+          <li><b>In Desktop Mode</b>, make the AppImage executable and run it once to set up your game files.</li>
+          <li><b>For Game Mode</b>, add it in Steam with Add a Non-Steam Game, then start it from your library.</li>
+          <li><b>If it runs heavy</b>, try the Low preset or a lower render scale with FSR 1.</li>
+        </ol>
+        <p class="fine">Please <a href="https://github.com/devall96/Unchained/issues/new/choose">report how it goes</a>. A handheld preset and an Add to Steam button are on the roadmap.</p>
+      </div></div></div>
+    </div>
+
+    <div class="frame dim"><div class="tab">Which copy works</div><div class="box"><div class="in">
+      <ul class="ticks">
+        <li><b>One version: <i>Whiplash</i> for the original Xbox, North American (USA) release.</b> Other regions aren't supported yet.</li>
+        <li><b>A disc image or a folder</b> with the files copied off your disc both work.</li>
+        <li><b>Use an untouched copy.</b> Some tools that shrink disc images change a small part of the game's main file. Unchained notices and asks for an unchanged copy.</li>
+        <li><b>It checks for you</b> when you pick your files, before anything is copied. No keys, BIOS or console files are needed. The game is English only, as the disc is.</li>
+      </ul>
+    </div></div></div>
+
+    <div class="frame dim"><div class="tab">Shortcuts</div><div class="box"><div class="in scroll">
+      <table>
+        <tr><th>Key</th><th>Controller</th><th>What it does</th></tr>
+        <tr><td>F1</td><td>Back + Start</td><td>The in-game menu, with every setting</td></tr>
+        <tr><td>F10</td><td></td><td>The performance overlay</td></tr>
+        <tr><td>F12</td><td></td><td>A screenshot, saved as a PNG</td></tr>
+      </table>
+    </div></div></div>
+  </section>
+
+  <!-- ===================================================== roadmap -->
+  <section id="roadmap">
+    <div class="sec-head"><h2 class="word">Roadmap</h2><p>ROUGHLY IN ORDER. TRACKED ITEM BY ITEM ON GITHUB.</p></div>
+    <div class="road">
+      <div class="frame"><div class="tab">Next</div><div class="box"><div class="in">
+        <span class="chip now">FINISHING THE GAME</span>
+        <ul class="ticks">
+          <li><b>A full playthrough</b>, level by level, fixing whatever breaks. Testers help most here.</li>
+          <li><b>Every voice line playing</b>, the partner character's included.</li>
+          <li><b>Hyper mode's trail</b> and <b>the lamp light beams</b>.</li>
+          <li><b>The camera's feel</b>, checked against the console.</li>
+          <li><b>Above 60 fps in gameplay</b>, then a higher default cap.</li>
+          <li><b>Draw distance</b> in the wide view.</li>
+        </ul>
+      </div></div></div>
+      <div class="frame"><div class="tab">Then</div><div class="box"><div class="in">
+        <span class="chip next">MORE PC FEATURES</span>
+        <ul class="ticks">
+          <li><b>Steam Deck and handhelds</b>: a handheld preset and an Add to Steam button.</li>
+          <li><b>One-click updates</b> from the Configuration app.</li>
+          <li><b>Keyboard and mouse</b>: rebindable keys, a mouse camera, key caps in the prompts.</li>
+          <li><b>HDR10</b>, <b>colour LUTs</b> and a <b>photo mode</b> with a free camera.</li>
+          <li><b>An optional brighter, PS2-style character lighting</b>.</li>
+          <li><b>Assists</b> (invincibility, damage scaling, text speed), <b>level select</b>, <b>effect toggles</b>.</li>
+          <li><b>Translated menus</b> and <b>Discord Rich Presence</b> (off by default).</li>
+          <li>A faster release build; later, modern upscalers and frame generation.</li>
+        </ul>
+      </div></div></div>
+      <div class="frame dim"><div class="tab">macOS port</div><div class="box"><div class="in">
+        <span class="chip later">PLANNED</span>
+        <ul class="ticks">
+          <li><b>Graphics</b>: the Vulkan renderer on Apple's Metal through MoltenVK.</li>
+          <li><b>Window, input and sound</b> already go through SDL3, as on Linux.</li>
+          <li><b>The game's code</b> is portable C++, so a native Apple Silicon build looks possible, with Rosetta 2 as the fallback.</li>
+          <li><b>Still to do</b>: the Xbox memory mapping, the first-start build on macOS, the Configuration app, a signed and notarised app.</li>
+        </ul>
+      </div></div></div>
+      <div class="frame dim"><div class="tab">Giving back</div><div class="box"><div class="in">
+        <span class="chip later">ONGOING</span>
+        <ul class="ticks">
+          <li><b>The runtime work goes upstream</b>: the push buffer interpreter, the rendering fixes and the Vulkan renderer, so other Xbox games written the same way can run.</li>
+          <li><b>Decompilation over time</b>: the game's own systems rewritten as readable C++, one at a time.</li>
+        </ul>
+      </div></div></div>
+    </div>
+  </section>
+
+  <!-- ===================================================== how it was made -->
+  <section id="story">
+    <div class="sec-head"><h2 class="word">How it was made</h2><p>FROM THE RECOMPILER'S TEMPLATE TO A RELEASE.</p></div>
+    <p class="intro">A search found no port, decompilation or tools for <i>Whiplash</i> anywhere. The original Xbox release was the way in: its x86 code can be recompiled with the <a href="https://github.com/TGP482/XboxXBERecomp">Xbox XBE Recomp</a> toolkit. The game turned out to be unusual, so much of the work went into the runtime itself.</p>
+    <div class="timeline">
+      <div class="tl"><div class="when">SUN 15 NOV · 04:13</div><h3>The template</h3><p>The project starts from the recompiler's game template: 25,805 functions turned into C++. About 140 library functions the signatures missed are named by hand, one boot at a time.</p></div>
+      <div class="tl"><div class="when">SUN · 16:47</div><h3>The name</h3><p><b>Unchained</b>: a play on the chain, and on freeing the game from the Xbox.</p></div>
+      <div class="tl"><div class="when">SUN · 17:41</div><h3>First frames, and the strobe</h3><p>Seventeen boots later the game presents frames. It asked for two presents a frame, so the screen flashed between colour and black; fixed so only real frames show.</p></div>
+      <div class="tl"><div class="when">SUN · 19:03</div><h3>A push buffer interpreter</h3><p>Whiplash mostly skips Direct3D and writes the Xbox GPU's raw commands itself, which no version of the runtime could run. An interpreter for them brought up the intro, then the title.</p></div>
+      <div class="tl"><div class="when">SUN · 19:35 – 19:53</div><h3>Controls, saves, characters</h3><p>Input reaches the game, the console's disc check passes so the hard disk and saves work, and the characters appear whole.</p></div>
+      <div class="tl"><div class="when">MON 16 NOV · NIGHT</div><h3>Rendering fixes</h3><p>Shadows into their own texture, the cutscene letterbox, hyper mode's texture stages, culling, frame buffer addresses, and a sweep for anything left unmapped.</p></div>
+      <div class="tl"><div class="when">MON · MORNING</div><h3>The PC port</h3><p>Full resolution and real widescreen, FSR 1, the frame-time test suite, VSync modes, the shader cache, the HUD at the edges, presets, accessibility, the overlay, the Configuration app and setup, button prompts and clean UI edges.</p></div>
+      <div class="tl"><div class="when">MON · EVENING</div><h3>Ready to share</h3><p>The in-game menu, the single-exe installer and a themed build window that goes straight into the game.</p></div>
+      <div class="tl"><div class="when">TUE 17 NOV</div><h3>Linux and Vulkan</h3><p>The widescreen pop-in fixed, then the Linux port: a native Vulkan renderer for both systems, one AppImage, every window the same on Windows and Linux, Vulkan as the default, OG Graphics, and release 0.1.</p></div>
+    </div>
+    <div class="frame dim"><div class="tab">How it's tested</div><div class="box"><div class="in">
+      <p>Every build is played on screen. Frames are captured from the renderer itself and compared with footage of the original. Performance is measured frame by frame (1% and 0.1% lows, hitches, stutter, pacing), never by an average fps. An automated suite replays scripted and recorded play sessions on both systems and both renderers.</p>
+      <p>The bar for features comes from the projects devall96 contributes to: what a good PC recomp release should have, applied to an original Xbox game from 2003.</p>
+    </div></div></div>
+  </section>
+
+  <!-- ===================================================== faq -->
+  <section id="faq">
+    <div class="sec-head"><h2 class="word">FAQ</h2><p>THE QUESTIONS MOST LIKELY TO COME UP.</p></div>
+    <details><summary>Is the game included?</summary><p>No, and it never will be. Unchained contains no game files or code. You need your own copy of the original Xbox <i>Whiplash</i> (USA). The game's code is built on your PC from your copy.</p></details>
+    <details><summary>Is this an emulator?</summary><p>No. The game's Xbox code is translated ahead of time into native code for your PC. A runtime stands in for the console's system, sound and graphics, but nothing interprets the game's code while you play.</p></details>
+    <details><summary>Why does the first start take a while?</summary><p>That's the game's code being built for your PC, once, with the compiler that comes with Unchained (about 10 to 40 seconds). Later starts go straight into the game. The first time each scene is drawn its shaders are made too; from the second start they're kept.</p></details>
+    <details><summary>Some rooms look darker and greener than I remember.</summary><p>That's the original Xbox version's own lighting: the levels ask for it, and Xbox footage shows the same. The PS2 version lights characters more brightly, which is where the brighter memory usually comes from. An optional brighter look is on the roadmap.</p></details>
+    <details><summary>Can I play with keyboard and mouse?</summary><p>Not yet. Release 0.1 is played with a controller; full keyboard and mouse play is on the roadmap.</p></details>
+    <details><summary>Where are my saves?</summary><p>On a virtual Xbox hard disk in Unchained's data folder (beside the program on Windows, <code>~/.local/share/Unchained</code> on Linux). Each start copies them to <code>save backups</code> first and keeps the last five.</p></details>
+    <details><summary>Does it go online?</summary><p>No. Unchained has no accounts, no telemetry and no update checks.</p></details>
+    <details><summary>Something broke. What do you need?</summary><p>A <a href="https://github.com/devall96/Unchained/issues/new/choose">bug report</a> with your system and GPU, where it happened, a screenshot (F12) and the newest log from the <code>logs</code> folder. For a crash, also the newest file in <code>CrashDumps</code>.</p></details>
+  </section>
+
+  <footer>
+    <div class="cols">
+      <div>
+        <h4>UNCHAINED</h4>
+        <p>Release 0.1 for Windows and Linux. <a href="https://github.com/devall96/Unchained">Source on GitHub</a> · <a href="https://github.com/devall96/Unchained/releases">Releases</a> · <a href="https://github.com/devall96/Unchained/issues">Issues</a></p>
+        <p>Unchained's own code is MIT licensed. The licence covers Unchained only, never the game.</p>
+      </div>
+      <div>
+        <h4>WHO DID WHAT</h4>
+        <p><a href="https://github.com/devall96">devall96</a>: the idea, the direction, every decision and playing every build.</p>
+        <p>Claude (Anthropic), through Claude Code: the code, the runtime changes, the Vulkan renderer and Linux port, the tests, the art and this page.</p>
+      </div>
+      <div>
+        <h4>BUILT ON</h4>
+        <p><a href="https://github.com/TGP482/XboxXBERecomp">Xbox XBE Recomp</a>, <a href="https://github.com/hedge-dev/XenonRecomp">XenonRecomp</a>'s ideas, AMD FSR 1, SDL 3, Dear ImGui, Vulkan, glslang, LLVM, and the Barlow, Anton and Cascadia fonts (SIL OFL). Full licences ship in every release.</p>
+      </div>
+    </div>
+    <p class="legal"><i>Whiplash</i> and its names and characters belong to their owners. Unchained is a fan project, not affiliated with Crystal Dynamics, Eidos, Square Enix, Embracer Group or Microsoft. Xbox is a trademark of Microsoft.</p>
+  </footer>
+</main>
+
+<script>
+  // the Configuration app viewer: a page button swaps the picture and its caption
+  document.querySelectorAll('[data-viewer]').forEach(function (v) {
+    var img = v.querySelector('[data-img]'), cap = v.querySelector('figcaption[data-cap]');
+    var tabs = Array.prototype.slice.call(v.querySelectorAll('button[role="tab"]'));
+    function pick(b) {
+      tabs.forEach(function (t) { t.setAttribute('aria-selected', t === b ? 'true' : 'false'); t.tabIndex = t === b ? 0 : -1; });
+      img.src = b.getAttribute('data-src');
+      img.alt = 'The Configuration app: ' + b.textContent + ' page';
+      cap.textContent = b.getAttribute('data-cap');
+    }
+    tabs.forEach(function (b, i) {
+      b.tabIndex = i === 0 ? 0 : -1;
+      b.addEventListener('click', function () { pick(b); });
+      b.addEventListener('keydown', function (e) {
+        var n = e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : e.key === 'ArrowUp' || e.key === 'ArrowLeft' ? -1 : 0;
+        if (!n) return;
+        e.preventDefault();
+        var next = tabs[(i + n + tabs.length) % tabs.length]; pick(next); next.focus();
+      });
+      new Image().src = b.getAttribute('data-src');
+    });
+  });
+</script>
+</body>
+</html>
