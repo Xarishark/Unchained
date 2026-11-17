@@ -81,7 +81,9 @@ def run(name, sc, base, exe, game, out, data, cold, renderer, hdd):
     env.update(sc.get("env", {}))
     env.update({"UNCHAINED_DATA_ROOT": str(data), "XBE_CAPTURE_DIR": str(cap_dir),
                 "XBE_CAPTURE_AT": ",".join(str(t) for t in at), "XBE_FRAMETIMES": str(csv_path),
-                "UNCHAINED_INPUT": script_of(sc), "XBE_AUTOSTART": "1"})
+                "UNCHAINED_INPUT": script_of(sc), "XBE_AUTOSTART": "1",
+                # post_keys: [seconds, virtual key] pressed in the game window (the host's XBE_KEYS)
+                "XBE_KEYS": ",".join(f"{t}:{vk}" for t, vk in sc.get("post_keys", []))})
     duration = sc.get("duration", (max(at) if at else 30) + 5)
     start = time.time()
     proc = subprocess.Popen([str(exe)], cwd=str(exe.parent), env=env, stdin=subprocess.DEVNULL,
