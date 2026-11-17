@@ -44,3 +44,6 @@ option(UNCHAINED_VERBOSE_LOG "Info and Debug lines in release logs" OFF)
 if(UNCHAINED_VERBOSE_LOG)
     set_source_files_properties(${SDK}/runtime/core/log.cpp PROPERTIES COMPILE_OPTIONS "-UNDEBUG")
 endif()
+
+# the icon of the exe and its windows, drawn by tools/installer/art.py (no art from the game)
+target_sources(Unchained PRIVATE src/res/unchained.rc)

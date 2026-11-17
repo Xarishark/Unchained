@@ -1,0 +1,2 @@
+// the window and file icon (LoadIconW(inst, MAKEINTRESOURCEW(1))), drawn by tools/installer/art.py
+1 ICON "unchained.ico"

@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <cwchar>
@@ -181,7 +182,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
             return 0;
         case WM_GETMINMAXINFO: {
             auto* mm = reinterpret_cast<MINMAXINFO*>(lp);
-            mm->ptMinTrackSize = {LONG(900 * g_dpi), LONG(600 * g_dpi)};
+            mm->ptMinTrackSize = {LONG(760 * g_dpi), LONG(460 * g_dpi)};
             return 0;
         }
         case WM_CLOSE:
@@ -603,7 +604,15 @@ void BuildPanel(bool copied) {
         ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(kGreenDim), "  %s", Narrow(b.time_left).c_str());
     ImGui::PopFont();
     if (b.running && ImGui::Button("Stop building", ImVec2(S(200), S(32)))) app::CancelGameCodeBuild();
-    if (b.done && b.ok) Note("Ready. Press PLAY.");
+    if (b.done && b.ok) {
+        // the first run goes on into the game by itself once the code it built is ready
+        static double ready_at = 0;
+        if (started && !ready_at) ready_at = ImGui::GetTime();
+        if (started) Note("Ready. Starting the game...");
+        else Note("Ready. Press PLAY.");
+        constexpr double kStartDelay = 1.5;  // seconds the ready line shows first
+        if (started && ImGui::GetTime() - ready_at > kStartDelay && GameFilesPresent()) g_play = true;
+    }
 }
 
 void PageFiles() {
@@ -703,6 +712,93 @@ void Style() {
     c[ImGuiCol_PlotHistogram] = f(kGreen);
 }
 
+// The header the app's pages and the build screen share: the name as a big word, the caption, the version.
+void Header(ImDrawList* bg, ImVec2 size, const char* caption) {
+    Word(bg, g_head, S(64), ImVec2(S(36), S(14)), "UNCHAINED");
+    bg->AddText(g_term, g_term->FontSize, ImVec2(S(44), S(86)), kGreen, caption);
+    std::string corp_text = std::string("RELEASE TERMINAL  -  BUILD ") + kUnchainedVersion;
+    float cw = g_term->CalcTextSizeA(g_term->FontSize, 1e9f, 0, corp_text.c_str()).x;
+    bg->AddText(g_term, g_term->FontSize, ImVec2(size.x - cw - S(36), S(30)), kGreenDim, corp_text.c_str());
+    bg->AddLine(ImVec2(S(36), S(114)), ImVec2(size.x - S(36), S(114)), kGreenDim, S(1));
+}
+
+// A direct start whose game code has to be built first (a first start without the setup's build, a stopped build,
+// an update): the build's progress in the app's look, then the game by itself. Stop or closing the window ends it;
+// what is built so far is kept for the next start.
+bool g_stopping = false;
+void DrawBuildUi() {
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(io.DisplaySize);
+    ImGui::Begin("##unchained-build", nullptr,
+                 ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus |
+                     ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollWithMouse);
+    ImDrawList* bg = ImGui::GetBackgroundDrawList();
+    Background(bg, io.DisplaySize);
+    Header(bg, io.DisplaySize, "WHIPLASH  //  PC PORT  //  FIRST START");
+
+    app::BuildStatus b = app::GameCodeBuildStatus();
+    bool failed = b.done && !b.ok;
+    bool ready = b.done && b.ok;
+    ImVec2 a(S(36), S(140)), e(io.DisplaySize.x - S(36), io.DisplaySize.y - S(110));
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    Frame(dl, a, e, ready ? "READY" : failed ? "STOPPED" : "PREPARING", g_term);
+    const char* word = ready ? "FREEDOM" : "MADNESS";
+    float wsize = S(150);
+    float ww = g_word->CalcTextSizeA(wsize, 1e9f, 0, word).x;
+    Word(dl, g_word, wsize, ImVec2(e.x - ww - S(60), e.y - wsize - S(10)), word, 0.12f);
+
+    ImGui::SetCursorScreenPos(ImVec2(a.x + S(24), a.y + S(46)));
+    ImGui::BeginChild("build", ImVec2(e.x - a.x - S(48), e.y - a.y - S(64)), false);
+    ImGui::PushFont(g_head);
+    ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(failed ? kRed : kGreen),
+                       ready ? "READY" : failed ? (g_stopping ? "STOPPED" : "THE BUILD FAILED") : "PREPARING THE GAME");
+    ImGui::PopFont();
+    ImGui::Spacing();
+    Note("Unchained builds the game's code from your own copy, once, on this PC. Later starts go straight in.");
+    ImGui::Spacing();
+    ImGui::PushFont(g_term);
+    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImGui::ColorConvertU32ToFloat4(kGreen));
+    float wide = ImGui::GetContentRegionAvail().x;
+    char pct[16];
+    std::snprintf(pct, sizeof(pct), "%d%%", int(b.fraction * 100));
+    ImGui::ProgressBar(b.fraction, ImVec2(wide, S(26)), pct);
+    ImGui::PopStyleColor();
+    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::ColorConvertU32ToFloat4(failed ? kRed : kGreen));
+    std::string line = failed ? Narrow(b.failure) : ready ? std::string("The game's code is built. Starting the game...")
+                                                          : Narrow(b.stage);
+    ImGui::TextWrapped("> %s", line.c_str());
+    ImGui::PopStyleColor();
+    if (b.running && !b.time_left.empty())
+        ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(kGreenDim), "  %s", Narrow(b.time_left).c_str());
+    if (failed && !g_stopping)
+        ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(kGreenDim), "  The details are in logs\\compile.log.");
+    ImGui::PopFont();
+    ImGui::EndChild();
+
+    // ready: the game starts after a moment; stopped or failed: the window closes on QUIT
+    static double ready_at = 0;
+    if (ready && !ready_at) ready_at = ImGui::GetTime();
+    constexpr double kStartDelay = 1.2;  // seconds the ready line shows first
+    if (ready && ImGui::GetTime() - ready_at > kStartDelay) g_play = true;
+    if (g_stopping && b.done) g_quit = true;
+
+    ImGui::SetCursorScreenPos(ImVec2(io.DisplaySize.x - S(36) - S(200), io.DisplaySize.y - S(84)));
+    ImGui::PushFont(g_head);
+    if (b.running) {
+        ImGui::BeginDisabled(g_stopping);
+        if (ImGui::Button(g_stopping ? "STOPPING" : "STOP", ImVec2(S(200), S(56)))) {
+            g_stopping = true;
+            app::CancelGameCodeBuild();
+        }
+        ImGui::EndDisabled();
+    } else if (failed) {
+        if (ImGui::Button("QUIT", ImVec2(S(200), S(56)))) g_quit = true;
+    }
+    ImGui::PopFont();
+    ImGui::End();
+}
+
 void DrawUi() {
     ImGuiIO& io = ImGui::GetIO();
     ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -713,14 +809,7 @@ void DrawUi() {
     ImDrawList* bg = ImGui::GetBackgroundDrawList();
     Background(bg, io.DisplaySize);
 
-    // header: the name as the game writes its words, the lab's caption
-    Word(bg, g_head, S(64), ImVec2(S(36), S(14)), "UNCHAINED");
-    bg->AddText(g_term, g_term->FontSize, ImVec2(S(44), S(86)), kGreen, "WHIPLASH  //  PC PORT  //  CONFIGURATION");
-    std::string corp_text = std::string("RELEASE TERMINAL  -  BUILD ") + kUnchainedVersion;
-    const char* corp = corp_text.c_str();
-    float cw = g_term->CalcTextSizeA(g_term->FontSize, 1e9f, 0, corp).x;
-    bg->AddText(g_term, g_term->FontSize, ImVec2(io.DisplaySize.x - cw - S(36), S(30)), kGreenDim, corp);
-    bg->AddLine(ImVec2(S(36), S(114)), ImVec2(io.DisplaySize.x - S(36), S(114)), kGreenDim, S(1));
+    Header(bg, io.DisplaySize, "WHIPLASH  //  PC PORT  //  CONFIGURATION");
 
     // the pages, as a terminal's list
     float top = S(140), left = S(36), nav = S(230);
@@ -784,7 +873,7 @@ void DrawUi() {
 
 }  // namespace
 
-bool Run(bool first_run) {
+bool Run(bool first_run, bool build_only) {
     HRESULT co = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     HINSTANCE inst = GetModuleHandleW(nullptr);
     WNDCLASSEXW wc{sizeof(wc)};
@@ -796,12 +885,13 @@ bool Run(bool first_run) {
     wc.lpszClassName = L"UnchainedConfiguration";
     RegisterClassExW(&wc);
     g_dpi = GetDpiForSystem() / 96.0f;
-    int w = int(1240 * g_dpi), h = int(780 * g_dpi);
+    int w = int((build_only ? 980 : 1240) * g_dpi), h = int((build_only ? 560 : 780) * g_dpi);
     RECT work;
     SystemParametersInfoW(SPI_GETWORKAREA, 0, &work, 0);
     w = std::min(w, int(work.right - work.left));
     h = std::min(h, int(work.bottom - work.top));
-    g_hwnd = CreateWindowExW(0, wc.lpszClassName, L"Unchained Configuration", WS_OVERLAPPEDWINDOW,
+    g_hwnd = CreateWindowExW(0, wc.lpszClassName, build_only ? L"Unchained" : L"Unchained Configuration",
+                             WS_OVERLAPPEDWINDOW,
                              work.left + (work.right - work.left - w) / 2, work.top + (work.bottom - work.top - h) / 2, w,
                              h, nullptr, nullptr, inst, nullptr);
     bool ok = g_hwnd && InitGfx(g_hwnd);
@@ -835,9 +925,15 @@ bool Run(bool first_run) {
             ImGui_ImplDX12_NewFrame();
             ImGui_ImplWin32_NewFrame();
             ImGui::NewFrame();
-            DrawUi();
+            if (build_only) DrawBuildUi();
+            else DrawUi();
             ImGui::Render();
             Present();
+        }
+        // the window closed mid-build: stopped, and waited for, so no compiler is left running
+        if (build_only && app::GameCodeBuildStatus().running) {
+            app::CancelGameCodeBuild();
+            for (int i = 0; i < 200 && app::GameCodeBuildStatus().running; i++) Sleep(50);
         }
         Idle();
         ImGui_ImplDX12_Shutdown();
@@ -849,7 +945,7 @@ bool Run(bool first_run) {
     UnregisterClassW(wc.lpszClassName, inst);
     if (SUCCEEDED(co)) CoUninitialize();
     // the settings as set, for the game about to start or the next one
-    app::Save();
+    if (!build_only) app::Save();
     return ok && g_play;
 }
 
@@ -865,8 +961,12 @@ bool UnchainedLauncher() {
     bool config_exe = std::wcsstr(std::filesystem::path(self).filename().c_str(), L"Configuration") != nullptr;
     bool configure = config_exe || std::wcsstr(GetCommandLineW(), L"--configure") != nullptr;
     bool present = launcher::GameFilesPresent();
-    if (!configure && present) return true;
-    bool play = launcher::Run(!present);
+    if (!configure && present) {
+        // the game's code built first when it is missing or out of date, in the app's look, then the game
+        if (!app::StartGameCodeBuild()) return true;
+        return launcher::Run(false, true);
+    }
+    bool play = launcher::Run(!present, false);
     if (!play || !config_exe) return play;
     // the Configuration app's PLAY: the game is the other executable
     std::filesystem::path game = std::filesystem::path(self).parent_path() / L"Unchained.exe";

@@ -46,6 +46,17 @@ where 7z >nul 2>nul
 if not errorlevel 1 (
     pushd "%OUT%\package" && 7z a -tzip "%~dp0%NAME%.zip" "%NAME%" >nul && popd || exit /b 1
 ) else (
-    tar -a -c -f "%NAME%.zip" -C "%OUT%\package" "%NAME%" || exit /b 1
+    rem Windows' own tar, which writes a zip for -a (another tar on the PATH, like Git's, writes a tar archive)
+    "%SystemRoot%\System32\tar.exe" -a -c -f "%NAME%.zip" -C "%OUT%\package" "%NAME%" || exit /b 1
 )
 echo %NAME%.zip
+
+rem the single exe installer (tools\installer), when NSIS is installed: art drawn by tools\installer\art.py
+set "MAKENSIS="
+where makensis >nul 2>nul && set "MAKENSIS=makensis"
+if not defined MAKENSIS if exist "%ProgramFiles(x86)%\NSIS\makensis.exe" set "MAKENSIS=%ProgramFiles(x86)%\NSIS\makensis.exe"
+if not defined MAKENSIS (echo NSIS not installed: no installer, the zip only & exit /b 0)
+py -3 tools\installer\art.py "%OUT%\installer-art" "%VERSION%" >nul || exit /b 1
+del /q "%NAME%-Setup.exe" 2>nul
+"%MAKENSIS%" /V2 /DVERSION=%VERSION% "/DDIST=%~dp0%STAGE%" "/DART=%~dp0%OUT%\installer-art" "/DOUTFILE=%~dp0%NAME%-Setup.exe" tools\installer\unchained.nsi || exit /b 1
+echo %NAME%-Setup.exe
