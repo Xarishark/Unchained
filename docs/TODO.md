@@ -155,10 +155,11 @@ eport.md`.
 - [x] **6. Languages** - whatever text and voice languages the disc has, chosen in settings. This release has
   English only: no French, German, Spanish or Italian files in Xbox.rkv or .r01-.r09 (rkv-scan, 2026-11-16), and the
   kernel answers XC_LANGUAGE English. Nothing to choose.
-- [~] **9. Platforms** - Windows first. Linux natively, in four stages (branch `linux`, SDK branch `linux`; Ubuntu
+- [~] **9. Platforms** - Windows first. Linux natively, in stages (branch `linux`, SDK branch `linux`; Ubuntu
   26.04, clang 21, Ryzen 7 7800X3D, RX 9070 XT on RADV, Wayland):
-  Five stages; the renderer stays portable from the start (no Linux-only assumptions in it, the window's Vulkan surface
-  from SDL3 or a thin platform layer), since the last stage puts Windows on Vulkan too (user, 2026-11-16).
+  The renderer is portable: one Vulkan backend for both systems, the window's surface from a thin platform layer
+  (SDL3 on Linux, the Win32 host's window on Windows); Windows keeps D3D12 as the default until Vulkan has every
+  feature (user, 2026-11-16: native Vulkan, and on Windows too).
   1. [x] **Builds, links and boots** (2026-11-16). `cmake --preset linux-relwithdebinfo`, then `Unchained` and
      `libUnchained.so` in `out/build/linux-relwithdebinfo`. The recompiler's output is byte-identical to Windows'.
      The game code is a shared library: its function names are weak aliases of the bodies, so an override the
@@ -171,30 +172,33 @@ eport.md`.
      physical windows; POSIX sockets for system link (the guest still sees Winsock's numbers); a pipe for the
      relaunch handover; PNG through SDL and BC1-3 unpacked in software for texture packs and ui_upscale. Evidence:
      the first run built the game code, booted (guest threads, kernel, audio opened stereo, the DirectSound effects
-     image), closed with Exit (0), no crash report. Nothing is drawn yet (`gpu/null_backend.cpp`).
-  2. [ ] **Drawn, to the title.** The D3D12 renderer unchanged, on vkd3d (Direct3D 12 on Vulkan, LGPL-2.1, with
-     its own HLSL compiler for the translated shaders): `D3D12CreateDevice` and `D3DCompile2` from vkd3d-utils, a
-     Vulkan swap chain on the SDL window whose images `vkd3d_create_image_resource` wraps as the back buffers,
-     presents through `vkd3d_acquire_vk_queue`; ComPtr and the few Win32 types from a small header; ImGui's DX12
-     backend with its SDL3 one. Ubuntu packages vkd3d 1.2 (2020, no HLSL compiler), so 1.19 is built from its
-     release (`-DXBE_VKD3D_DIR=`); running that build on the Ubuntu PC waits for the user's OK. Check: every
-     generated shader compiles with vkd3d's compiler (the log names any that fail), F3 captures against Windows'.
-  3. [ ] **Parity.** The present pass (FSR 1, gamma, colour grading), HUD placement, widescreen and ui_upscale come
-     with the renderer. Still to port: the prompts' key and plate text (FreeType and a bundled font instead of
-     GDI), the Configuration app and the first-start progress window (ImGui on SDL3), the boot splash, the menu's
-     fonts (no Windows fonts folder), HDR (the swap chain's HDR10 colour space), exclusive fullscreen modes. Frame-
-     time suite (1% / 0.1% lows, hitches, pacing) on both platforms, same scenes, Linux no worse.
-  4. [ ] **Release: one AppImage**, as the Windows release is one installer exe: SDL3, vkd3d, and clang with
+     image), closed with Exit (0), no crash report.
+  2. [x] **Drawn: a native Vulkan renderer** (2026-11-16). `gpu/vulkan.cpp` is the D3D12 renderer's logic on Vulkan
+     1.3 step by step (targets, texture cache, HUD placement, constants, F3 captures, late read-backs, occlusion
+     queries, pipelines made ahead from `cache/pipelines-vk.bin`, FSR 1 and grading in the present): dynamic
+     rendering, push descriptors laid out as the root signature (b0 b1, t0..t3, s0..s3), a negative viewport height
+     so the translated shaders keep D3D's clip space. The HLSL the translation writes compiles to SPIR-V with glslang
+     at run time (`gpu/spirv.cpp`, cached in `cache/shaders-vk.bin`); the present shaders are precompiled
+     (`post/build_spirv.sh` to `post/present_spirv.h`). volk loads Vulkan, VMA allocates, Vulkan-Headers, volk and
+     VMA are fetched; glslang is the system's on Linux, built from source on Windows. Evidence: the title drawn on
+     Ubuntu, its 1280x960 capture against Windows D3D12's at the same moment 4.9/255 mean difference (0.7% of pixels
+     past 16, the title camera's pan); windowed suite (`tools/tests/run_suite.py`, both systems, one data folder per
+     scenario so later runs start warm): title 60 fps, 1% low 58, no hitches; first level and the recorded lobby run
+     not worse than D3D12's on the same scenes (lobby 1% low 35.7-39.6 against D3D12's 25.3-25.4, max 74 against
+     155 ms, all runs cold). Fullscreen at 2560x1440 and the warm runs: in progress.
+  3. [~] **Parity**, screen by screen against Windows D3D12 (`tools/tests/compare_runs.py`). Done: the button prompts'
+     key and plate letters (stb_truetype from ImGui) and the menu's fonts (`common/fonts.cpp`: Windows' own, else
+     `fonts/` beside the data or the exe, else Liberation Sans Narrow for Bahnschrift, DejaVu Sans Mono for
+     Consolas). Still to port: the Configuration app and the first-start build window (Win32 GDI; Linux builds with
+     its progress in the log), the boot splash, HDR10 on Vulkan (D3D12 only), depth targets in F3 captures, renderer
+     extensions (`gpu/ext.h`, none in Unchained).
+  4. [ ] **Release: one AppImage**, as the Windows release is one installer exe: SDL3, glslang, and clang with
      ld.lld for the first-start build inside it; the player's data under `XDG_DATA_HOME` (an AppImage's own folder
      is read-only).
-  5. [ ] **Windows on Vulkan** (user, 2026-11-16: "after the port to linux is done, backport vulkan to the windows
-     version"; a later session of its own, after the Linux port, starting from the Linux report's hand-over: the
-     branches, the renderer's state and its Windows gaps). The Vulkan renderer built and run on Windows too, D3D12 kept as a setting until Vulkan reaches parity,
-     then the default. Check: the frame-time suite on Windows, Vulkan against the D3D12 build, same scenes, Vulkan's
-     lows and hitches no worse; F3 captures match. This weighs on stage 2's choice: vkd3d keeps the D3D12 renderer
-     and reaches Vulkan through a translation layer (on Windows too, built with MinGW or clang), while a native
-     Vulkan backend behind `gpu::Backend` is more work up front but is the one renderer both platforms would share
-     without a layer in between.
+  5. [~] **Windows on Vulkan**: `renderer = "vulkan"` in the settings file (default `d3d12`; a Vulkan that fails to
+     start falls back to D3D12, `gpu/backend_select.cpp`). Built and drawn (title on the RX 9070 XT, Vulkan 1.4).
+     To check: the suite fullscreen and windowed against D3D12, every screen against D3D12's, then Vulkan the
+     default once it has HDR10 and is no worse.
 - [~] **18. Widescreen and ultrawide** - Whiplash ignores the widescreen TV flag (the SDK's old 16:9 just stretched
   it). Its projection (`0x1390C0`) has a vertical fov, so `src/game/widescreen.cpp` widens the game's 4:3 aspect by
   the output's: `widescreen = "expand"` (default) fills 16:9 up to 32:9, 2D stays 4:3 in the middle, full screen
