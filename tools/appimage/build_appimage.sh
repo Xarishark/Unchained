@@ -12,7 +12,8 @@
 # <build dir> is a linux-release build (Unchained, compiler/); <runtime> is the AppImage type 2 runtime
 # (github.com/AppImage/type2-runtime, runtime-x86_64), which the squashfs is appended to. Inside:
 #   usr/bin/Unchained, usr/bin/compiler/ (xbe_recomp, the configs and headers, clang and ld.lld for the first-start
-#   build), usr/lib/ (SDL3 and the libraries clang and lld need), AppRun, the desktop entry and the icon.
+#   build), usr/lib/ (development images only: the build machine's clang's libraries), AppRun, the desktop entry
+#   and the icon.
 # Left to the system, as AppImages leave them: glibc, libstdc++ and libgcc_s, the Vulkan loader and the GPU driver,
 # libedit and libtinfo.
 # The player's data goes to ~/.local/share/Unchained (app/host.cpp), the built game code to its gamecode/.
@@ -43,9 +44,13 @@ else
 fi
 cp "$here/../../sdk/tools/LLVM-LICENSE.txt" "$app/usr/bin/compiler/LLVM-LICENSE.txt"
 
-# the libraries the three need, but the ones every desktop has and must use its own of. libedit and libtinfo (LLVM's
-# line editing, which clang never uses here) are the system's: a build machine's copies can want a newer glibc than
-# the rest (Ubuntu 26.04's want 2.42 for four terminal calls), and every desktop has libtinfo6 and libedit2
+# A release (LLVM_DIR) needs no libraries of its own: the game wants glibc and libgcc_s, LLVM's clang and lld glibc,
+# libstdc++ and zlib, all every system has. The build machine's clang (development) brings its libraries, but the
+# ones every desktop has and must use its own of; libedit and libtinfo (LLVM's line editing, which clang never uses
+# here) are the system's too: a build machine's copies can want a newer glibc than the rest (Ubuntu 26.04's want
+# 2.42 for four terminal calls), and every desktop has libtinfo6 and libedit2. AppRun puts usr/lib on the library
+# path only for such an image.
+if [ -z "$LLVM_DIR" ]; then
 skip='^(libc|libm|libdl|libpthread|librt|ld-linux-x86-64|libstdc\+\+|libgcc_s|libvulkan|libGL|libEGL|libGLX|libdrm|libgbm|libwayland-.*|libX.*|libxcb.*|libasound|libpulse.*|libdbus-1|libsystemd|libudev|libedit|libtinfo)\.so'
 for bin in "$app/usr/bin/Unchained" "$app/usr/bin/compiler/clang" "$app/usr/bin/compiler/ld.lld"; do
     ldd "$bin" | awk '/=> \// {print $3}' | while read -r lib; do
@@ -55,6 +60,8 @@ for bin in "$app/usr/bin/Unchained" "$app/usr/bin/compiler/clang" "$app/usr/bin/
         fi
     done
 done
+touch "$app/usr/lib/.compiler-libraries"
+fi
 
 cp "$here/AppRun" "$app/AppRun"
 chmod +x "$app/AppRun"

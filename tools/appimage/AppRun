@@ -1,7 +1,12 @@
 #!/bin/sh
-# the AppImage's entry: the bundled libraries first, then Unchained with the arguments it was given
+# the AppImage's entry: Unchained with the arguments it was given. A release sets no LD_LIBRARY_PATH: the game needs
+# only glibc and libgcc_s, LLVM's own clang and lld only glibc, libstdc++ and zlib, so everything it starts (they, the
+# desktop's file dialogs) keeps the system's libraries. Only an image made with the build machine's clang carries
+# its libraries in usr/lib (build_appimage.sh without LLVM_DIR, for development) and needs the path.
 here=$(dirname "$(readlink -f "$0")")
-export LD_LIBRARY_PATH="$here/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+if [ -e "$here/usr/lib/.compiler-libraries" ]; then
+    export LD_LIBRARY_PATH="$here/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+fi
 
 # the applications menu, as the Windows installer's Start menu shortcuts: Unchained and Unchained Configuration,
 # pointing at this file wherever it is now (rewritten when it moved). A file named unchained.desktop.off beside the
