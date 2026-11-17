@@ -199,13 +199,14 @@ eport.md`.
      the game's cursor calls work on a position SDL's motion moves (Wayland moves no pointer for a program); to
      check by hand. Known differences: the watermark words in Liberation Sans Narrow Bold for Impact (no free heavy
      condensed font on a stock system). Still to port: the first-start build window (Win32 GDI; Linux builds with
-     its progress in the log), the boot splash, HDR10 on Vulkan (D3D12 only; user, 2026-11-16: not needed now),
+     its progress in the log), the boot splash, HDR10 (set aside in every version for now, user 2026-11-16: hidden in the Configuration app; D3D12's
+     code stays),
      depth targets in F3 captures, renderer extensions (`gpu/ext.h`, none in Unchained).
   4. [ ] **Release: one AppImage**, as the Windows release is one installer exe: SDL3, glslang, and clang with
      ld.lld for the first-start build inside it; the player's data under `XDG_DATA_HOME` (an AppImage's own folder
      is read-only).
   5. [x] **Windows on Vulkan, the default** (user, 2026-11-16): `renderer = "vulkan"` unless the settings file says
-     `"d3d12"`; HDR on starts D3D12 (HDR10 is its alone), and a Vulkan that fails to start falls back to it
+     `"d3d12"`; a Vulkan that fails to start falls back to D3D12
      (`gpu/backend_select.cpp`); the Configuration app's Graphics page has the choice. Evidence: fullscreen
      2560x1440 on the RX 9070 XT, Vulkan equal or better than D3D12 on every scenario (walk 1% low 55-57, prompts
      cold 34 against 28, menu no frame over 100 ms against D3D12's 148 ms), the in-game menu the same. Not run on

@@ -24,10 +24,10 @@ the game closed. A missing key takes its default. The Configuration app will set
 | Key | Default | What it does |
 |---|---|---|
 | `graphics_preset` | `"custom"` | `"original"` (the console's picture, sharp), `"low"`, `"high"`, `"max"`; anything else leaves each setting as written |
-| `renderer` | `"vulkan"` | Windows: `"vulkan"` or `"d3d12"`. HDR draws with D3D12 whichever is chosen, and D3D12 takes over when Vulkan cannot start. Linux always draws with Vulkan |
+| `renderer` | `"vulkan"` | Windows: `"vulkan"` or `"d3d12"`. D3D12 takes over when Vulkan cannot start. Linux always draws with Vulkan |
 | `upscaler` | `1` | `0` bilinear, `1` AMD FSR 1 when rendering smaller than the window |
 | `sharpen` | `0` | FSR 1 RCAS sharpening, 0 to 100 |
-| `hdr` | `false` | Windows: HDR10 output when Windows has the display in HDR (Use HDR in display settings); SDR otherwise. HDR10 is drawn with D3D12, so this picks it over Vulkan |
+| `hdr` | `false` | Windows: HDR10 output when Windows has the display in HDR (Use HDR in display settings); SDR otherwise. Not offered for now (not in the Configuration app); works only with `renderer = "d3d12"` |
 | `hdr_paper_white` | `200` | Nits for the game's white, 80 to 500 |
 | `hdr_peak` | `0` | Nits for the brightest highlights, `0` the display's own peak |
 | `hdr_highlights` | `50` | Percent the brightest parts are stretched toward the peak, `0` the SDR look |

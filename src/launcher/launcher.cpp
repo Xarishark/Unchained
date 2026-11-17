@@ -615,7 +615,7 @@ void PageDisplay() {
     }
     Choice("Frame rate cap", &s.fps_cap, {{60, "60"}, {1, "Monitor's refresh rate"}, {0, "None"}});
     Note("Above 60 the game is checked in the intro and menus only so far.");
-#ifdef _WIN32
+#if 0  // HDR is not offered for now (user, 2026-11-16); D3D12's HDR10 output stays for later
     ImGui::Separator();
     static app::HdrInfo hdr = app::HdrDisplay(nullptr);
     Check("HDR", &s.hdr, true);
@@ -633,7 +633,7 @@ void PageDisplay() {
         Slider("HDR highlights", &s.hdr_highlights, 0, 100, "%d%%", true);
         Note("How far the brightest parts (sky, lights, explosions) reach toward the peak. 0 keeps the SDR look.");
     }
-#endif  // HDR10 output is the Windows D3D12 renderer's
+#endif
     ImGui::PopItemWidth();
 }
 
@@ -643,9 +643,7 @@ void PageGraphics() {
 #ifdef _WIN32
     uint32_t renderer = s.renderer;
     if (Combo("Renderer", &renderer, {"Direct3D 12", "Vulkan"})) s.renderer = renderer;
-    Note(s.hdr && s.renderer == app::kRendererVulkan
-             ? "HDR is on, and HDR10 is drawn with Direct3D 12: the game starts on Direct3D 12 until HDR is off."
-             : "Vulkan is the default. Direct3D 12 takes over when Vulkan cannot start, and for HDR.");
+    Note("Vulkan is the default. Direct3D 12 takes over when Vulkan cannot start.");
 #endif
     Slider("Render scale", &s.render_percent, 50, 200, "%d%%", true);
     Combo("Upscaler", &s.upscaler, {"Bilinear", "AMD FSR 1"}, true);
