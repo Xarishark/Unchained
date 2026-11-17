@@ -157,6 +157,8 @@ eport.md`.
   kernel answers XC_LANGUAGE English. Nothing to choose.
 - [~] **9. Platforms** - Windows first. Linux natively, in four stages (branch `linux`, SDK branch `linux`; Ubuntu
   26.04, clang 21, Ryzen 7 7800X3D, RX 9070 XT on RADV, Wayland):
+  Five stages; the renderer stays portable from the start (no Linux-only assumptions in it, the window's Vulkan surface
+  from SDL3 or a thin platform layer), since the last stage puts Windows on Vulkan too (user, 2026-11-16).
   1. [x] **Builds, links and boots** (2026-11-16). `cmake --preset linux-relwithdebinfo`, then `Unchained` and
      `libUnchained.so` in `out/build/linux-relwithdebinfo`. The recompiler's output is byte-identical to Windows'.
      The game code is a shared library: its function names are weak aliases of the bodies, so an override the
@@ -185,6 +187,13 @@ eport.md`.
   4. [ ] **Release: one AppImage**, as the Windows release is one installer exe: SDL3, vkd3d, and clang with
      ld.lld for the first-start build inside it; the player's data under `XDG_DATA_HOME` (an AppImage's own folder
      is read-only).
+  5. [ ] **Windows on Vulkan** (user, 2026-11-16: "after the port to linux is done, backport vulkan to the windows
+     version"). The Vulkan renderer built and run on Windows too, D3D12 kept as a setting until Vulkan reaches parity,
+     then the default. Check: the frame-time suite on Windows, Vulkan against the D3D12 build, same scenes, Vulkan's
+     lows and hitches no worse; F3 captures match. This weighs on stage 2's choice: vkd3d keeps the D3D12 renderer
+     and reaches Vulkan through a translation layer (on Windows too, built with MinGW or clang), while a native
+     Vulkan backend behind `gpu::Backend` is more work up front but is the one renderer both platforms would share
+     without a layer in between.
 - [~] **18. Widescreen and ultrawide** - Whiplash ignores the widescreen TV flag (the SDK's old 16:9 just stretched
   it). Its projection (`0x1390C0`) has a vertical fov, so `src/game/widescreen.cpp` widens the game's 4:3 aspect by
   the output's: `widescreen = "expand"` (default) fills 16:9 up to 32:9, 2D stays 4:3 in the middle, full screen
