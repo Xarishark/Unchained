@@ -188,7 +188,8 @@ eport.md`.
      ld.lld for the first-start build inside it; the player's data under `XDG_DATA_HOME` (an AppImage's own folder
      is read-only).
   5. [ ] **Windows on Vulkan** (user, 2026-11-16: "after the port to linux is done, backport vulkan to the windows
-     version"). The Vulkan renderer built and run on Windows too, D3D12 kept as a setting until Vulkan reaches parity,
+     version"; a later session of its own, after the Linux port, starting from the Linux report's hand-over: the
+     branches, the renderer's state and its Windows gaps). The Vulkan renderer built and run on Windows too, D3D12 kept as a setting until Vulkan reaches parity,
      then the default. Check: the frame-time suite on Windows, Vulkan against the D3D12 build, same scenes, Vulkan's
      lows and hitches no worse; F3 captures match. This weighs on stage 2's choice: vkd3d keeps the D3D12 renderer
      and reaches Vulkan through a translation layer (on Windows too, built with MinGW or clang), while a native
