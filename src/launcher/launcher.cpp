@@ -536,6 +536,7 @@ void PageControls() {
           {"The device in use", "Xbox", "PlayStation", "Nintendo", "Keyboard and mouse", "Original Xbox (the console's)"});
     ImGui::PopItemWidth();
     ImGui::Spacing();
+    Note("Click in the game window to turn the camera with the mouse; Alt gives the cursor back.");
     Note("Keys: W A S D move, mouse or I J K L camera, Space jump, left mouse or F attack, right mouse or Left Shift "
          "B, R Y, Q / E triggers, C / V black and white, Enter Start, Esc Back. Every key can be changed in "
          "settings.toml's [keys] table (docs/SETTINGS.md). Any controller works: Xbox, PlayStation, Switch and "

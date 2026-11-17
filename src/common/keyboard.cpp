@@ -7,12 +7,14 @@
 // Key names: A-Z, 0-9, F1-F12, Up Down Left Right, Space Enter Escape Tab Backspace, LShift RShift LCtrl RCtrl LAlt
 // RAlt, Mouse1 (left) Mouse2 (right) Mouse3 (middle) Mouse4 Mouse5. An action with no keys is unbound.
 //
-// mouse_camera (on by default): while the game window has focus the mouse turns the camera (the right stick), the
-// cursor hidden and kept in the window; mouse_sensitivity in percent.
+// mouse_camera (on by default): a click in the game window captures the mouse, which then turns the camera (the
+// right stick), the cursor hidden and kept in the window; Alt, or the window losing focus, gives the cursor back.
+// mouse_sensitivity in percent.
 #include "app/app.h"
 #include "core/input.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <cstring>
 #include <cstdint>
@@ -23,6 +25,8 @@
 #include <toml++/toml.hpp>
 
 bool g_mouse_camera = true;
+std::atomic<bool> g_mouse_captured{false};  // the window thread captures and releases, the input thread reads
+std::atomic<bool> g_capture_click{false};   // the click that captured: its buttons held back until let go
 uint32_t g_mouse_sensitivity = 100;
 
 namespace {
@@ -146,11 +150,18 @@ void SaveKeys(void* table) {
 
 // keyboard, mouse buttons and the mouse camera into the pad, while the game window has focus
 void KeyboardPad(input::Pad& p) {
-    if (!Focused()) return;
+    if (!Focused()) {
+        g_mouse_captured = false;
+        return;
+    }
+    auto mouse_button = [](int vk) {
+        return vk == VK_LBUTTON || vk == VK_RBUTTON || vk == VK_MBUTTON || vk == VK_XBUTTON1 || vk == VK_XBUTTON2;
+    };
+    if (g_capture_click && !Down(VK_LBUTTON) && !Down(VK_RBUTTON) && !Down(VK_MBUTTON)) g_capture_click = false;
     float sx[2] = {}, sy[2] = {};
     for (const Action& a : g_actions) {
         bool down = false;
-        for (int vk : a.keys) down |= Down(vk);
+        for (int vk : a.keys) down |= Down(vk) && !(mouse_button(vk) && g_capture_click);
         if (!down) continue;
         PromptsKeyboard();
         p.buttons |= a.bit;
@@ -168,7 +179,11 @@ void KeyboardPad(input::Pad& p) {
         p.rx = Clamp16(sx[1] * 32767);
         p.ry = Clamp16(sy[1] * 32767);
     }
-    if (!g_mouse_camera) return;
+    static bool first = true;
+    if (!g_mouse_camera || !g_mouse_captured) {
+        first = true;  // no jump from where the cursor was when it is captured again
+        return;
+    }
     // relative mouse: the cursor goes back to the window's centre each read, its move turns the camera
     HWND hwnd = static_cast<HWND>(app::Window());
     RECT rc;
@@ -177,7 +192,6 @@ void KeyboardPad(input::Pad& p) {
     ClientToScreen(hwnd, &centre);
     POINT at;
     if (!GetCursorPos(&at)) return;
-    static bool first = true;
     if (!first) {
         constexpr float kPerPixel = 1600.0f;  // stick units per pixel moved between reads at 100%
         float k = kPerPixel * g_mouse_sensitivity / 100.0f;
@@ -192,9 +206,30 @@ void KeyboardPad(input::Pad& p) {
     SetCursorPos(centre.x, centre.y);
 }
 
-// the window thread: the cursor hidden over the window while the mouse turns the camera
-bool KeyboardMessage(void*, uint32_t msg, uintptr_t, intptr_t lp, intptr_t* result) {
-    if (msg == WM_SETCURSOR && g_mouse_camera && LOWORD(lp) == HTCLIENT && Focused()) {
+// the window thread: a click captures the mouse for the camera, Alt or losing focus releases it; the cursor hidden
+// over the window while captured
+bool KeyboardMessage(void*, uint32_t msg, uintptr_t wp, intptr_t lp, intptr_t* result) {
+    switch (msg) {
+        case WM_LBUTTONDOWN:
+        case WM_RBUTTONDOWN:
+        case WM_MBUTTONDOWN:
+            if (g_mouse_camera && !g_mouse_captured) {
+                g_capture_click = true;
+                g_mouse_captured = true;
+            }
+            break;
+        case WM_SYSKEYDOWN:
+        case WM_KEYDOWN:
+            if (wp == VK_MENU) g_mouse_captured = false;
+            break;
+        case WM_KILLFOCUS:
+            g_mouse_captured = false;
+            break;
+        case WM_ACTIVATE:
+            if (LOWORD(wp) == WA_INACTIVE) g_mouse_captured = false;
+            break;
+    }
+    if (msg == WM_SETCURSOR && g_mouse_camera && g_mouse_captured && LOWORD(lp) == HTCLIENT && Focused()) {
         SetCursor(nullptr);
         *result = TRUE;
         return true;
