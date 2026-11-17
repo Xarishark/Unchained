@@ -391,3 +391,31 @@ input = "30:start,33:a,36:a,39:a,42:a,45:a"
 duration = 70
 capture_at = [60, 64, 66]
 settings = { button_prompts = 1 }
+
+[scenario.pan_new]
+about = "the lab, the camera turned right in three steps, captured after each: what shows at the wide edges (new camera aspect)"
+input = "30:start,33:a,36:a,39:a,42:a,45:a,52:rx+:500,56:rx+:500,60:rx+:500,64:rx-:1500"
+duration = 70
+capture_at = [55, 59, 63, 67]
+
+
+[scenario.pan_old]
+about = "the lab, the camera turned right in three steps, captured after each: what shows at the wide edges (old camera aspect)"
+input = "30:start,33:a,36:a,39:a,42:a,45:a,52:rx+:500,56:rx+:500,60:rx+:500,64:rx-:1500"
+duration = 70
+capture_at = [55, 59, 63, 67]
+env = { UNCHAINED_NO_CAMERA_WIDE = "1" }
+
+[scenario.popin_new]
+about = "the user's pop-in run (runs/popin.txt): the camera turned right for 13 s, captured through the turn (new camera aspect)"
+input_file = "runs/popin.txt"
+duration = 46
+capture_at = [30, 31.5, 33, 34.5, 36, 37.5, 39, 40.5, 42]
+
+
+[scenario.popin_old]
+about = "the user's pop-in run (runs/popin.txt): the camera turned right for 13 s, captured through the turn (old camera aspect)"
+input_file = "runs/popin.txt"
+duration = 46
+capture_at = [30, 31.5, 33, 34.5, 36, 37.5, 39, 40.5, 42]
+env = { UNCHAINED_NO_CAMERA_WIDE = "1" }
