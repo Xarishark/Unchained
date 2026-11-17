@@ -11,6 +11,7 @@
 #include "kernel/kernel.h"
 
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
 
 X86_EXTERN_FUNC(__imp__sub_001390C0);
@@ -36,38 +37,70 @@ X86_FUNC(sub_0017F380) {
     ctx.esp += 4;  // ret
 }
 
-X86_FUNC(sub_001390C0) {
-    constexpr float k43 = 4.0f / 3.0f;
-    constexpr float kNear43 = 0.001f;  // 1.3330 and 1.3333334 are both the game's 4:3
+namespace {
+constexpr float k43 = 4.0f / 3.0f;
+constexpr float kNear43 = 0.001f;  // 1.3330 and 1.3333334 are both the game's 4:3
+
+// fov setting: the gameplay camera's 60 degrees becomes g_fov_degrees; any other angle (cutscenes) stays
+float GameFov(float fov) {
     constexpr float kGameFov = 1.0471976f;
     constexpr float kSameFov = 1e-4f;
     constexpr uint32_t kMinFov = 40, kMaxFov = 110;
-    uint32_t fov_at = ctx.esp + 4;
-    float fov;
-    std::memcpy(&fov, kernel::HostPtr(fov_at), 4);
-    if (g_fov_degrees != 60 && std::fabs(fov - kGameFov) < kSameFov) {
-        uint32_t deg = g_fov_degrees < kMinFov ? kMinFov : g_fov_degrees > kMaxFov ? kMaxFov : g_fov_degrees;
-        fov = float(deg) * 3.14159265f / 180.0f;
-        std::memcpy(kernel::HostPtr(fov_at), &fov, 4);
-    }
-    float k = app::WideFactor();
-    uint32_t at = ctx.esp + 8;  // [esp] return, [esp+4] fov, [esp+8] aspect
-    float aspect;
-    std::memcpy(&aspect, kernel::HostPtr(at), 4);
-    bool camera = std::fabs(aspect - k43) < kNear43;  // the game's 4:3 views, not a light's square one
-    if (k != 1.0f && camera) {
-        float wide = aspect * k;
-        std::memcpy(kernel::HostPtr(at), &wide, 4);
-    }
-    // draw_distance: the cameras' far clip, percent of the game's ([esp+0x10]); what the game culls itself stays
+    if (g_fov_degrees == 60 || std::fabs(fov - kGameFov) >= kSameFov) return fov;
+    uint32_t deg = g_fov_degrees < kMinFov ? kMinFov : g_fov_degrees > kMaxFov ? kMaxFov : g_fov_degrees;
+    return float(deg) * 3.14159265f / 180.0f;
+}
+
+// draw_distance setting: a camera's far clip, percent of the game's
+float FarClip(float far_clip) {
     constexpr uint32_t kMaxDistance = 1000;
-    if (camera && g_draw_distance != 100) {
-        uint32_t far_at = ctx.esp + 0x10;
-        float far_clip;
-        std::memcpy(&far_clip, kernel::HostPtr(far_at), 4);
-        float pct = float(g_draw_distance < 100 ? 100 : g_draw_distance > kMaxDistance ? kMaxDistance : g_draw_distance);
-        far_clip *= pct / 100.0f;
-        std::memcpy(kernel::HostPtr(far_at), &far_clip, 4);
-    }
+    if (g_draw_distance == 100) return far_clip;
+    uint32_t pct = g_draw_distance < 100 ? 100 : g_draw_distance > kMaxDistance ? kMaxDistance : g_draw_distance;
+    return far_clip * float(pct) / 100.0f;
+}
+
+float ReadF(uint32_t at) {
+    float f;
+    std::memcpy(&f, kernel::HostPtr(at), 4);
+    return f;
+}
+void WriteF(uint32_t at, float f) { std::memcpy(kernel::HostPtr(at), &f, 4); }
+
+// a projection draw_distance applies to: the game's 4:3 aspect as given (an aspect the getter above widened
+// already keeps the game's far clip; the frustum below follows the same rule so the two agree)
+bool FarScaled(float aspect) { return std::fabs(aspect - k43) < kNear43; }
+}  // namespace
+
+X86_FUNC(sub_001390C0) {
+    // [esp] return, [esp+4] fov, [esp+8] aspect, [esp+0xC] near, [esp+0x10] far
+    WriteF(ctx.esp + 4, GameFov(ReadF(ctx.esp + 4)));
+    float aspect = ReadF(ctx.esp + 8);
+    bool camera = std::fabs(aspect - k43) < kNear43;  // an aspect widened already (the getter above) stays
+    float k = app::WideFactor();
+    if (k != 1.0f && camera) WriteF(ctx.esp + 8, aspect * k);
+    if (FarScaled(aspect)) WriteF(ctx.esp + 0x10, FarClip(ReadF(ctx.esp + 0x10)));
     __imp__sub_001390C0(ctx, base);
+}
+
+// The renderer's cull frustum (0x16F620, thiscall on the renderer, ret 4) builds six planes from the view it was
+// given: fov at +0x518, aspect +0x51C, near +0x510, far +0x514. Its sphere test (0x16D680) checks every room
+// drawable against them (0x194200). It reads the camera's own fov and far, not the projection's, so with fov above
+// 60 whatever lay between the game's view and the one drawn was culled: wall lights, plants, the planter and palm,
+// hanging platforms, the lab's crystal popped in and out at the edges as the camera turned. The frustum is built
+// with the projection's fov and far, then the view's own values go back. (Its aspect is the projection's already,
+// from the camera's aspect getter above.) UNCHAINED_OLD_FRUSTUM=1 leaves the game's own frustum, for A/B runs.
+X86_EXTERN_FUNC(__imp__sub_0016F620);
+static const bool g_old_frustum = std::getenv("UNCHAINED_OLD_FRUSTUM") != nullptr;
+X86_FUNC(sub_0016F620) {
+    if (g_old_frustum) {
+        __imp__sub_0016F620(ctx, base);
+        return;
+    }
+    uint32_t r = ctx.ecx;
+    float fov = ReadF(r + 0x518), far_clip = ReadF(r + 0x514);
+    WriteF(r + 0x518, GameFov(fov));
+    if (FarScaled(ReadF(r + 0x51C))) WriteF(r + 0x514, FarClip(far_clip));
+    __imp__sub_0016F620(ctx, base);
+    WriteF(r + 0x518, fov);
+    WriteF(r + 0x514, far_clip);
 }
