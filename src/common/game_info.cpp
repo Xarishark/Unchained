@@ -23,6 +23,8 @@ void LoadKeys(const void* table);
 void SaveKeys(void* table);
 bool KeyboardMessage(void* hwnd, uint32_t msg, uintptr_t wp, intptr_t lp, intptr_t* result);
 
+extern uint32_t g_fov_degrees, g_draw_distance;  // widescreen.cpp
+
 namespace {
 
 // UNCHAINED_OFFSCREEN set: the game window lives far off-screen, for automated boot tests (screenshots still work
@@ -95,6 +97,9 @@ struct Preset {
     bool console_look;
 };
 constexpr Preset kPresets[] = {
+    // the console as it was: its own resolution and 4:3 shown in the player's window mode, every setting its default
+    // (the fixes stay); the extras below set the rest
+    {"og", 100, 0, 0, 0, 0, 0, app::Wide::Off, true},  // "OG Graphics" in the Configuration app
     {"original", 100, 0, 0, 0, 0, 0, app::Wide::Off, true},  // the console's picture, sharp at the output's size
     {"low", 75, 4, 1024, 1, 30, 100, app::Wide::Expand, false},
     {"high", 100, 16, 2048, 1, 0, 100, app::Wide::Expand, false},
@@ -113,6 +118,19 @@ void ApplyPreset() {
         s.hud_edge = p.hud_edge;
         if (p.console_look) s.widescreen = p.widescreen;
         g_shadow_resolution = p.shadow;
+        // OG Graphics: everything else as the console had it too; the other presets give the sharp UI back
+        bool native = g_preset == "og";
+        s.console_resolution = native;
+        s.ui_upscale = !native;
+        if (native) {
+            g_fov_degrees = 60;
+            g_draw_distance = 100;
+            g_character_shadows = true;
+            s.grade_exposure = s.grade_temperature = s.grade_tint = 0;
+            s.grade_contrast = s.grade_saturation = 100;
+            s.colour_filter = 0;
+            s.colour_lut.clear();
+        }
         LOGI("unchained: graphics preset %s", p.name);
     }
 }

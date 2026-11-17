@@ -535,19 +535,23 @@ void PagePlay() {
     }
     ImGui::Spacing();
     ImGui::Spacing();
-    std::vector<const char*> presets = {"custom", "original", "low", "high", "max"};
+    // the settings file's names, and what the list shows
+    std::vector<const char*> presets = {"custom", "og", "original", "low", "high", "max"};
+    std::vector<const char*> shown = {"custom", "OG Graphics", "original", "low", "high", "max"};
     std::string& p = GraphicsPreset();
     int at = 0;
     for (size_t i = 0; i < presets.size(); i++)
         if (p == presets[i]) at = int(i);
     ImGui::SetNextItemWidth(S(260));
-    if (ImGui::Combo("Graphics preset", &at, presets.data(), int(presets.size()))) {
+    if (ImGui::Combo("Graphics preset", &at, shown.data(), int(shown.size()))) {
         p = presets[size_t(at)];
         ApplyGraphicsPreset();
         g_dirty = true;
     }
-    Note("original: the console's picture, sharp at your resolution. low: 75% scale with FSR. high: native, 16x "
-         "filtering, 2048 shadows. max: 200% supersampling, 4096 shadows. custom: as set on the other pages.");
+    Note("OG Graphics: the console as it was, 640x480 at 4:3 in your window, every setting its default (the fixes "
+         "stay). original: the console's picture, sharp at your resolution. low: 75% scale with FSR. high: your "
+         "resolution, 16x filtering, 2048 shadows. max: 200% supersampling, 4096 shadows. custom: as set on the "
+         "other pages.");
     ImGui::Spacing();
     app::Settings& s = app::Get();
     uint32_t mode = uint32_t(s.display_mode);

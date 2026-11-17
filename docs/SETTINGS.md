@@ -23,7 +23,7 @@ the game closed. A missing key takes its default. The Configuration app will set
 
 | Key | Default | What it does |
 |---|---|---|
-| `graphics_preset` | `"custom"` | `"original"` (the console's picture, sharp), `"low"`, `"high"`, `"max"`; anything else leaves each setting as written |
+| `graphics_preset` | `"custom"` | `"og"` (OG Graphics in the Configuration app: the console as it was: its own 640x480 at 4:3 shown in your window mode, every setting at its default, clean menu edges off; the fixes stay), `"original"` (the console's picture, sharp), `"low"`, `"high"`, `"max"`; anything else leaves each setting as written |
 | `renderer` | `"vulkan"` | Windows: `"vulkan"` or `"d3d12"`. D3D12 takes over when Vulkan cannot start. Linux always draws with Vulkan |
 | `upscaler` | `1` | `0` bilinear, `1` AMD FSR 1 when rendering smaller than the window |
 | `sharpen` | `0` | FSR 1 RCAS sharpening, 0 to 100 |
