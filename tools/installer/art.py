@@ -115,7 +115,8 @@ def header(version):
     big = fit(word('UNCHAINED', 64), w - 30)
     im.paste(big, (w - big.width - 6, 8), big)
     d = ImageDraw.Draw(im, 'RGBA')
-    d.text((w - 196, h - 26), 'BUILD ' + version, font=font('consola.ttf', 13), fill=GREEN)
+    # shown at half size too
+    d.text((14, h - 34), 'BUILD ' + version, font=font('consolab.ttf', 22), fill=GREEN)
     d.line([(10, h - 8), (w - 10, h - 8)], fill=GREEN_DIM, width=1)
     return im
 

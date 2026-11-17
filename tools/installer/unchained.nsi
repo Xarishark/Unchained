@@ -40,7 +40,7 @@ XPStyle on
 !define MUI_CUSTOMFUNCTION_GUIINIT DarkFrame
 !define MUI_CUSTOMFUNCTION_UNGUIINIT un.DarkFrame
 !define MUI_WELCOMEPAGE_TITLE "Unchained ${VERSION}"
-!define MUI_WELCOMEPAGE_TEXT "An unofficial PC port of Whiplash for the original Xbox. This installs the program only: it contains no game files or game code.$\r$\n$\r$\nTo play, you need your own copy of Whiplash (USA) for the original Xbox: its disc image (.iso) or its extracted files. After installing, Unchained Configuration asks for it, copies the files and builds the game's code once on this PC.$\r$\n$\r$\nThis needs about 350 MB here, plus about 2 GB for the game files and the built code."
+!define MUI_WELCOMEPAGE_TEXT "An unofficial PC port of Whiplash for the original Xbox. This installs the program only: it contains no game files or game code.$\r$\n$\r$\nTo play, you need your own copy of Whiplash (USA) for the original Xbox: its disc image (.iso) or its extracted files. After installing, Unchained Configuration asks for it, copies the files and builds the game's code once on this PC.$\r$\n$\r$\nThis needs about 200 MB here, plus about 2 GB for the game files and the built code."
 !define MUI_DIRECTORYPAGE_TEXT_TOP "Saves, settings and the game files are kept in this folder, so pick one you can write to. Program Files won't work."
 !define MUI_FINISHPAGE_TITLE "Installed"
 !define MUI_FINISHPAGE_TEXT "Next, Unchained Configuration asks where your copy of the game is, sets it up, and starts the game."
@@ -115,6 +115,10 @@ FunctionEnd
 ; (the bar in the green, on the page's teal)
 Function ${un}DarkInstFiles
   Call ${un}DarkInner
+  GetDlgItem $R0 $R3 1027  ; (Show details, a dark button as the others)
+  StrCmp $R0 0 +3
+    Push $R0
+    Call ${un}DarkButton
   GetDlgItem $R0 $R3 1004
   System::Call 'uxtheme::SetWindowTheme(p R0, w " ", w " ")'
   SendMessage $R0 0x0409 0 0x008AF239
