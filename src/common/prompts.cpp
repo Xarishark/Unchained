@@ -8,6 +8,7 @@
 #define NOMINMAX
 #include "app/app.h"
 #include "core/input.h"
+#include "common/fonts.h"
 #include "core/log.h"
 
 #include <algorithm>
@@ -16,7 +17,9 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
+#include <cstdio>
 #include <cstring>
+#include <filesystem>
 #include <string>
 #include <vector>
 #include "app/win32_compat.h"  // <windows.h>, or its messages and key state from SDL on Linux
@@ -86,10 +89,75 @@ float RoundBox(float px, float py, float cx, float cy, float hw, float hh, float
     return std::hypot(std::max(qx, 0.0f), std::max(qy, 0.0f)) + std::min(std::max(qx, qy), 0.0f) - r;
 }
 
-// text's coverage from GDI, white on black, centred in the canvas. Linux draws no text yet (FreeType is to come): the
-// plates and key caps show without their letters.
+// text's coverage, centred in the canvas at the largest size up to height that fits max_w: GDI's on Windows, ImGui's
+// stb_truetype on Linux, both from the bold sans of common/fonts.cpp
 #ifndef _WIN32
-void Text(Canvas&, const std::wstring&, const float[4], float, float) {}
+}  // namespace
+#define STB_TRUETYPE_IMPLEMENTATION
+#define STBTT_STATIC
+#include <imstb_truetype.h>
+namespace {
+
+const std::vector<unsigned char>& FontData() {
+    static const std::vector<unsigned char> data = [] {
+        std::vector<unsigned char> d;
+        std::filesystem::path p = fonts::File(L"bahnschrift.ttf", true);
+        if (FILE* f = p.empty() ? nullptr : std::fopen(p.c_str(), "rb")) {
+            std::fseek(f, 0, SEEK_END);
+            d.resize(size_t(std::max(0L, std::ftell(f))));
+            std::fseek(f, 0, SEEK_SET);
+            if (std::fread(d.data(), 1, d.size(), f) != d.size()) d.clear();
+            std::fclose(f);
+        }
+        if (d.empty()) LOGW("prompts: no font for the button letters");
+        return d;
+    }();
+    return data;
+}
+
+// the line's width in pixels at scale, as GDI's text extent has it: advances and kerning
+float LineWidth(const stbtt_fontinfo& f, const std::wstring& s, float scale) {
+    float w = 0;
+    for (size_t i = 0; i < s.size(); i++) {
+        int advance = 0, lsb = 0;
+        stbtt_GetCodepointHMetrics(&f, int(s[i]), &advance, &lsb);
+        w += advance * scale;
+        if (i + 1 < s.size()) w += stbtt_GetCodepointKernAdvance(&f, int(s[i]), int(s[i + 1])) * scale;
+    }
+    return w;
+}
+
+void Text(Canvas& cv, const std::wstring& s, const float c[4], float height, float max_w) {
+    const std::vector<unsigned char>& data = FontData();
+    stbtt_fontinfo f;
+    if (data.empty() || !stbtt_InitFont(&f, data.data(), stbtt_GetFontOffsetForIndex(data.data(), 0))) return;
+    // GDI's negative font height is the em: the largest that fits max_w, down to 6
+    float scale = 0, width = 0;
+    for (int size = int(height); size >= 6; size--) {
+        scale = stbtt_ScaleForMappingEmToPixels(&f, float(size));
+        width = LineWidth(f, s, scale);
+        if (width <= max_w) break;
+    }
+    int ascent = 0, descent = 0, gap = 0;
+    stbtt_GetFontVMetrics(&f, &ascent, &descent, &gap);
+    // DT_VCENTER: the line's ascent and descent centred, DT_CENTER: its width
+    float base = (cv.h - (ascent - descent) * scale) / 2 + ascent * scale;
+    float x = (cv.w - width) / 2;
+    for (size_t i = 0; i < s.size(); i++) {
+        int cp = int(s[i]);
+        int gw = 0, gh = 0, xo = 0, yo = 0;
+        float fx = x - std::floor(x);
+        unsigned char* bmp = stbtt_GetCodepointBitmapSubpixel(&f, scale, scale, fx, 0, cp, &gw, &gh, &xo, &yo);
+        int ox = int(std::floor(x)) + xo, oy = int(std::lround(base)) + yo;
+        for (int y = 0; y < gh; y++)
+            for (int xx = 0; xx < gw; xx++) cv.Put(ox + xx, oy + y, c, bmp[y * gw + xx] / 255.0f);
+        stbtt_FreeBitmap(bmp, nullptr);
+        int advance = 0, lsb = 0;
+        stbtt_GetCodepointHMetrics(&f, cp, &advance, &lsb);
+        x += advance * scale;
+        if (i + 1 < s.size()) x += stbtt_GetCodepointKernAdvance(&f, cp, int(s[i + 1])) * scale;
+    }
+}
 #else
 void Text(Canvas& cv, const std::wstring& s, const float c[4], float height, float max_w) {
     HDC dc = CreateCompatibleDC(nullptr);

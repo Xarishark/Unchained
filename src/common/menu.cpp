@@ -7,6 +7,7 @@
 #define NOMINMAX
 #endif
 #include "app/app.h"
+#include "common/fonts.h"
 #include "common/version.h"
 #include "core/input.h"
 
@@ -251,11 +252,9 @@ void MenuFonts() {
     if (!ImGui::GetCurrentContext()) return;
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->AddFontDefault();  // the first font stays ImGui's default: the performance overlay's
-    wchar_t windir[MAX_PATH];
-    GetWindowsDirectoryW(windir, MAX_PATH);
     auto load = [&](const wchar_t* file, float size) -> ImFont* {
-        std::filesystem::path p = std::filesystem::path(windir) / L"Fonts" / file;
-        if (!std::filesystem::exists(p)) return nullptr;
+        std::filesystem::path p = fonts::File(file);  // Windows' font, or on Linux the nearest (common/fonts.cpp)
+        if (p.empty()) return nullptr;
         return io.Fonts->AddFontFromFileTTF(p.string().c_str(), size);
     };
     g_body = load(L"bahnschrift.ttf", 24);
