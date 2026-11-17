@@ -349,3 +349,10 @@ input = "30:start"
 capture_at = [27, 33, 36]
 duration = 38
 settings = { ui_upscale = true, button_prompts = 1 }
+
+[scenario.menu]
+about = "F1 in the lab: the in-game menu over the game, its pages by the down arrow and Enter, F1 again closes it"
+input = "30:start,33:a,36:a,39:a,42:a,45:a"
+duration = 70
+post_keys = [[54, 112], [57.5, 40], [58, 40], [58.5, 13], [64, 112]]
+capture_at = [56, 60, 66]

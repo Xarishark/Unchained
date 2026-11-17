@@ -106,6 +106,16 @@ eport.md`.
 - [ ] **50. Cheats overlay** - money, invincibility, unlocks. Not through the disc's Game.ini: its debug switches
   ("Player invincible", "Enable debug menus", "Disable Creature Shadows", "Hide All") are not in the retail xbe and
   are ignored (served rewritten, 2026-11-16: no change). Needs the game's own player and money fields.
+- [x] **M. In-game menu** (user, 2026-11-16, through a side session: the settings that apply live, in game) - F1,
+  or Back and Start together, opens `src/common/menu.cpp` over the game in the Configuration app's look (teal, the
+  green frame and tab, the slanted words, Windows' Bahnschrift, Consolas and Impact): display (window mode,
+  widescreen, render resolution, field of view, VSync, frame cap), graphics (upscaler, sharpening, filtering, clean
+  edges, character shadows, draw distance, colour grading, colour vision), HUD and prompts, controls (camera speed,
+  inversion, vibration). All apply at once; closing it (F1, Escape, B, or Back and Start) saves them. While it is
+  open the game gets no controller or keyboard input, nor the presses that closed it; the controller drives the menu
+  (d-pad or stick, A, B, LB / RB for pages). Scenario `menu`: F1 in the lab, the arrows and Enter to HUD &
+  PROMPTS, F1 closes, the game goes on; frames 52-70 s worst 18.8 ms, none over 25 ms. Not yet: a real controller
+  in hand, audio (its setting needs a restart).
 - [x] **U. Clean menu and HUD edges** (user, 2026-11-16: "re render all the other letters and UI boxes ... to match
   how clean the glyphs are", then "apply it to letters and any other simple things ... including all the green
   old terminal like things") - SDK `ui_upscale`. A 2D draw is one into the frame writing no depth whose vertices are
@@ -209,7 +219,7 @@ Started, then set aside by the user (2026-11-16: "Color lut and HDR can wait for
 
 ## Not applicable
 
-43 (settings in the game's own Options) and L3 (settings split with the game's Options): the overlay and the
-Configuration app hold the settings (user, 2026-11-16: "We don't have to do the in game settings menu, overlay and
+43 (settings in the game's own Options) and L3 (settings split with the game's Options): the in-game menu (M) and
+the Configuration app hold the settings (user, 2026-11-16: "We don't have to do the in game settings menu, overlay and
 launcher options are fine"). 7 (voice-bank crash fix), 13 (gyro), 42 (ambient occlusion and volumetric fog as new effects, not planned),
 57 (achievements: no save-progress format known yet), 58 (amiibo).

@@ -33,6 +33,8 @@ feature list itself is [TODO.md](TODO.md); progress is [STATUS.md](STATUS.md).
   are for a bug report.
 - [ ] **Local paths in the docs**: STATUS.md and TODO.md name this PC's working folders (test tools, the reference
   video); fine for the team, odd in a public repo.
+- [ ] **The in-game menu with a controller in hand**: Back and Start to open, the d-pad, A, B and LB / RB through
+  every page, and that the game gets none of it (tested with the keyboard and scripted presses so far).
 - [ ] **One playthrough past the first levels** before calling it more than a preview (TODO item 4).
 
 ### Release notes: known issues
@@ -125,6 +127,11 @@ Whiplash pieces in `src/`.
 - **08:03** First run: pick the disc image or folder, the release checked, the files copied, the game code built on
   the player's PC with its progress on the same page, then PLAY. The zip holds the program only (the exe, the
   Configuration exe, the bundled compiler), no game code or files.
+
+### In-game menu
+
+- **Mon 16 Nov, evening** F1 or Back + Start: the settings that apply at once (display, graphics, HUD and prompts,
+  controls) over the game in the Configuration app's look; the game gets no input while it is open; saved on close.
 
 ### Extras
 

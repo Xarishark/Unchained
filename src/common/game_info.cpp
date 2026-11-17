@@ -13,6 +13,8 @@
 
 // overlay.cpp: the performance overlay (F10)
 bool OverlayMessage(uint32_t msg, uintptr_t wp);
+bool MenuMessage(uint32_t msg, uintptr_t wp);  // menu.cpp: the in-game menu
+void MenuFonts();
 void OverlayUi(double fps);
 extern bool g_perf_overlay;
 
@@ -33,13 +35,14 @@ bool Offscreen() {
 constexpr int kAway = -32000;
 
 void OffscreenWindow(void* hwnd) {
+    MenuFonts();
     if (Offscreen())
         SetWindowPos(static_cast<HWND>(hwnd), nullptr, kAway, kAway, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
 bool OffscreenMessage(void* hwnd, uint32_t msg, uintptr_t wp, intptr_t lp, intptr_t* result) {
     if (KeyboardMessage(hwnd, msg, wp, lp, result)) return true;
-    if (OverlayMessage(msg, wp)) {
+    if (MenuMessage(msg, wp) || OverlayMessage(msg, wp)) {
         *result = 0;
         return true;
     }

@@ -56,8 +56,13 @@ bool OverlayMessage(uint32_t msg, uintptr_t wp) {
     return false;
 }
 
+void MenuUi();  // menu.cpp: the in-game menu, over everything
+
 // each frame inside ImGui's (GameInfo::ui)
 void OverlayUi(double fps) {
+    struct MenuLast {
+        ~MenuLast() { MenuUi(); }
+    } menu_last;
     auto now = std::chrono::steady_clock::now();
     if (g_last.time_since_epoch().count()) {
         g_times[g_next] = std::chrono::duration<float, std::milli>(now - g_last).count();

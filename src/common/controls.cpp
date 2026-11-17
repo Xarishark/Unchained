@@ -29,9 +29,22 @@ int16_t Axis(int16_t v, uint32_t percent, bool invert) {
 
 void PromptsPad(const input::Pad& p);  // prompts.cpp: the device in use
 
+bool MenuPad(const input::Pad& p);      // menu.cpp: the in-game menu takes the controller while open
+bool MenuSwallow(const input::Pad& p);  // and what is still held after it closed
+
 void ControlsPad(int port, input::Pad& p) {
-    if (port == 0) PromptsPad(p);  // the controller alone, before the keyboard joins it
+    bool menu = false;
+    if (port == 0) {
+        PromptsPad(p);  // the controller alone, before the keyboard joins it
+        menu = MenuPad(p);
+    }
     UnchainedPad(port, p);
+    if (port == 0 && (menu || MenuSwallow(p))) {
+        // the game gets nothing while the menu is open, nor the presses that closed it
+        p = input::Pad{};
+        p.connected = true;
+        return;
+    }
     uint32_t speed = std::min(g_camera_speed, kMaxCameraSpeed);
     p.rx = Axis(p.rx, speed, g_invert_camera_x);
     p.ry = Axis(p.ry, speed, g_invert_camera_y);

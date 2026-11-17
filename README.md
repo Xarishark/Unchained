@@ -12,6 +12,8 @@ What it adds to the console game:
   using (Xbox, PlayStation, Nintendo) or the keyboard keys you bound.
 - **Smoothness:** VSync, adaptive, fast and VRR modes; shaders and pipelines kept and made ahead, so later starts
   don't stutter on them; a performance overlay (F10) with frame times and lows.
+- **In-game menu:** F1 (or Back + Start on a controller) changes display, graphics, HUD, prompt and control
+  settings while you play, in the same look as Unchained Configuration.
 - **Everything else:** any controller, camera speed, inversion and vibration settings, save backups and profiles,
   screenshots (F12), colour vision filters, texture packs, and a Configuration app that sets the game up from your
   own disc.
