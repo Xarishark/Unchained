@@ -91,20 +91,21 @@ def side(version):
     big = fit(word('UNCHAINED', 96), w - 16)
     im.paste(big, ((w - big.width) // 2, 40), big)
     d = ImageDraw.Draw(im, 'RGBA')
-    mono = font('consola.ttf', 15)
-    d.text((22, 40 + big.height + 6), 'WHIPLASH  //  PC PORT', font=mono, fill=GREEN)
+    # the page shows this at half size: text drawn twice as big as it reads
+    mono = font('consolab.ttf', 26)
+    d.text((22, 40 + big.height + 4), 'WHIPLASH // PC PORT', font=mono, fill=GREEN)
     # the three words, faint, down the page
-    y = 250
+    y = 220
     for text in ('FREEDOM', 'CRAZY', 'MADNESS'):
         lay = fit(word(text, 70), w - 40)
         faint = lay.copy()
         faint.putalpha(faint.getchannel('A').point(lambda v: v * 30 // 100))
         im.paste(faint, ((w - lay.width) // 2, y), faint)
         y += lay.height - 6
-    frame(d, (20, h - 120), (w - 20, h - 30), 'SETUP', font('consola.ttf', 13))
-    d.text((34, h - 104), 'RELEASE TERMINAL', font=mono, fill=GREEN_DIM)
-    d.text((34, h - 82), 'BUILD ' + version, font=mono, fill=GREEN)
-    d.text((34, h - 60), 'no game files inside', font=font('consola.ttf', 13), fill=GREEN_DIM)
+    frame(d, (16, h - 150), (w - 16, h - 24), 'SETUP', font('consolab.ttf', 16))
+    d.text((30, h - 136), 'BUILD', font=mono, fill=GREEN_DIM)
+    d.text((30, h - 104), version, font=mono, fill=GREEN)
+    d.text((30, h - 66), 'NO GAME FILES', font=font('consolab.ttf', 22), fill=GREEN_DIM)
     return im
 
 
