@@ -27,7 +27,7 @@ feature list itself is [TODO.md](TODO.md); progress is [STATUS.md](STATUS.md).
 - [x] **README** brought up to date, with a "Testers wanted" section and a not-affiliated disclaimer.
 - [x] **Contribution rules** (`CONTRIBUTING.md`): no game files, moderation, `test` for development and `main` for
   releases, what a report needs; issue forms for bugs and features, and a pull request template.
-- [~] **A version and a changelog**: `0.1.0-preview.1` (`src/common/version.h`) on the About page and the log's
+- [~] **A version and a changelog**: `0.1` (`src/common/version.h`) on the About page and the log's
   first line; still to do: the zip's name and a CHANGELOG.
 - [ ] **FAQ**: Windows SmartScreen on an unsigned exe ("More info", "Run anyway"), and where crash dumps and logs
   are for a bug report.
