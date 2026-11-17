@@ -156,7 +156,7 @@ eport.md`.
   English only: no French, German, Spanish or Italian files in Xbox.rkv or .r01-.r09 (rkv-scan, 2026-11-16), and the
   kernel answers XC_LANGUAGE English. Nothing to choose.
 - [ ] **9. Platforms** - Windows first; Linux needs the renderer ported off D3D12 (try Proton meanwhile).
-- [x] **18. Widescreen and ultrawide** - Whiplash ignores the widescreen TV flag (the SDK's old 16:9 just stretched
+- [~] **18. Widescreen and ultrawide** - Whiplash ignores the widescreen TV flag (the SDK's old 16:9 just stretched
   it). Its projection (`0x1390C0`) has a vertical fov, so `src/game/widescreen.cpp` widens the game's 4:3 aspect by
   the output's: `widescreen = "expand"` (default) fills 16:9 up to 32:9, 2D stays 4:3 in the middle, full screen
   passes stay full width; "off" is 4:3, "console" the old flag. The 448-line crop is `GameInfo::view_h`. Evidence:
@@ -166,6 +166,13 @@ eport.md`.
   (0x17F380) now gives the widened aspect, so the view, its culling and the projection agree. Evidence: the lab's
   first frames draw 539 and 520 times instead of 483 and 454; the domed doorway at the right edge, missing before, is
   drawn (turns/tests-20261116-071923 against turns/tests-20261116-071335).
+  Still open (user, 2026-11-16 evening, snips and the recording `runs/popin.txt`): wall lights, plants and props near
+  the wide edges still vanish and come back as the camera turns, wall light glows glitch, and character shadows
+  sometimes go. Not the renderer: those are 3D draws (world space, fixed function), which the 2D narrowing and HUD
+  placement leave alone (they act on w == 1 only). Widening the camera's stored aspect at its constructor (0x17F3C0,
+  +0x50) widens the culling but also moves the game's follow camera (it frames with the same value), so that was
+  undone; the culling that still uses 4:3 has to be found and widened alone. Scenarios `popin_old` / `popin_new`
+  replay the recording (the runs drift apart, so compare within a run, not frame to frame).
 - [ ] **30-32. Modern upscalers and frame generation** - FSR 3/4, DLSS need motion vectors a D3D8 game does not make;
   later, from depth and camera reprojection.
 - [~] **33. Draw distance** - `draw_distance` (percent, 100-1000) raises the cameras' far clip in the projection
