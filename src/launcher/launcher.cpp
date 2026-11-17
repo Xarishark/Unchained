@@ -4,10 +4,9 @@
 //
 // The look is a lab terminal: dark teal, green terminal frames with a tab and cut corners, scanlines, and big slanted
 // words (FREEDOM, CRAZY, MADNESS) for headings. No names or art from the game: the shapes are drawn here and the
-// fonts are Windows' own (Bahnschrift, Consolas).
+// fonts are Windows' own (Bahnschrift, Consolas), on Linux the nearest (common/fonts.cpp).
 //
-// Windows only for now: on Linux the game starts directly (GameInfo::launcher returns true below), and FindGame says
-// what is missing.
+// Linux: the same app in an SDL3 window drawn by SDL's renderer, its file pickers SDL's (the desktop's portal).
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -15,15 +14,24 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
+#endif
 #include "common/version.h"
 
+#ifdef _WIN32
 #include <windows.h>
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <shobjidl.h>
 #include <wrl/client.h>
+#else
+#include <SDL3/SDL.h>
+#include <spawn.h>
+#include <unistd.h>
+extern char** environ;
+#endif
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -34,13 +42,23 @@
 #include <vector>
 
 #include <imgui.h>
+#ifdef _WIN32
 #include <backends/imgui_impl_dx12.h>
 #include <backends/imgui_impl_win32.h>
+#else
+#include <backends/imgui_impl_sdl3.h>
+#include <backends/imgui_impl_sdlrenderer3.h>
+#endif
 
 #include "app/app.h"
+#include "common/fonts.h"
+#include "core/log.h"
+#include "core/platform.h"
 #include "launcher/setup.h"
 
+#ifdef _WIN32
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+#endif
 
 // game_info.cpp: the graphics preset, which the app sets and applies
 std::string& GraphicsPreset();
@@ -48,7 +66,9 @@ void ApplyGraphicsPreset();
 
 namespace launcher {
 
+#ifdef _WIN32
 using Microsoft::WRL::ComPtr;
+#endif
 namespace fs = std::filesystem;
 
 namespace {
@@ -66,6 +86,7 @@ constexpr ImU32 kRed = Rgba(224, 52, 58);
 constexpr ImU32 kWhite = Rgba(235, 248, 240);
 constexpr ImU32 kBlack = Rgba(0, 0, 0);
 
+#ifdef _WIN32
 // ---- D3D12: just enough to draw ImGui
 
 constexpr UINT kBuffers = 2;
@@ -177,7 +198,22 @@ void Present() {
     g.queue->Signal(g.fence.Get(), ++g.next);
     g.done[i] = g.next;
 }
+#else
+// ---- Linux: an SDL window, ImGui drawn by SDL's renderer
+SDL_Window* g_window = nullptr;
+SDL_Renderer* g_renderer = nullptr;
+float g_dpi = 1;
+bool g_quit = false, g_play = false;
 
+void Present() {
+    SDL_SetRenderDrawColor(g_renderer, 5, 22, 24, 255);
+    SDL_RenderClear(g_renderer);
+    ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), g_renderer);
+    SDL_RenderPresent(g_renderer);
+}
+#endif
+
+#ifdef _WIN32
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wp, lp)) return 1;
     switch (msg) {
@@ -195,6 +231,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM lp) {
     }
     return DefWindowProcW(hwnd, msg, wp, lp);
 }
+#endif
 
 // ---- fonts: Windows' own
 
@@ -204,11 +241,8 @@ ImFont* g_head = nullptr;
 ImFont* g_word = nullptr;
 
 ImFont* LoadFont(const wchar_t* file, float size) {
-    wchar_t dir[MAX_PATH];
-    GetWindowsDirectoryW(dir, MAX_PATH);
-    fs::path path = fs::path(dir) / L"Fonts" / file;
-    std::error_code ec;
-    if (!fs::exists(path, ec)) return nullptr;
+    fs::path path = fonts::File(file);  // Windows' font, or on Linux the nearest
+    if (path.empty()) return nullptr;
     return ImGui::GetIO().Fonts->AddFontFromFileTTF(path.string().c_str(), size * g_dpi);
 }
 
@@ -357,6 +391,31 @@ const char* kPageNames[kPages] = {"PLAY", "DISPLAY", "GRAPHICS", "CONTROLS", "SO
 const char* kPageWords[kPages] = {"FREEDOM", "MADNESS", "CRAZY", "FREEDOM", "CRAZY", "MADNESS", "FREEDOM"};
 Page g_page = kPlay;
 
+#ifndef _WIN32
+// SDL's dialogs answer through a callback while the events run: this waits for it
+std::wstring PickFile(bool folder) {
+    struct Wait {
+        bool done = false;
+        std::string path;
+    } wait;
+    auto done = [](void* user, const char* const* list, int) {
+        auto* w = static_cast<Wait*>(user);
+        if (list && list[0]) w->path = list[0];
+        w->done = true;
+    };
+    if (folder) {
+        SDL_ShowOpenFolderDialog(done, &wait, g_window, nullptr, false);
+    } else {
+        static const SDL_DialogFileFilter filters[] = {{"Xbox disc image", "iso"}, {"All files", "*"}};
+        SDL_ShowOpenFileDialog(done, &wait, g_window, filters, 2, nullptr, false);
+    }
+    while (!wait.done) {
+        SDL_Event e;
+        if (SDL_WaitEventTimeout(&e, 50) && e.type == SDL_EVENT_QUIT) g_quit = true;
+    }
+    return platform::Wide(wait.path);
+}
+#else
 std::wstring PickFile(bool folder) {
     std::wstring out;
     ComPtr<IFileOpenDialog> dlg;
@@ -381,6 +440,7 @@ std::wstring PickFile(bool folder) {
     }
     return out;
 }
+#endif
 
 void PagePlay() {
     bool ready = GameFilesPresent();
@@ -418,12 +478,24 @@ void PagePlay() {
 
 std::vector<std::pair<uint32_t, uint32_t>> Resolutions() {
     std::vector<std::pair<uint32_t, uint32_t>> out;
+#ifdef _WIN32
     DEVMODEW dm{};
     dm.dmSize = sizeof(dm);
     for (DWORD i = 0; EnumDisplaySettingsW(nullptr, i, &dm); i++) {
         std::pair<uint32_t, uint32_t> r{dm.dmPelsWidth, dm.dmPelsHeight};
         if (r.first >= 640 && std::find(out.begin(), out.end(), r) == out.end()) out.push_back(r);
     }
+#else
+    // the primary display's fullscreen modes, in pixels
+    int n = 0;
+    SDL_DisplayMode** modes = SDL_GetFullscreenDisplayModes(SDL_GetPrimaryDisplay(), &n);
+    for (int i = 0; modes && i < n; i++) {
+        float k = modes[i]->pixel_density > 0 ? modes[i]->pixel_density : 1.0f;
+        std::pair<uint32_t, uint32_t> r{uint32_t(modes[i]->w * k + 0.5f), uint32_t(modes[i]->h * k + 0.5f)};
+        if (r.first >= 640 && std::find(out.begin(), out.end(), r) == out.end()) out.push_back(r);
+    }
+    SDL_free(modes);
+#endif
     std::sort(out.begin(), out.end());
     return out;
 }
@@ -510,7 +582,9 @@ void PageGraphics() {
         for (auto& e : fs::directory_iterator(app::DataDir() / "luts", ec)) {
             auto u8 = e.path().filename().u8string();
             std::string name(u8.begin(), u8.end());
-            if (name.size() > 5 && _stricmp(name.c_str() + name.size() - 5, ".cube") == 0) out.push_back(name);
+            std::string ext = name.size() > 5 ? name.substr(name.size() - 5) : std::string();
+            for (char& ch : ext) ch = char(std::tolower(uint8_t(ch)));
+            if (ext == ".cube") out.push_back(name);
         }
         return out;
     }();
@@ -877,6 +951,83 @@ void DrawUi() {
 
 }  // namespace
 
+#ifndef _WIN32
+// the pages and the build screen as on Windows, in an SDL window
+bool Run(bool first_run, bool build_only) {
+    g_quit = g_play = false;
+    SDL_DisplayID display = SDL_GetPrimaryDisplay();
+    g_dpi = SDL_GetDisplayContentScale(display);
+    if (g_dpi <= 0) g_dpi = 1;
+    int w = int((build_only ? 980 : 1240) * g_dpi), h = int((build_only ? 560 : 780) * g_dpi);
+    SDL_Rect usable{};
+    if (SDL_GetDisplayUsableBounds(display, &usable)) {
+        w = std::min(w, usable.w);
+        h = std::min(h, usable.h);
+    }
+    // the window's size in the desktop's units: a scaled Wayland desktop doubles its pixels
+    g_window = SDL_CreateWindow(build_only ? "Unchained" : "Unchained Configuration", w, h,
+                                SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
+    g_renderer = g_window ? SDL_CreateRenderer(g_window, nullptr) : nullptr;
+    bool ok = g_renderer != nullptr;
+    if (!ok) LOGE("launcher: no window: %s", SDL_GetError());
+    if (ok) {
+        SDL_SetWindowMinimumSize(g_window, int(760 * g_dpi), int(460 * g_dpi));
+        SDL_SetRenderVSync(g_renderer, 1);
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGui::GetIO().IniFilename = nullptr;
+        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
+        LoadFonts();
+        Style();
+        ImGui_ImplSDL3_InitForSDLRenderer(g_window, g_renderer);
+        ImGui_ImplSDLRenderer3_Init(g_renderer);
+        if (first_run) g_page = kFiles;
+        if (std::wstring src = platform::Env(L"UNCHAINED_SETUP_SOURCE"); !src.empty()) Start(src);
+        if (const char* pg = std::getenv("UNCHAINED_CONFIG_PAGE")) g_page = Page(std::clamp(std::atoi(pg), 0, kPages - 1));
+        // UNCHAINED_CONFIG_SHOT=<file.png>: the window's picture saved after a few frames, then it closes (tests)
+        const char* shot = std::getenv("UNCHAINED_CONFIG_SHOT");
+        int frames = 0;
+        while (!g_quit && !g_play) {
+            if (shot && ++frames == 20) {
+                if (SDL_Surface* s = SDL_RenderReadPixels(g_renderer, nullptr)) {
+                    SDL_SavePNG(s, shot);
+                    SDL_DestroySurface(s);
+                }
+                g_quit = true;
+            }
+            SDL_Event e;
+            while (SDL_PollEvent(&e)) {
+                ImGui_ImplSDL3_ProcessEvent(&e);
+                if (e.type == SDL_EVENT_QUIT || e.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) g_quit = true;
+            }
+            if (SDL_GetWindowFlags(g_window) & SDL_WINDOW_MINIMIZED) {
+                SDL_Delay(50);
+                continue;
+            }
+            ImGui_ImplSDLRenderer3_NewFrame();
+            ImGui_ImplSDL3_NewFrame();
+            ImGui::NewFrame();
+            if (build_only) DrawBuildUi();
+            else DrawUi();
+            ImGui::Render();
+            Present();
+        }
+        if (build_only && app::GameCodeBuildStatus().running) {
+            app::CancelGameCodeBuild();
+            for (int i = 0; i < 200 && app::GameCodeBuildStatus().running; i++) SDL_Delay(50);
+        }
+        ImGui_ImplSDLRenderer3_Shutdown();
+        ImGui_ImplSDL3_Shutdown();
+        ImGui::DestroyContext();
+    }
+    if (g_renderer) SDL_DestroyRenderer(g_renderer);
+    if (g_window) SDL_DestroyWindow(g_window);
+    g_renderer = nullptr;
+    g_window = nullptr;
+    if (!build_only) app::Save();
+    return ok && g_play;
+}
+#else
 bool Run(bool first_run, bool build_only) {
     HRESULT co = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     HINSTANCE inst = GetModuleHandleW(nullptr);
@@ -952,6 +1103,7 @@ bool Run(bool first_run, bool build_only) {
     if (!build_only) app::Save();
     return ok && g_play;
 }
+#endif
 
 }  // namespace launcher
 
@@ -960,6 +1112,16 @@ bool Run(bool first_run, bool build_only) {
 // always opens the app, and PLAY starts Unchained.exe beside it.
 bool UnchainedLauncher() {
     if (std::getenv("XBE_AUTOSTART")) return true;  // unattended test runs
+#ifndef _WIN32
+    // Linux: "Unchained --configure" opens the app; its PLAY starts the game in this process
+    bool configure = platform::HasArg(L"--configure");
+    bool present = launcher::GameFilesPresent();
+    if (!configure && present) {
+        if (!app::StartGameCodeBuild()) return true;
+        return launcher::Run(false, true);
+    }
+    return launcher::Run(!present, false);
+#else
     wchar_t self[MAX_PATH];
     GetModuleFileNameW(nullptr, self, MAX_PATH);
     bool config_exe = std::wcsstr(std::filesystem::path(self).filename().c_str(), L"Configuration") != nullptr;
@@ -983,7 +1145,5 @@ bool UnchainedLauncher() {
         CloseHandle(pi.hProcess);
     }
     return false;
-}
-#else
-bool UnchainedLauncher() { return true; }
 #endif
+}
