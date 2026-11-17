@@ -54,6 +54,7 @@ extern char** environ;
 #include "common/fonts.h"
 #include "core/log.h"
 #include "core/platform.h"
+#include "gpu/texturedumper.h"
 #include "launcher/setup.h"
 
 #ifdef _WIN32
@@ -169,6 +170,68 @@ void Resize() {
     MakeTargets();
 }
 
+const char* g_shot = nullptr;  // UNCHAINED_CONFIG_SHOT: a frame's picture goes to this PNG, then the app closes
+bool g_shot_now = false;        // this frame's
+
+// the back buffer as drawn, through a readback buffer, to g_shot as BGRA (the buffer is RGBA)
+void SaveShot(UINT i) {
+    D3D12_RESOURCE_DESC rd = g.back[i]->GetDesc();
+    D3D12_PLACED_SUBRESOURCE_FOOTPRINT fp;
+    UINT rows;
+    UINT64 row_size, bytes;
+    g.dev->GetCopyableFootprints(&rd, 0, 1, 0, &fp, &rows, &row_size, &bytes);
+    D3D12_HEAP_PROPERTIES hp{D3D12_HEAP_TYPE_READBACK};
+    D3D12_RESOURCE_DESC bd{};
+    bd.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+    bd.Width = bytes;
+    bd.Height = 1;
+    bd.DepthOrArraySize = 1;
+    bd.MipLevels = 1;
+    bd.SampleDesc.Count = 1;
+    bd.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+    ComPtr<ID3D12Resource> rb;
+    if (FAILED(g.dev->CreateCommittedResource(&hp, D3D12_HEAP_FLAG_NONE, &bd, D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
+                                              IID_PPV_ARGS(&rb))))
+        return;
+    WaitFor(g.done[i]);  // the frame's own list is done with the allocator
+    g.alloc[i]->Reset();
+    g.list->Reset(g.alloc[i].Get(), nullptr);
+    D3D12_RESOURCE_BARRIER b{};
+    b.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    b.Transition.pResource = g.back[i].Get();
+    b.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    b.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+    b.Transition.StateAfter = D3D12_RESOURCE_STATE_COPY_SOURCE;
+    g.list->ResourceBarrier(1, &b);
+    D3D12_TEXTURE_COPY_LOCATION dl{rb.Get(), D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT};
+    dl.PlacedFootprint = fp;
+    D3D12_TEXTURE_COPY_LOCATION sl{g.back[i].Get(), D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX};
+    g.list->CopyTextureRegion(&dl, 0, 0, 0, &sl, nullptr);
+    std::swap(b.Transition.StateBefore, b.Transition.StateAfter);
+    g.list->ResourceBarrier(1, &b);
+    g.list->Close();
+    ID3D12CommandList* lists[] = {g.list.Get()};
+    g.queue->ExecuteCommandLists(1, lists);
+    g.queue->Signal(g.fence.Get(), ++g.next);
+    WaitFor(g.next);
+    uint8_t* p = nullptr;
+    if (FAILED(rb->Map(0, nullptr, reinterpret_cast<void**>(&p)))) return;
+    uint32_t w = uint32_t(rd.Width), h = rd.Height;
+    std::vector<uint8_t> px(size_t(w) * h * 4);
+    for (uint32_t y = 0; y < h; y++) {
+        const uint8_t* row = p + size_t(y) * fp.Footprint.RowPitch;
+        for (uint32_t x = 0; x < w; x++) {
+            uint8_t* o = &px[(size_t(y) * w + x) * 4];
+            o[0] = row[x * 4 + 2];
+            o[1] = row[x * 4 + 1];
+            o[2] = row[x * 4 + 0];
+            o[3] = 255;
+        }
+    }
+    rb->Unmap(0, nullptr);
+    gpu::texturedumper::WriteBgraPng(g_shot, w, h, px);
+}
+
 void Present() {
     UINT i = g.swap->GetCurrentBackBufferIndex();
     WaitFor(g.done[i]);
@@ -194,9 +257,13 @@ void Present() {
     g.list->Close();
     ID3D12CommandList* lists[] = {g.list.Get()};
     g.queue->ExecuteCommandLists(1, lists);
-    g.swap->Present(1, 0);
     g.queue->Signal(g.fence.Get(), ++g.next);
     g.done[i] = g.next;
+    if (g_shot_now) {
+        SaveShot(i);
+        g_shot_now = false;
+    }
+    g.swap->Present(1, 0);
 }
 #else
 // ---- Linux: an SDL window, ImGui drawn by SDL's renderer
@@ -1067,7 +1134,12 @@ bool Run(bool first_run, bool build_only) {
         if (const wchar_t* src = _wgetenv(L"UNCHAINED_SETUP_SOURCE")) Start(src);
         // UNCHAINED_CONFIG_PAGE=<n>: opens on that page (screenshots of each page in tests)
         if (const char* pg = std::getenv("UNCHAINED_CONFIG_PAGE")) g_page = Page(std::clamp(std::atoi(pg), 0, kPages - 1));
+        // UNCHAINED_CONFIG_SHOT=<file.png>: the window's picture saved after a few frames, then it closes (tests)
+        g_shot = std::getenv("UNCHAINED_CONFIG_SHOT");
+        int frames = 0;
         while (!g_quit && !g_play) {
+            if (g_shot && ++frames == 20) g_shot_now = true;
+            if (g_shot && frames == 21) g_quit = true;
             MSG msg;
             while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
                 TranslateMessage(&msg);
