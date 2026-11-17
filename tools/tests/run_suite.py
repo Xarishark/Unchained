@@ -123,10 +123,16 @@ def main():
     ap.add_argument("--cold", action="store_true", help="every run without the shader and pipeline caches")
     ap.add_argument("--renderer", help="settings.toml renderer for the runs (Windows: d3d12 or vulkan)")
     ap.add_argument("--hdd", type=Path, help="a console disk (hdd folder) with a profile, copied into each run")
+    ap.add_argument("--set", action="append", default=[], metavar="KEY=VALUE",
+                    help="a setting over the scenarios' (repeatable): display_mode=fullscreen width=0 height=0 is the "
+                         "desktop's full resolution")
     ap.add_argument("--baseline", type=Path, help="an earlier run's report.json to compare with")
     a = ap.parse_args()
     cfg = tomllib.loads((HERE / "scenarios.toml").read_text())
-    base = cfg.get("base_settings", {})
+    base = dict(cfg.get("base_settings", {}))
+    for kv in a.set:
+        k, _, v = kv.partition("=")
+        base[k] = int(v) if v.lstrip("-").isdigit() else {"true": True, "false": False}.get(v, v)
     names = a.names or list(cfg["scenario"])
     records = []
     for name in names:
