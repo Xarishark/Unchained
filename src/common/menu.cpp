@@ -252,13 +252,13 @@ void MenuFonts() {
     if (!ImGui::GetCurrentContext()) return;
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->AddFontDefault();  // the first font stays ImGui's default: the performance overlay's
-    auto load = [&](const wchar_t* file, float size) -> ImFont* {
-        std::filesystem::path p = fonts::File(file);  // Windows' font, or on Linux the nearest (common/fonts.cpp)
+    auto load = [&](const wchar_t* file, float size, bool bold = false) -> ImFont* {
+        std::filesystem::path p = fonts::File(file, bold);  // Windows' font, or on Linux the nearest (common/fonts.cpp)
         if (p.empty()) return nullptr;
         return io.Fonts->AddFontFromFileTTF(p.string().c_str(), size);
     };
     g_body = load(L"bahnschrift.ttf", 24);
-    g_head = load(L"bahnschrift.ttf", 34);
+    g_head = load(L"bahnschrift.ttf", 34, true);  // bold only on Linux: the narrow stand-in reads thinner
     g_term = load(L"consola.ttf", 19);
     g_word = load(L"impact.ttf", 96);
 }

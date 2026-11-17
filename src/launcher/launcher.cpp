@@ -307,8 +307,9 @@ ImFont* g_term = nullptr;
 ImFont* g_head = nullptr;
 ImFont* g_word = nullptr;
 
-ImFont* LoadFont(const wchar_t* file, float size) {
-    fs::path path = fonts::File(file);  // Windows' font, or on Linux the nearest
+// bold: on Linux, where the stand-in for Bahnschrift reads thinner than it, the headings take its bold face
+ImFont* LoadFont(const wchar_t* file, float size, bool bold = false) {
+    fs::path path = fonts::File(file, bold);  // Windows' font, or on Linux the nearest
     if (path.empty()) return nullptr;
     return ImGui::GetIO().Fonts->AddFontFromFileTTF(path.string().c_str(), size * g_dpi);
 }
@@ -319,7 +320,7 @@ void LoadFonts() {
     if (!g_body) g_body = io.Fonts->AddFontDefault();
     g_term = LoadFont(L"consola.ttf", 16);
     if (!g_term) g_term = g_body;
-    g_head = LoadFont(L"bahnschrift.ttf", 30);
+    g_head = LoadFont(L"bahnschrift.ttf", 30, true);
     if (!g_head) g_head = g_body;
     g_word = LoadFont(L"impact.ttf", 120);
     if (!g_word) g_word = g_head;
@@ -580,7 +581,7 @@ std::vector<std::pair<uint32_t, uint32_t>> Resolutions() {
 
 void PageDisplay() {
     app::Settings& s = app::Get();
-    float w = S(300);
+    float w = S(340);  // wide enough for "Wider view (16:9 and ultrawide)" in Bahnschrift
     ImGui::PushItemWidth(w);
     uint32_t mode = uint32_t(s.display_mode);
     if (Combo("Window", &mode, {"Fullscreen", "Borderless", "Windowed"})) s.display_mode = app::DisplayMode(mode);
