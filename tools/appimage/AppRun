@@ -1,0 +1,5 @@
+#!/bin/sh
+# the AppImage's entry: the bundled libraries first, then Unchained with the arguments it was given
+here=$(dirname "$(readlink -f "$0")")
+export LD_LIBRARY_PATH="$here/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+exec "$here/usr/bin/Unchained" "$@"

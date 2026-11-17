@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Unchained
+Comment=Whiplash (original Xbox) on Linux, from your own disc
+Exec=Unchained
+Icon=unchained
+Categories=Game;
+Terminal=false
