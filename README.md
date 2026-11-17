@@ -3,16 +3,39 @@
 **Unchained** is an unofficial native PC port of the original Xbox version of *Whiplash* (Crystal Dynamics / Eidos, 2003), made by static recompilation. **Work in progress:** it boots and plays its first levels with sound, saves and controls; the rest of the game is
 being worked through. The build produces `Unchained.exe`.
 
-What it adds to the console game: rendering at your screen's resolution (or supersampled), widescreen and ultrawide
-with the HUD at the screen's edges, AMD FSR 1 and sharpening, higher-resolution shadows, 16x texture filtering, VSync
-and VRR modes, graphics presets, colour grading and colour vision filters, rebindable keyboard and mouse with a mouse
-camera, camera speed and vibration settings, save backups, texture packs, and an automated play-test suite.
-See [docs/SETTINGS.md](docs/SETTINGS.md), [docs/MODS.md](docs/MODS.md) and [docs/FAQ.md](docs/FAQ.md).
+What it adds to the console game:
+
+- **Picture:** your screen's resolution (or supersampled), widescreen and ultrawide that show more instead of
+  stretching, AMD FSR 1 and sharpening, sharper shadows, 16x texture filtering, colour grading, graphics presets
+  from the console's look to Max, and menus, text and HUD icons redrawn with clean edges.
+- **HUD and prompts:** the HUD at the screen's edges like a modern game; button prompts for the controller you're
+  using (Xbox, PlayStation, Nintendo) or the keyboard keys you bound.
+- **Smoothness:** VSync, adaptive, fast and VRR modes; shaders and pipelines kept and made ahead, so later starts
+  don't stutter on them; a performance overlay (F10) with frame times and lows.
+- **Everything else:** any controller, camera speed, inversion and vibration settings, save backups and profiles,
+  screenshots (F12), colour vision filters, texture packs, and a Configuration app that sets the game up from your
+  own disc.
+
+See [docs/SETTINGS.md](docs/SETTINGS.md), [docs/MODS.md](docs/MODS.md) and [docs/FAQ.md](docs/FAQ.md). Known issues
+are in [docs/RELEASE.md](docs/RELEASE.md#release-notes-known-issues).
+
+## Testers wanted
+
+Unchained has been played through its first levels so far. The most useful help right now: **play a level and
+report what breaks**, on as many different PCs, GPUs and controllers as possible, using the
+[bug report form](https://github.com/devall96/Unchained/issues/new/choose). Code is welcome too: see
+[CONTRIBUTING.md](CONTRIBUTING.md) (work happens on the `test` branch).
 
 This port is built with the [Xbox XBE Recomp](https://github.com/TGP482/XboxXBE-Recomp) tool.
 
 > [!NOTE]
 > This project does not include any game assets or game code. You must provide the files from your own legally acquired copy of the game to build or play.
+>
+> Unchained is a fan project, not affiliated with or endorsed by Crystal Dynamics, Eidos, Square Enix or Embracer
+> Group. *Whiplash* and its names belong to their owners. Unchained's own code is [MIT licensed](LICENSE).
+
+This project is developed mostly with AI. Contributions written by hand, with AI assistance or anything in between
+are equally welcome.
 
 ## Playing
 

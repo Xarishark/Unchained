@@ -13,9 +13,9 @@ feature list itself is [TODO.md](TODO.md); progress is [STATUS.md](STATUS.md).
   submodule can name, or land the general pieces upstream as pull requests (check upstream's development branch
   and open PRs first, so nothing is built twice), then point the submodule there.
 - [ ] **The game repo has no remote.** Pick its host and name, and public or private.
-- [ ] **Licence notices.** `THIRD_PARTY.txt` (in the zip) lists toml++, Dear ImGui and SDL, but not AMD FSR 1 (MIT,
-  compiled into the exe) or Zydis (MIT, in `compiler\xbe_recomp.exe`). LLVM's licence ships beside clang already.
-- [ ] **Unchained's own licence.** The repo has none; pick one before it is public.
+- [x] **Licence notices.** `THIRD_PARTY.txt` (in the zip) now has AMD FSR 1, Zydis and Zycore beside toml++, Dear
+  ImGui and SDL (SDK `47ad82e`); LLVM's licence ships beside clang.
+- [x] **Unchained's own licence.** MIT (`LICENSE`), with a note that it covers Unchained's code only.
 - [ ] **A clean-machine test of the zip.** `release.bat` on today's build, extracted to a new folder on a PC
   without Visual Studio: first run, setup, the code build, PLAY, a second start straight into the game. Last done
   at 08:03 on Mon 16 Nov, before the later features.
@@ -24,10 +24,11 @@ feature list itself is [TODO.md](TODO.md); progress is [STATUS.md](STATUS.md).
 
 ### Should do
 
-- [ ] **README's feature paragraph** is out of date: it still lists the mouse camera (now off and set aside) and
-  misses the button prompts, clean menu edges, made-ahead pipelines, the performance overlay and screenshots.
-- [ ] **A version and a changelog**: a version number in the Configuration app's About page and the zip's name,
-  and a CHANGELOG with this list.
+- [x] **README** brought up to date, with a "Testers wanted" section and a not-affiliated disclaimer.
+- [x] **Contribution rules** (`CONTRIBUTING.md`): no game files, moderation, `test` for development and `main` for
+  releases, what a report needs; issue forms for bugs and features, and a pull request template.
+- [~] **A version and a changelog**: `0.1.0-preview.1` (`src/common/version.h`) on the About page and the log's
+  first line; still to do: the zip's name and a CHANGELOG.
 - [ ] **FAQ**: Windows SmartScreen on an unsigned exe ("More info", "Run anyway"), and where crash dumps and logs
   are for a bug report.
 - [ ] **Local paths in the docs**: STATUS.md and TODO.md name this PC's working folders (test tools, the reference

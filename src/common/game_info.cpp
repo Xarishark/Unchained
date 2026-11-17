@@ -1,6 +1,7 @@
 #include "app/app.h"
 #include "core/input.h"
 #include "core/log.h"
+#include "common/version.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -126,6 +127,7 @@ void SaveOptions(void* table) {
 }
 
 void InitOptions() {
+    LOGR("Unchained %s", kUnchainedVersion);
     if (!g_aniso_named) app::Get().aniso = kDefaultAniso;
     ApplyPreset();
 }

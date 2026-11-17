@@ -11,6 +11,8 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
+#include "common/version.h"
+
 #include <windows.h>
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -657,8 +659,11 @@ void PageAbout() {
     ImGui::PushFont(g_head);
     ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(kGreen), "UNCHAINED");
     ImGui::PopFont();
+    Note((std::string("Version ") + kUnchainedVersion).c_str());
     Note("An unofficial PC port of Whiplash (Crystal Dynamics / Eidos, 2003) for the original Xbox, made by static "
          "recompilation with Xbox XBE Recomp. It contains no game files or code: you need your own copy.");
+    Note("Unchained is a fan project, not affiliated with or endorsed by Crystal Dynamics, Eidos, Square Enix or "
+         "Embracer Group. Whiplash and its names belong to their owners.");
     ImGui::Spacing();
     Note("Built on: Xbox XBE Recomp, XenonRecomp's function layout, Zydis, toml++, Dear ImGui, SDL, AMD FidelityFX "
          "Super Resolution 1 (MIT).");

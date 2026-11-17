@@ -1,0 +1,21 @@
+name: Feature request
+description: Something a good PC port of Whiplash should have.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Check [docs/TODO.md](https://github.com/devall96/Unchained/blob/test/docs/TODO.md) first: it lists what is
+        done, in progress and planned.
+  - type: textarea
+    id: what
+    attributes:
+      label: What you'd like
+      description: The feature, and what it would change for you when you play.
+    validations:
+      required: true
+  - type: textarea
+    id: where
+    attributes:
+      label: Anything else
+      description: Other ports or recomps that do it well, screenshots, ideas for how.

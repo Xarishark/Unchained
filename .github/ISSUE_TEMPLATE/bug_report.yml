@@ -1,0 +1,68 @@
+name: Bug report
+description: Something in the game looks, sounds or behaves wrong, stutters, or crashes.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing Unchained! Every report shows how far the game really works.
+        **Never attach or link game files or generated game code**, and no links to copies of the game: issues with
+        any of them are removed. Your own save files are welcome, zipped: they show whether a problem comes from the
+        game's mechanics.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you start
+      options:
+        - label: I'm on the [latest release](https://github.com/devall96/Unchained/releases), and the bug still happens there.
+          required: true
+        - label: I searched the [existing issues](https://github.com/devall96/Unchained/issues?q=is%3Aissue) and this one isn't reported yet.
+          required: true
+  - type: dropdown
+    id: version
+    attributes:
+      label: Unchained version
+      description: Shown on Unchained Configuration's About page and on the first lines of the log.
+      options:
+        - "0.1.0-preview.1 (latest)"
+        - "Built from the test branch"
+        - "An older release (please update and try again first)"
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Your PC
+      description: Windows version, GPU and its driver version, CPU, and the window size.
+      placeholder: Windows 11 24H2, RTX 3060 (driver 581.29), Ryzen 5 5600X, 2560x1440 borderless
+    validations:
+      required: true
+  - type: input
+    id: input
+    attributes:
+      label: Controller or keyboard
+      placeholder: Xbox Series pad over USB
+  - type: input
+    id: where
+    attributes:
+      label: Where in the game
+      description: The level and place, menu or cutscene where it happened.
+      placeholder: Training level, the lab with the cages
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did right before, what happened, and what you expected instead. Screenshots (F12) or a short clip help.
+    validations:
+      required: true
+  - type: textarea
+    id: files
+    attributes:
+      label: Log and crash dump
+      description: >-
+        Attach the newest logs\unchained_NNN.log from Unchained's folder, and for a crash the newest file in
+        CrashDumps\. Your settings.toml helps too. Never attach the game's own files.
+    validations:
+      required: true
