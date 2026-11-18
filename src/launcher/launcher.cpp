@@ -21,7 +21,6 @@
 #include <windows.h>
 #include <d3d12.h>
 #include <dxgi1_6.h>
-#include <shellapi.h>
 #include <shobjidl.h>
 #include <wrl/client.h>
 #else
@@ -1217,34 +1216,20 @@ bool Run(bool first_run, bool build_only) {
 
 namespace {
 
-// "--name <value>" or "--name=<value>": the value, empty without the argument
-std::filesystem::path ArgValue(const wchar_t* name) {
-    std::vector<std::wstring> words;
-#ifdef _WIN32
-    int n = 0;
-    if (wchar_t** argv = CommandLineToArgvW(GetCommandLineW(), &n)) {
-        for (int i = 1; i < n; i++) words.emplace_back(argv[i]);
-        LocalFree(argv);
-    }
-#else
-    const std::vector<std::string>& args = platform::Args();
-    for (size_t i = 1; i < args.size(); i++) words.push_back(platform::Wide(args[i]));
-#endif
-    std::wstring eq = std::wstring(name) + L"=";
-    for (size_t i = 0; i < words.size(); i++) {
-        if (words[i] == name && i + 1 < words.size()) return std::filesystem::path(words[i + 1]);
-        if (words[i].compare(0, eq.size(), eq) == 0) return std::filesystem::path(words[i].substr(eq.size()));
-    }
-    return {};
-}
-
 // one "progress <0..1> <text>" line on stdout, as RecompLauncher's setup screen reads them; a GUI program on Windows
 // writes to the handle it was given (none when started by hand, and then nothing is written)
 void PrepareLine(float fraction, const std::string& text) {
+    std::string flat;  // one line: a message's line breaks become spaces
+    for (char c : text) {
+        if (c != '\n' && c != '\r' && c != ' ') flat += c;
+        else if (!flat.empty() && flat.back() != ' ') flat += ' ';
+    }
+    while (!flat.empty() && flat.back() == ' ') flat.pop_back();
     char line[512];
-    int n = std::snprintf(line, sizeof(line), "progress %.3f %s\n", std::clamp(fraction, 0.0f, 1.0f), text.c_str());
+    int n = std::snprintf(line, sizeof(line) - 1, "progress %.3f %s", std::clamp(fraction, 0.0f, 1.0f), flat.c_str());
     if (n <= 0) return;
-    n = std::min(n, int(sizeof(line)) - 1);
+    n = std::min(n, int(sizeof(line)) - 2);
+    line[n++] = '\n';
 #ifdef _WIN32
     HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD written = 0;
@@ -1258,53 +1243,30 @@ void PrepareLine(float fraction, const std::string& text) {
 
 std::string Narrow8(const std::wstring& w) { return platform::Utf8(w); }
 
-// --prepare [--game <disc image or folder>]: the first start's work without a window, for RecompLauncher's setup step
-// (and scripts): the copy checked and copied into assets as the Configuration app's GAME FILES page does, then the
-// game's code built, with progress lines. 0 when the game is ready to play; 1 the copy is missing, the wrong release
-// or could not be copied; 2 the code build failed. Without --prepare nothing here runs.
+// --prepare [--game <disc image or folder>]: the first start's work without a window or a dialog, for RecompLauncher's
+// setup step (and scripts): the copy checked, from where it is with --game (nothing copied) or in assets, then the
+// game's code built from it, with progress lines. Exits 0 when the game is ready to play, else app::kExitNoGame,
+// kExitOtherRelease or kExitGameCode, as a start does. Without --prepare nothing here runs.
 int Prepare() {
-    constexpr float kCopyShare = 0.3f;  // of the bar: the copy, then the build
     constexpr int kPollMs = 200;
-    std::filesystem::path game = ArgValue(L"--game");
-    if (!game.empty()) {
-        launcher::Start(game);
-        std::string last;
-        int last_pct = -1;
-        for (;;) {
-            launcher::Stage stage;
-            std::string text;
-            float progress;
-            {
-                launcher::Setup& st = launcher::State();
-                std::lock_guard<std::mutex> lock(st.lock);
-                stage = st.stage;
-                text = st.text;
-                progress = st.progress;
-            }
-            if (text.empty()) text = "Checking your copy";
-            if (stage == launcher::Stage::Failed) {
-                PrepareLine(0, text);
-                return 1;
-            }
-            int pct = int(progress * 100);
-            if (text != last || pct != last_pct) PrepareLine(progress * kCopyShare, text);
-            last = text;
-            last_pct = pct;
-            if (stage == launcher::Stage::Done) break;
-            platform::SleepMs(kPollMs);
+    app::QuietGameErrors();
+    PrepareLine(0, "Checking your copy");
+    auto failed = [](float at) {
+        app::BuildStatus b = app::GameCodeBuildStatus();
+        if (!b.done) {  // the game was not found, or is another release
+            PrepareLine(at, Narrow8(app::GameErrorText()));
+            return app::GameError();
         }
-    } else if (!launcher::GameFilesPresent()) {
-        PrepareLine(0, "No copy of the game: pass --game <disc image or folder>.");
-        return 1;
-    }
+        PrepareLine(at, b.failure.empty() ? std::string("The game's code could not be built.") : Narrow8(b.failure));
+        return app::kExitGameCode;
+    };
     if (!app::StartGameCodeBuild()) {
         app::BuildStatus b = app::GameCodeBuildStatus();
         if (b.done && b.ok) {
             PrepareLine(1, "The game's code is built.");
             return 0;
         }
-        PrepareLine(kCopyShare, b.failure.empty() ? std::string("The game's code could not be built.") : Narrow8(b.failure));
-        return 2;
+        return failed(0);
     }
     std::string last;
     int last_pct = -1;
@@ -1315,16 +1277,26 @@ int Prepare() {
                 PrepareLine(1, "The game's code is built.");
                 return 0;
             }
-            PrepareLine(kCopyShare, Narrow8(b.failure));
-            return 2;
+            return failed(b.fraction);
         }
         std::string text = Narrow8(b.stage);
         int pct = int(b.fraction * 100);
-        if (text != last || pct != last_pct) PrepareLine(kCopyShare + (1 - kCopyShare) * b.fraction, text);
+        if (text != last || pct != last_pct) PrepareLine(b.fraction, text);
         last = text;
         last_pct = pct;
         platform::SleepMs(kPollMs);
     }
+}
+
+// the game's code built when it is missing or out of date (true while it builds); a copy that can't be used (told to
+// the player) ends the program with its exit code, as main would after telling it again
+bool StartBuild() {
+    if (app::StartGameCodeBuild()) return true;
+    if (!app::GameCodeBuildStatus().done) {
+        logx::Flush();
+        std::exit(app::GameError());
+    }
+    return false;
 }
 
 }  // namespace
@@ -1342,9 +1314,9 @@ bool UnchainedLauncher() {
 #ifndef _WIN32
     // Linux: "Unchained --configure" opens the app; its PLAY starts the game in this process
     bool configure = platform::HasArg(L"--configure");
-    bool present = launcher::GameFilesPresent();
+    bool present = !app::GameArg().empty() || launcher::GameFilesPresent();
     if (!configure && present) {
-        if (!app::StartGameCodeBuild()) return true;
+        if (!StartBuild()) return true;
         return launcher::Run(false, true);
     }
     return launcher::Run(!present, false);
@@ -1353,10 +1325,10 @@ bool UnchainedLauncher() {
     GetModuleFileNameW(nullptr, self, MAX_PATH);
     bool config_exe = std::wcsstr(std::filesystem::path(self).filename().c_str(), L"Configuration") != nullptr;
     bool configure = config_exe || std::wcsstr(GetCommandLineW(), L"--configure") != nullptr;
-    bool present = launcher::GameFilesPresent();
+    bool present = !app::GameArg().empty() || launcher::GameFilesPresent();
     if (!configure && present) {
         // the game's code built first when it is missing or out of date, in the app's look, then the game
-        if (!app::StartGameCodeBuild()) return true;
+        if (!StartBuild()) return true;
         return launcher::Run(false, true);
     }
     bool play = launcher::Run(!present, false);
