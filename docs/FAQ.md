@@ -30,6 +30,18 @@ green in the game's data); the PS2 version you may have seen lights them differe
 **Can I keep my game files and saves somewhere else?** Set `UNCHAINED_DATA_ROOT` to a folder: the game files,
 saves, settings, logs and caches go there; the program stays where it is.
 
+**Can I play my copy where it is, without copying it?** Start `Unchained --game <your .iso or folder>` (a shortcut,
+a script or a launcher can). It's checked and played from there; nothing is copied.
+
+**Can the Linux AppImage keep everything beside itself?** Put an empty `portable.txt` next to the AppImage: saves,
+settings, logs and caches then go in that folder instead of `~/.local/share/Unchained`. (On Windows they are beside
+the exe already.)
+
+**What do Unchained's exit codes mean?** 3: no copy of the game was found, or it couldn't be read. 4: the copy is
+another release (only Whiplash USA runs). 5: the game's code couldn't be built or loaded. `Unchained --prepare
+[--game <copy>]` does the first start's setup without a window, prints `progress <0..1> <text>` lines and exits 0
+when the game is ready, or with the same codes.
+
 **How do I take a screenshot?** F12 saves the picture as a PNG in `screenshots\`. F10 shows the performance
 overlay.
 

@@ -128,7 +128,8 @@ PC features from [docs/TODO.md](docs/TODO.md) (started items count half; the ful
 
 **Saves and files**
 - **Save backups at every start** (the last 5 kept), **save profiles** (named sets of saves, each on its own virtual disk) and a **custom save folder**.
-- Saves, settings, logs and caches stay in one data folder, which `UNCHAINED_DATA_ROOT` can move anywhere.
+- Saves, settings, logs and caches stay in one data folder, which `UNCHAINED_DATA_ROOT` can move anywhere; on Linux a `portable.txt` beside the AppImage keeps them in its folder.
+- `--game <disc image or folder>` plays your copy where it is, without copying it, for shortcuts, scripts and launchers.
 
 **Configuration app**
 - A lab-terminal look of its own: dark teal, green terminal frames and big slanted headings, drawn by Unchained with bundled open fonts and no game art. The same app on Windows and Linux.

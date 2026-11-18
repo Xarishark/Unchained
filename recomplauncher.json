@@ -14,11 +14,12 @@
   "prepare": {
     "program": ["Unchained.exe", "Unchained.AppImage"],
     "args": ["--prepare", "--game", "{game}"],
-    "label": "Your copy checked and copied, and the game's code built on this PC",
+    "label": "Your copy checked, and the game's code built from it on this PC",
     "timeout": 3600
   },
   "start": {
-    "program": ["Unchained.exe", "Unchained.AppImage"]
+    "program": ["Unchained.exe", "Unchained.AppImage"],
+    "args": ["--game", "{game}"]
   },
   "config": [
     {
@@ -26,6 +27,7 @@
       "format": "toml",
       "file": [
         { "path": "{install}/settings.toml", "if": "{install}/Unchained.exe" },
+        { "path": "{install}/settings.toml", "if": "{install}/portable.txt" },
         { "path": "{local}/Unchained/settings.toml" }
       ]
     }
@@ -39,16 +41,24 @@
   "folders": {
     "data": [
       { "path": "{install}", "if": "{install}/Unchained.exe" },
+      { "path": "{install}", "if": "{install}/portable.txt" },
       { "path": "{local}/Unchained" }
     ],
     "saves": [
       { "path": "{install}/hdd", "if": "{install}/Unchained.exe" },
+      { "path": "{install}/hdd", "if": "{install}/portable.txt" },
       { "path": "{local}/Unchained/hdd" }
     ],
     "logs": [
       { "path": "{install}/logs", "if": "{install}/Unchained.exe" },
+      { "path": "{install}/logs", "if": "{install}/portable.txt" },
       { "path": "{local}/Unchained/logs" }
     ]
+  },
+  "exit_codes": {
+    "3": "Unchained couldn't find your copy of Whiplash, or couldn't read it. Pick it again on the game's page.",
+    "4": "Your copy is another release of Whiplash. Unchained runs the USA release for the original Xbox only.",
+    "5": "The game's code couldn't be built on this PC. The newest log in Unchained's logs folder says why."
   },
   "looks": {
     "graphics_key": "renderer",
