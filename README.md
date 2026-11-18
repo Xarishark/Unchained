@@ -316,3 +316,7 @@ The game's code is never in this repository: the build recompiles your own `defa
 ## License
 
 Unchained's own code is [MIT](LICENSE). The licence covers Unchained's code only, never the game.
+
+---
+
+<p align="center"><a href="https://ko-fi.com/devall96"><img src="https://img.shields.io/badge/Support_me_on-Ko--fi-FF5E5B?logo=ko-fi&logoColor=white&style=for-the-badge" alt="Support me on Ko-fi"></a></p>
