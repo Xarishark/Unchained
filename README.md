@@ -2,6 +2,8 @@
 
 **Unchained** brings *Whiplash* (original Xbox, 2003) to **Windows and Linux** as a native PC port. It is a **static recompilation**: the game's Xbox code is translated ahead of time into a native program, so no emulator runs the game. On top of that sits what a good PC release should have: your screen's full resolution, real widescreen and ultrawide, a HUD at the screen's edges, AMD FSR 1, smooth frame pacing with no shader stutter on later starts, button prompts for the controller in your hands, an in-game settings menu and a Configuration app that sets everything up from **your own copy of the game**.
 
+<p align="center"><a href="https://recomplauncher.com/game/unchained"><picture><source media="(prefers-color-scheme: dark)" srcset="https://recomplauncher.com/assets/press/launcher/badge-light.svg"><img alt="Get it on RecompLauncher" src="https://recomplauncher.com/assets/press/launcher/badge-dark.svg" height="48"></picture></a></p>
+
 **[⬇ Download Unchained](https://devall96.github.io/Unchained/)** · [All releases](https://github.com/devall96/Unchained/releases) · [Testers wanted](#-testers-wanted) · [Where it's at](#where-its-at) · [What it does](#what-it-does) · [Getting started](#getting-started) · [Steam Deck](#steam-deck) · [Known issues](#known-issues) · [Roadmap](#roadmap) · [How it was made](#how-it-was-made)
 
 > [!CAUTION]

@@ -69,6 +69,8 @@ cp "$here/unchained.desktop" "$app/unchained.desktop"
 # the version (release.sh gives it from src/common/version.h) for software centres and AppImage tools
 [ -n "$VERSION" ] && echo "X-AppImage-Version=$VERSION" >> "$app/unchained.desktop"
 cp "$here/unchained.png" "$app/unchained.png"
+# RecompLauncher reads /recomplauncher.json inside the AppImage: the game it needs, its settings, its saves
+cp "$here/../../recomplauncher.json" "$app/recomplauncher.json"
 ln -s unchained.png "$app/.DirIcon"
 
 mksquashfs "$app" "$work/app.squashfs" -root-owned -noappend -comp zstd -quiet

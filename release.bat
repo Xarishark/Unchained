@@ -21,7 +21,8 @@ if not exist "%OUT%\sdk_dir.txt" echo %OUT%\sdk_dir.txt was not written, update 
 set /p SDK=<"%OUT%\sdk_dir.txt"
 
 rem the release laid out in a folder of its own
-set "NAME=%GAME_EXE%-%VERSION%"
+rem the OS and CPU in the name, so a launcher or a player picks the right file
+set "NAME=%GAME_EXE%-%VERSION%-Windows-x64"
 set "STAGE=%OUT%\package\%NAME%"
 rd /s /q "%OUT%\package" 2>nul
 mkdir "%STAGE%\assets"
@@ -38,6 +39,8 @@ for %%f in (msvcp140 vcruntime140 vcruntime140_1) do copy /y "%VCRUNTIME%\%%f.dl
 copy /y res\splash.png "%STAGE%\" >nul
 robocopy fonts "%STAGE%\fonts" /njh /njs /nfl /ndl >nul
 if errorlevel 8 (echo Copying the fonts failed & exit /b 1)
+rem RecompLauncher reads this beside the exe: the game it needs, its settings, its saves
+copy /y recomplauncher.json "%STAGE%\" >nul || exit /b 1
 copy /y README.md "%STAGE%\" >nul
 copy /y LICENSE "%STAGE%\LICENSE.txt" >nul
 copy /y "%SDK%\THIRD_PARTY.txt" "%STAGE%\" >nul

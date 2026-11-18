@@ -15,7 +15,7 @@ runtime=$(cd "$(dirname "$3")" && pwd)/$(basename "$3")
 src=$(cd "$(dirname "$0")/../.." && pwd)
 # the version every screen shows (src/common/version.h), in the file's name as the Windows release has it
 version=$(sed -n 's/.*kUnchainedVersion = "\([^"]*\)".*/\1/p' "$src/src/common/version.h")
-out=${4:-Unchained-$version-x86_64.AppImage}
+out=${4:-Unchained-$version-Linux-x86_64.AppImage}
 assets=$(readlink -f "$src/assets")
 
 # the source at /src, the game files where assets/ points (read only)
